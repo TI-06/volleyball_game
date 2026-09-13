@@ -21,6 +21,27 @@ function serveCandidate(state: MatchState): PlayerState | null {
   return players[state.rally.serverIndex.home % players.length] ?? null;
 }
 
+function offensiveCandidate(state: MatchState): PlayerState | null {
+  const lastTouchedBy = state.ball.lastTouchedBy;
+  if (!lastTouchedBy?.startsWith('home-') || state.ball.velocity.y < 0) {
+    return null;
+  }
+
+  const players = homePlayers(state);
+  const lastToucher = players.find((player) => player.id === lastTouchedBy);
+  if (!lastToucher) return null;
+
+  if (lastToucher.role !== 'SETTER') {
+    return players.find((player) => player.role === 'SETTER') ?? null;
+  }
+
+  return (
+    [...players]
+      .filter((player) => player.role === 'ACE' || player.role === 'MIDDLE')
+      .sort((a, b) => Math.abs(a.position.z) - Math.abs(b.position.z))[0] ?? null
+  );
+}
+
 function targetCandidate(state: MatchState): PlayerState | null {
   const landing = predictLanding(state.ball);
   const players = homePlayers(state);
@@ -50,7 +71,8 @@ export function getSwitchCandidate(
   }
 
   const serve = serveCandidate(state);
-  const candidate = serve ?? targetCandidate(state);
+  const offense = offensiveCandidate(state);
+  const candidate = serve ?? offense ?? targetCandidate(state);
   if (!candidate) {
     return { playerId: null, warningLead: AUTO_WARNING_LEAD, reason: 'NO_CANDIDATE' };
   }
