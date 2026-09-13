@@ -224,6 +224,7 @@ export function MatchScreen({
         homeScore={hud.homeScore}
         awayScore={hud.awayScore}
         action={hud.action}
+        event={hud.event}
         characterIds={PLAYER_TEAM}
         activeCharacterId={hud.activeCharacterId}
         suggestedCharacterId={hud.suggestedCharacterId}
