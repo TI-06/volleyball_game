@@ -67,6 +67,38 @@ describe('resolveAction', () => {
     expect(resolveAction(state, 'home-0')).toBe('JUMP');
   });
 
+  it('uses jump on the ground and block only after the defender is airborne', () => {
+    const base = createMatch(1);
+    const groundState = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      players: base.players.map((player) =>
+        player.id === 'home-0'
+          ? { ...player, position: { x: -2.2, y: 0, z: -0.7 } }
+          : player,
+      ),
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'away-0',
+        position: { x: -2.1, y: 2.8, z: 0.55 },
+        velocity: { x: 0, y: -1, z: -7 },
+      },
+    };
+
+    expect(resolveAction(groundState, 'home-0')).toBe('JUMP');
+
+    const airborneState = {
+      ...groundState,
+      players: groundState.players.map((player) =>
+        player.id === 'home-0'
+          ? { ...player, isAirborne: true, position: { ...player.position, y: 0.7 } }
+          : player,
+      ),
+    };
+    expect(resolveAction(airborneState, 'home-0')).toBe('BLOCK');
+  });
+
   it('returns no action after the match is over', () => {
     const base = createMatch(1);
     expect(resolveAction({ ...base, winner: 'home' }, 'home-0')).toBeNull();
