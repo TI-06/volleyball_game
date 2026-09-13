@@ -120,6 +120,10 @@ export class GameScene {
 
   dispose(): void {
     this.resizeObserver.disconnect();
+    for (const view of this.playerViews.values()) {
+      view.dispose();
+    }
+    this.playerViews.clear();
     this.renderer.dispose();
     this.renderer.domElement.remove();
     this.scene.traverse((object) => {
