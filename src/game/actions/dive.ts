@@ -40,6 +40,7 @@ export function performDive(
     quality,
     ball: {
       ...receive.ball,
+      lastContact: 'DIVE',
       velocity: {
         x: receive.ball.velocity.x * correctionScale,
         y: receive.ball.velocity.y * correctionScale,
