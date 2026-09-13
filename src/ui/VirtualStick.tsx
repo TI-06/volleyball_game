@@ -11,6 +11,7 @@ export function VirtualStick({ onMove, onRelease }: VirtualStickProps) {
   const origin = useRef<{ x: number; y: number } | null>(null);
   const activePointerId = useRef<number | null>(null);
   const [thumb, setThumb] = useState({ x: 0, y: 0 });
+  const [base, setBase] = useState({ x: 0, y: 0 });
   const [active, setActive] = useState(false);
 
   const update = (event: PointerEvent<HTMLDivElement>) => {
@@ -47,6 +48,8 @@ export function VirtualStick({ onMove, onRelease }: VirtualStickProps) {
         event.currentTarget.setPointerCapture(event.pointerId);
         activePointerId.current = event.pointerId;
         origin.current = { x: event.clientX, y: event.clientY };
+        const rect = event.currentTarget.getBoundingClientRect();
+        setBase({ x: event.clientX - rect.left, y: event.clientY - rect.top });
         setActive(true);
         setThumb({ x: 0, y: 0 });
       }}
@@ -57,7 +60,10 @@ export function VirtualStick({ onMove, onRelease }: VirtualStickProps) {
       onPointerCancel={(event) => release(event.pointerId)}
     >
       {active ? (
-        <div className="virtual-stick-base">
+        <div
+          className="virtual-stick-base"
+          style={{ left: `${base.x}px`, top: `${base.y}px` }}
+        >
           <div
             className="virtual-stick-thumb"
             style={{ transform: `translate(${thumb.x}px, ${thumb.y}px)` }}
