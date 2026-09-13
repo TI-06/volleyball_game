@@ -16,9 +16,10 @@ export function performBlock(
   timingOffsetSeconds: number,
   horizontalErrorMeters: number,
 ): BlockResult {
+  const wallTimingBonus = character.trait === 'WALL' ? 0.025 : 0;
   const timing = classifyContactTiming(
     timingOffsetSeconds,
-    0.055 + character.abilities.block * 0.0009,
+    0.055 + character.abilities.block * 0.0009 + wallTimingBonus,
   );
   const reach = getBlockReach(character);
 
@@ -51,6 +52,7 @@ export function performBlock(
       },
       lastTouchedBy: blockerId,
       inPlay: true,
+      attackTimingBonus: 0,
     },
   };
 }
