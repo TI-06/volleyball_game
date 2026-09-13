@@ -35,10 +35,15 @@ function offensiveCandidate(state: MatchState): PlayerState | null {
     return players.find((player) => player.role === 'SETTER') ?? null;
   }
 
+  const projectedAttackPoint = predictLanding(state.ball);
   return (
     [...players]
-      .filter((player) => player.role === 'ACE' || player.role === 'MIDDLE')
-      .sort((a, b) => Math.abs(a.position.z) - Math.abs(b.position.z))[0] ?? null
+      .filter((player) => player.id !== lastToucher.id)
+      .sort(
+        (a, b) =>
+          distanceXZ(a, projectedAttackPoint.x, projectedAttackPoint.z) -
+          distanceXZ(b, projectedAttackPoint.x, projectedAttackPoint.z),
+      )[0] ?? null
   );
 }
 
