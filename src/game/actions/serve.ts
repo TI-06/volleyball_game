@@ -1,10 +1,20 @@
 import { BALL_GRAVITY } from '../ball/ballPhysics';
+import { COURT } from '../core/constants';
 import type { BallState, PlayerState, Vec3 } from '../core/types';
 
 export type ServeKind = 'FLOAT' | 'JUMP';
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
+}
+
+export function getServeOrigin(server: PlayerState, kind: ServeKind): Vec3 {
+  const endLine = COURT.length / 2 + 0.35;
+  return {
+    x: server.position.x,
+    y: kind === 'JUMP' ? 2.75 : 2.05,
+    z: server.side === 'home' ? -endLine : endLine,
+  };
 }
 
 export function performServe(
@@ -15,11 +25,7 @@ export function performServe(
   power: number,
 ): BallState {
   const normalizedPower = clamp01(power);
-  const origin = {
-    x: server.position.x,
-    y: kind === 'JUMP' ? 2.75 : 2.05,
-    z: server.position.z,
-  };
+  const origin = getServeOrigin(server, kind);
   const flightTime = kind === 'JUMP'
     ? 0.72 - normalizedPower * 0.1
     : 1.05 - normalizedPower * 0.16;
