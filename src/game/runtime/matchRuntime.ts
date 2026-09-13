@@ -5,7 +5,7 @@ import { performServe } from '../actions/serve';
 import { performSet, type SetTempo } from '../actions/set';
 import { performSpike, type AttackIntent } from '../actions/spike';
 import { decideAllyIntent } from '../ai/allyAI';
-import { decideCpuIntent } from '../ai/cpuAI';
+import { decideCpuIntent, type CpuIntent } from '../ai/cpuAI';
 import {
   DIFFICULTY_PROFILES,
   type CpuDifficulty,
@@ -60,6 +60,11 @@ export interface RuntimeEvent {
   value?: number;
 }
 
+interface CpuDecisionMemory {
+  intent: CpuIntent;
+  nextDecisionAt: number;
+}
+
 export interface MatchRuntimeState {
   match: MatchState;
   controlledPlayerId: string;
@@ -67,6 +72,7 @@ export interface MatchRuntimeState {
   switchMode: SwitchMode;
   difficulty: CpuDifficulty;
   history: TendencyHistory;
+  cpuDecisions: Record<string, CpuDecisionMemory>;
   lastEvent: RuntimeEvent | null;
 }
 
@@ -87,6 +93,7 @@ export function createMatchRuntime(
     switchMode,
     difficulty,
     history: createTendencyHistory(),
+    cpuDecisions: {},
     lastEvent: null,
   };
 }
@@ -218,6 +225,22 @@ function jumpPlayer(match: MatchState, player: PlayerState): MatchState {
   });
 }
 
+function userServeParameters(input: RuntimeInput): {
+  kind: 'FLOAT' | 'JUMP';
+  power: number;
+} {
+  const swipe = input.swipe;
+  if (!swipe) return { kind: 'FLOAT', power: 0.72 };
+  const distance = Math.hypot(swipe.x, swipe.y);
+  const kind = swipe.y <= -82 && distance >= 92 ? 'JUMP' : 'FLOAT';
+  const durationPower = 0.46 + swipe.durationMs / 900;
+  const distancePower = distance / 420;
+  return {
+    kind,
+    power: clamp(durationPower + distancePower, 0.46, 1),
+  };
+}
+
 function performUserAction(
   runtime: MatchRuntimeState,
   input: RuntimeInput,
@@ -240,7 +263,8 @@ function performUserAction(
       y: 0,
       z: clamp(input.aim.z || 6.2, 1.5, 8.2),
     };
-    const ball = performServe(match.ball, player, target, 'FLOAT', 0.72);
+    const serve = userServeParameters(input);
+    const ball = performServe(match.ball, player, target, serve.kind, serve.power);
     match = startRallyWithBall(match, ball);
   } else if (action === 'RECEIVE') {
     const result = performReceive(
@@ -330,26 +354,37 @@ function performUserAction(
 }
 
 function moveTeams(runtime: MatchRuntimeState, input: RuntimeInput, dt: number): MatchRuntimeState {
-  let match = runtime.match;
+  const match = runtime.match;
   const profile = DIFFICULTY_PROFILES[runtime.difficulty];
+  const cpuDecisions = { ...runtime.cpuDecisions };
 
-  match = {
-    ...match,
-    players: match.players.map((player) => {
-      const character = characterFor(player);
-      if (player.id === runtime.controlledPlayerId) {
-        return movePlayerByVector(player, character, input.move, dt);
-      }
-      if (player.side === 'home') {
-        const intent = decideAllyIntent(match, player.id);
-        return movePlayerToward(player, character, intent.target, dt);
-      }
-      const intent = decideCpuIntent(match, player.id, profile, runtime.history);
+  const players = match.players.map((player) => {
+    const character = characterFor(player);
+    if (player.id === runtime.controlledPlayerId) {
+      return movePlayerByVector(player, character, input.move, dt);
+    }
+    if (player.side === 'home') {
+      const intent = decideAllyIntent(match, player.id);
       return movePlayerToward(player, character, intent.target, dt);
-    }),
-  };
+    }
 
-  return { ...runtime, match };
+    let memory = cpuDecisions[player.id];
+    if (!memory || match.time >= memory.nextDecisionAt) {
+      const intent = decideCpuIntent(match, player.id, profile, runtime.history);
+      memory = {
+        intent,
+        nextDecisionAt: match.time + intent.reactionDelay,
+      };
+      cpuDecisions[player.id] = memory;
+    }
+    return movePlayerToward(player, character, memory.intent.target, dt);
+  });
+
+  return {
+    ...runtime,
+    cpuDecisions,
+    match: { ...match, players },
+  };
 }
 
 function nearestPlayer(
@@ -370,7 +405,12 @@ function nearestPlayer(
 }
 
 function cpuTimingError(profile: DifficultyProfile): number {
-  return (profile.predictionError + profile.decisionNoise) * 0.055;
+  const averageDelay = (profile.reactionDelay.min + profile.reactionDelay.max) / 2;
+  return (profile.predictionError + profile.decisionNoise) * 0.055 + averageDelay * 0.035;
+}
+
+function cpuReceiveReach(profile: DifficultyProfile): number {
+  return clamp(2.28 - profile.predictionError * 0.28, 1.82, 2.24);
 }
 
 function performCpuAction(runtime: MatchRuntimeState): MatchRuntimeState {
@@ -439,7 +479,7 @@ function performCpuAction(runtime: MatchRuntimeState): MatchRuntimeState {
         receiver.position.x - landing.x,
         receiver.position.z - landing.z,
       );
-      if (distance <= 2.1 + profile.predictionError * 0.25) {
+      if (distance <= cpuReceiveReach(profile)) {
         const result = performReceive(
           ball,
           characterFor(receiver),
@@ -640,7 +680,11 @@ export function stepMatchRuntime(
   }
 
   if (previousPhase === 'POINT' && match.rally.phase === 'SERVE_READY') {
-    runtime = { ...runtime, match: resetFormation(match) };
+    runtime = {
+      ...runtime,
+      cpuDecisions: {},
+      match: resetFormation(match),
+    };
   }
 
   return runtime;
