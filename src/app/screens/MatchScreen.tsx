@@ -69,6 +69,7 @@ export function MatchScreen({
   const inputRef = useRef<RuntimeInput>(createInput());
   const finishSentRef = useRef(false);
   const statsRef = useRef({ highestSpikeKmh: 0, perfectCount: 0 });
+  const initialTutorialRef = useRef(tutorial);
   const [tutorialActive, setTutorialActive] = useState(tutorial);
   const [hud, setHud] = useState<HudState>(() => ({
     homeScore: 0,
@@ -98,7 +99,7 @@ export function MatchScreen({
 
   useEffect(() => {
     let runtime = createMatchRuntime(1, difficulty, switchMode);
-    if (tutorial) {
+    if (initialTutorialRef.current) {
       runtime = {
         ...runtime,
         controlledPlayerId: 'home-2',
@@ -136,21 +137,25 @@ export function MatchScreen({
 
       while (accumulator >= FIXED_STEP_SECONDS) {
         runtime = stepMatchRuntime(runtime, inputRef.current, FIXED_STEP_SECONDS);
-        if (runtime.lastEvent) latestEvent = runtime.lastEvent;
+        const event = runtime.lastEvent;
+        if (event) {
+          const isPlayerEvent = event.actorId?.startsWith('home-') ?? false;
+          if (isPlayerEvent && event.quality === 'PERFECT') {
+            statsRef.current.perfectCount += 1;
+          }
+          if (isPlayerEvent && event.type === 'SPIKE' && event.value) {
+            statsRef.current.highestSpikeKmh = Math.max(
+              statsRef.current.highestSpikeKmh,
+              event.value,
+            );
+          }
+          if (isPlayerEvent || latestEvent === null) {
+            latestEvent = event;
+          }
+        }
         inputRef.current.actionPressed = false;
         inputRef.current.actionReleased = false;
         accumulator -= FIXED_STEP_SECONDS;
-      }
-
-      const isPlayerEvent = latestEvent?.actorId?.startsWith('home-') ?? false;
-      if (isPlayerEvent && latestEvent?.quality === 'PERFECT') {
-        statsRef.current.perfectCount += 1;
-      }
-      if (isPlayerEvent && latestEvent?.type === 'SPIKE' && latestEvent.value) {
-        statsRef.current.highestSpikeKmh = Math.max(
-          statsRef.current.highestSpikeKmh,
-          latestEvent.value,
-        );
       }
 
       runtimeRef.current = runtime;
@@ -187,7 +192,7 @@ export function MatchScreen({
       window.cancelAnimationFrame(animationFrame);
       scene.dispose();
     };
-  }, [cameraMode, difficulty, onFinished, switchMode, tutorial, updateHud]);
+  }, [cameraMode, difficulty, onFinished, switchMode, updateHud]);
 
   const completeTutorial = useCallback(() => {
     setTutorialActive(false);
