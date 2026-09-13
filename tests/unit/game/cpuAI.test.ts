@@ -116,6 +116,25 @@ describe('CPU AI', () => {
     expect(intent.state).toBe('BLOCK');
   });
 
+  it('keeps a CPU attacker approaching when its own set is descending', () => {
+    const base = createMatch(122);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'away-2',
+        position: { x: -2, y: 2.9, z: 0.9 },
+        velocity: { x: -1, y: -1.1, z: -0.2 },
+      },
+    };
+
+    expect(
+      decideCpuIntent(state, 'away-0', DIFFICULTY_PROFILES.HARD, createTendencyHistory()).state,
+    ).toBe('APPROACH');
+  });
+
   it('gives higher levels tighter receive prediction error than beginner', () => {
     expect(DIFFICULTY_PROFILES.MASTER.predictionError).toBeLessThan(
       DIFFICULTY_PROFILES.BEGINNER.predictionError,
