@@ -14,14 +14,13 @@ function resolveDeadBall(state: MatchState): MatchState {
   const ball = state.ball;
   if (!ball.inPlay) return state;
 
-  const outsideWidth = Math.abs(ball.position.x) > COURT.width / 2;
-  const outsideLength = Math.abs(ball.position.z) > COURT.length / 2;
   const hitFloor = ball.position.y <= 0;
-
-  if (!hitFloor && !outsideWidth && !outsideLength) {
+  if (!hitFloor) {
     return state;
   }
 
+  const outsideWidth = Math.abs(ball.position.x) > COURT.width / 2;
+  const outsideLength = Math.abs(ball.position.z) > COURT.length / 2;
   const lastTouchSide = sideFromPlayerId(ball.lastTouchedBy);
   let winner: TeamSide;
 
