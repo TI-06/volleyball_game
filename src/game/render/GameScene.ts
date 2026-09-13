@@ -88,7 +88,9 @@ export class GameScene {
       const displayPlayer = server?.id === player.id && serveZ !== null
         ? { ...player, position: { ...player.position, z: serveZ } }
         : player;
-      this.playerViews.get(player.id)?.update(displayPlayer);
+      const view = this.playerViews.get(player.id);
+      view?.setSelected(player.id === options.controlledPlayerId);
+      view?.update(displayPlayer);
     }
 
     if (server && serveZ !== null) {
