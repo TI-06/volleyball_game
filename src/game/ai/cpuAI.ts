@@ -15,6 +15,9 @@ export interface CpuIntent {
   reactionDelay: number;
 }
 
+const BLOCK_READY_Z = 1.65;
+const BLOCK_TARGET_Z = 0.55;
+
 function hash01(seed: number, salt: string): number {
   let hash = seed >>> 0;
   for (let index = 0; index < salt.length; index += 1) {
@@ -175,9 +178,10 @@ export function decideCpuIntent(
   }
 
   if (!ballOnAwaySide && (player.role === 'ACE' || player.role === 'MIDDLE')) {
+    const target = { x: state.ball.position.x, y: 0, z: BLOCK_TARGET_Z };
     return {
-      state: 'BLOCK',
-      target: { x: state.ball.position.x, y: 0, z: 0.55 },
+      state: player.position.z <= BLOCK_READY_Z ? 'BLOCK' : 'APPROACH',
+      target,
       attackIntent: null,
       reactionDelay: delay,
     };
