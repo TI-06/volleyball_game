@@ -3,6 +3,7 @@ import {
   createMatchRuntime,
   getCurrentAction,
   stepMatchRuntime,
+  type MatchRuntimeState,
   type RuntimeInput,
 } from '../../../src/game/runtime/matchRuntime';
 
@@ -15,6 +16,20 @@ function input(overrides: Partial<RuntimeInput> = {}): RuntimeInput {
     actionReleased: false,
     requestedPlayerId: null,
     ...overrides,
+  };
+}
+
+function awayServe(runtime: MatchRuntimeState): MatchRuntimeState {
+  return {
+    ...runtime,
+    match: {
+      ...runtime.match,
+      rally: {
+        ...runtime.match.rally,
+        servingSide: 'away',
+        serverIndex: { home: 0, away: 0 },
+      },
+    },
   };
 }
 
@@ -121,39 +136,38 @@ describe('match runtime', () => {
     expect(next.match.ball.velocity.x).toBeGreaterThan(0);
   });
 
-  it('lets an away CPU server start the rally without reading player input', () => {
-    const runtime = createMatchRuntime(104, 'HARD', 'MANUAL');
-    const awayServe = {
-      ...runtime,
-      match: {
-        ...runtime.match,
-        rally: {
-          ...runtime.match.rally,
-          servingSide: 'away' as const,
-          serverIndex: { home: 0, away: 0 },
-        },
-      },
-    };
+  it('waits for cpu reaction time before an away serve', () => {
+    let next = awayServe(createMatchRuntime(104, 'HARD', 'MANUAL'));
 
-    const next = stepMatchRuntime(awayServe, input({ move: { x: -1, z: -1 } }), 1 / 60);
+    next = stepMatchRuntime(next, input({ move: { x: -1, z: -1 } }), 1 / 60);
+    expect(next.match.rally.phase).toBe('SERVE_READY');
+    expect(next.cpuDecisions['away-0']?.actionReadyAt).toBeGreaterThan(next.match.time);
+
+    for (let frame = 0; frame < 60 && next.match.rally.phase === 'SERVE_READY'; frame += 1) {
+      next = stepMatchRuntime(next, input({ move: { x: 1, z: -1 } }), 1 / 60);
+    }
+
     expect(next.match.rally.phase).toBe('RALLY');
     expect(next.match.ball.lastTouchedBy).toBe('away-0');
   });
 
-  it('updates beginner cpu decisions less frequently than master', () => {
+  it('gives MASTER an earlier cpu action window than BEGINNER', () => {
     const beginner = stepMatchRuntime(
-      createMatchRuntime(106, 'BEGINNER', 'MANUAL'),
+      awayServe(createMatchRuntime(106, 'BEGINNER', 'MANUAL')),
       input(),
       1 / 60,
     );
     const master = stepMatchRuntime(
-      createMatchRuntime(106, 'MASTER', 'MANUAL'),
+      awayServe(createMatchRuntime(106, 'MASTER', 'MANUAL')),
       input(),
       1 / 60,
     );
 
     expect(beginner.cpuDecisions['away-0']?.nextDecisionAt).toBeGreaterThan(
       master.cpuDecisions['away-0']?.nextDecisionAt ?? Number.POSITIVE_INFINITY,
+    );
+    expect(beginner.cpuDecisions['away-0']?.actionReadyAt).toBeGreaterThan(
+      master.cpuDecisions['away-0']?.actionReadyAt ?? Number.POSITIVE_INFINITY,
     );
   });
 });
