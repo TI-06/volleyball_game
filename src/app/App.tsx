@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { CpuDifficulty } from '../game/ai/difficulty';
+import type { CameraSetting } from '../game/camera/cameraDirector';
+import type { SwitchMode } from '../game/input/inputTypes';
 import { loadSettings, saveSettings } from '../persistence/settingsStore';
 import { saveMatchResult } from '../persistence/recordStore';
 import { DifficultyScreen } from './screens/DifficultyScreen';
@@ -25,6 +27,22 @@ export function App() {
     },
     [settings.tutorialComplete],
   );
+
+  const updateSwitchMode = useCallback((switchMode: SwitchMode) => {
+    setSettings((current) => {
+      const next = { ...current, switchMode };
+      saveSettings(next);
+      return next;
+    });
+  }, []);
+
+  const updateCameraMode = useCallback((cameraMode: CameraSetting) => {
+    setSettings((current) => {
+      const next = { ...current, cameraMode };
+      saveSettings(next);
+      return next;
+    });
+  }, []);
 
   const finishTutorial = useCallback(() => {
     setTutorialForMatch(false);
@@ -82,5 +100,13 @@ export function App() {
     );
   }
 
-  return <TitleScreen onCpuMatch={() => setScreen('DIFFICULTY')} />;
+  return (
+    <TitleScreen
+      switchMode={settings.switchMode}
+      cameraMode={settings.cameraMode}
+      onCpuMatch={() => setScreen('DIFFICULTY')}
+      onSwitchModeChange={updateSwitchMode}
+      onCameraModeChange={updateCameraMode}
+    />
+  );
 }
