@@ -57,6 +57,7 @@ export function performBlock(
         z: ball.spin.z * 0.45,
       },
       lastTouchedBy: blockerId,
+      lastContact: 'BLOCK',
       inPlay: true,
       attackTimingBonus: 0,
     },
