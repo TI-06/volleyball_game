@@ -1,0 +1,233 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { CpuDifficulty } from '../../game/ai/difficulty';
+import type { CameraSetting } from '../../game/camera/cameraDirector';
+import { PLAYER_TEAM, type CharacterId } from '../../game/characters/roster';
+import { FIXED_STEP_SECONDS } from '../../game/core/constants';
+import { getSwitchCandidate } from '../../game/input/characterSwitch';
+import type { ActionKind, SwitchMode } from '../../game/input/inputTypes';
+import { GameScene } from '../../game/render/GameScene';
+import {
+  createMatchRuntime,
+  getCurrentAction,
+  requestRuntimeSwitch,
+  stepMatchRuntime,
+  type MatchRuntimeState,
+  type RuntimeEvent,
+  type RuntimeInput,
+} from '../../game/runtime/matchRuntime';
+import { MatchHud } from '../../ui/MatchHud';
+import { TutorialScreen } from './TutorialScreen';
+import type { MatchResultView } from './ResultScreen';
+
+interface MatchScreenProps {
+  difficulty: CpuDifficulty;
+  switchMode: SwitchMode;
+  cameraMode: CameraSetting;
+  tutorial: boolean;
+  onTutorialComplete: () => void;
+  onFinished: (result: MatchResultView) => void;
+}
+
+interface HudState {
+  homeScore: number;
+  awayScore: number;
+  action: ActionKind | null;
+  activeCharacterId: CharacterId;
+  suggestedCharacterId: CharacterId | null;
+  event: RuntimeEvent | null;
+}
+
+function runtimeCharacterId(runtime: MatchRuntimeState, playerId: string): CharacterId {
+  const characterId = runtime.match.players.find((player) => player.id === playerId)?.characterId;
+  return (characterId ?? 'kai') as CharacterId;
+}
+
+function createInput(): RuntimeInput {
+  return {
+    move: { x: 0, z: 0 },
+    aim: { x: 0, z: 6.2 },
+    swipe: null,
+    actionPressed: false,
+    actionReleased: false,
+    requestedPlayerId: null,
+    selectedAttack: 'POWER',
+    selectedSetTempo: 'NORMAL',
+  };
+}
+
+export function MatchScreen({
+  difficulty,
+  switchMode,
+  cameraMode,
+  tutorial,
+  onTutorialComplete,
+  onFinished,
+}: MatchScreenProps) {
+  const sceneHostRef = useRef<HTMLDivElement | null>(null);
+  const runtimeRef = useRef<MatchRuntimeState>(createMatchRuntime(1, difficulty, switchMode));
+  const inputRef = useRef<RuntimeInput>(createInput());
+  const finishSentRef = useRef(false);
+  const statsRef = useRef({ highestSpikeKmh: 0, perfectCount: 0 });
+  const [tutorialActive, setTutorialActive] = useState(tutorial);
+  const [hud, setHud] = useState<HudState>(() => ({
+    homeScore: 0,
+    awayScore: 0,
+    action: getCurrentAction(runtimeRef.current),
+    activeCharacterId: 'kai',
+    suggestedCharacterId: null,
+    event: null,
+  }));
+
+  const updateHud = useCallback((runtime: MatchRuntimeState, event: RuntimeEvent | null) => {
+    const switchDecision = getSwitchCandidate(runtime.match, {
+      mode: runtime.switchMode,
+      currentPlayerId: runtime.controlledPlayerId,
+    });
+    setHud({
+      homeScore: runtime.match.score.home,
+      awayScore: runtime.match.score.away,
+      action: getCurrentAction(runtime),
+      activeCharacterId: runtimeCharacterId(runtime, runtime.controlledPlayerId),
+      suggestedCharacterId: switchDecision.playerId
+        ? runtimeCharacterId(runtime, switchDecision.playerId)
+        : null,
+      event,
+    });
+  }, []);
+
+  useEffect(() => {
+    let runtime = createMatchRuntime(1, difficulty, switchMode);
+    if (tutorial) {
+      runtime = {
+        ...runtime,
+        controlledPlayerId: 'home-2',
+        match: {
+          ...runtime.match,
+          rally: {
+            ...runtime.match.rally,
+            servingSide: 'away',
+            serverIndex: { home: 0, away: 0 },
+          },
+        },
+      };
+    }
+    runtimeRef.current = runtime;
+    inputRef.current = createInput();
+    finishSentRef.current = false;
+    statsRef.current = { highestSpikeKmh: 0, perfectCount: 0 };
+    updateHud(runtime, null);
+
+    const host = sceneHostRef.current;
+    if (!host || typeof WebGLRenderingContext === 'undefined') return undefined;
+
+    const scene = new GameScene(host, runtime.match);
+    let animationFrame = 0;
+    let lastTime = performance.now();
+    let accumulator = 0;
+    let hudAccumulator = 0;
+
+    const frame = (now: number) => {
+      const delta = Math.min(0.05, Math.max(0, (now - lastTime) / 1000));
+      lastTime = now;
+      accumulator += delta;
+      hudAccumulator += delta;
+      let latestEvent: RuntimeEvent | null = null;
+
+      while (accumulator >= FIXED_STEP_SECONDS) {
+        runtime = stepMatchRuntime(runtime, inputRef.current, FIXED_STEP_SECONDS);
+        if (runtime.lastEvent) latestEvent = runtime.lastEvent;
+        inputRef.current.actionPressed = false;
+        inputRef.current.actionReleased = false;
+        accumulator -= FIXED_STEP_SECONDS;
+      }
+
+      if (latestEvent?.quality === 'PERFECT') {
+        statsRef.current.perfectCount += 1;
+      }
+      if (latestEvent?.type === 'SPIKE' && latestEvent.value) {
+        statsRef.current.highestSpikeKmh = Math.max(
+          statsRef.current.highestSpikeKmh,
+          latestEvent.value,
+        );
+      }
+
+      runtimeRef.current = runtime;
+      scene.update(runtime.match, delta, {
+        controlledPlayerId: runtime.controlledPlayerId,
+        cameraSetting: cameraMode,
+      });
+
+      if (latestEvent || hudAccumulator >= 0.1) {
+        updateHud(runtime, latestEvent);
+        hudAccumulator = 0;
+      }
+
+      if (runtime.match.winner && !finishSentRef.current) {
+        finishSentRef.current = true;
+        updateHud(runtime, latestEvent);
+        window.setTimeout(() => {
+          onFinished({
+            difficulty,
+            homeScore: runtime.match.score.home,
+            awayScore: runtime.match.score.away,
+            highestSpikeKmh: statsRef.current.highestSpikeKmh,
+            perfectCount: statsRef.current.perfectCount,
+          });
+        }, 550);
+        return;
+      }
+
+      animationFrame = window.requestAnimationFrame(frame);
+    };
+
+    animationFrame = window.requestAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      scene.dispose();
+    };
+  }, [cameraMode, difficulty, onFinished, switchMode, tutorial, updateHud]);
+
+  const completeTutorial = useCallback(() => {
+    setTutorialActive(false);
+    onTutorialComplete();
+  }, [onTutorialComplete]);
+
+  return (
+    <main className="match-screen" data-testid="match-screen">
+      <div ref={sceneHostRef} className="match-scene" />
+      <div className="controlled-player-label">{hud.activeCharacterId.toUpperCase()}</div>
+      <MatchHud
+        homeScore={hud.homeScore}
+        awayScore={hud.awayScore}
+        action={hud.action}
+        characterIds={PLAYER_TEAM}
+        activeCharacterId={hud.activeCharacterId}
+        suggestedCharacterId={hud.suggestedCharacterId}
+        onMove={(move) => {
+          inputRef.current.move = move;
+        }}
+        onActionPress={() => {
+          inputRef.current.actionPressed = true;
+        }}
+        onActionRelease={() => {
+          inputRef.current.actionReleased = true;
+        }}
+        onCharacterSelect={(characterId) => {
+          const player = runtimeRef.current.match.players.find(
+            (candidate) => candidate.side === 'home' && candidate.characterId === characterId,
+          );
+          if (!player) return;
+          runtimeRef.current = requestRuntimeSwitch(runtimeRef.current, player.id);
+          updateHud(runtimeRef.current, null);
+        }}
+      />
+      {tutorialActive ? (
+        <TutorialScreen
+          event={hud.event}
+          onComplete={completeTutorial}
+          onSkip={completeTutorial}
+        />
+      ) : null}
+    </main>
+  );
+}
