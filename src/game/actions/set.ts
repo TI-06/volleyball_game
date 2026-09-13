@@ -75,6 +75,7 @@ export function performSet(
       spin: { x: 0, y: 0, z: 0 },
       inPlay: true,
       lastTouchedBy: setterId,
+      lastContact: 'SET',
       attackTimingBonus: nextAttackTimingBonus(character, quality),
     },
   };
