@@ -22,7 +22,7 @@ describe('block rebound physics', () => {
   });
 
   it('keeps a weaker touched block playable instead of always stuffing it', () => {
-    const result = performBlock(incoming, STARTER_ROSTER.gou, 'home-0', 0.24, 0.1);
+    const result = performBlock(incoming, STARTER_ROSTER.gou, 'home-0', 0.36, 0.1);
 
     expect(result.touched).toBe(true);
     expect(['GOOD', 'BAD']).toContain(result.quality);
