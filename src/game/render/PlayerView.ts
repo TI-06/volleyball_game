@@ -144,6 +144,7 @@ export class PlayerView {
   private readonly rightArm: THREE.Mesh;
   private readonly leftLeg: THREE.Mesh;
   private readonly rightLeg: THREE.Mesh;
+  private readonly selectionRing: THREE.Mesh;
   private readonly numberTexture: THREE.CanvasTexture | null;
   private readonly phaseOffset: number;
 
@@ -164,6 +165,21 @@ export class PlayerView {
     const shorts = new THREE.MeshToonMaterial({ color: side === 'home' ? 0x091b2d : 0x401218 });
     const hair = new THREE.MeshToonMaterial({ color: HAIR_COLOR[character.id] });
     const shoe = new THREE.MeshToonMaterial({ color: 0xf4f7f8 });
+
+    this.selectionRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.48, 0.66, 32),
+      new THREE.MeshBasicMaterial({
+        color: accentColor,
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      }),
+    );
+    this.selectionRing.rotation.x = -Math.PI / 2;
+    this.selectionRing.position.y = 0.025;
+    this.selectionRing.visible = false;
+    this.group.add(this.selectionRing);
 
     const torso = new THREE.Mesh(
       new THREE.CapsuleGeometry(0.29 * this.bodyScale, 0.68, 5, 9),
@@ -242,6 +258,10 @@ export class PlayerView {
     }
 
     this.group.rotation.y = side === 'home' ? 0 : Math.PI;
+  }
+
+  setSelected(selected: boolean): void {
+    this.selectionRing.visible = selected;
   }
 
   update(player: PlayerState): void {
