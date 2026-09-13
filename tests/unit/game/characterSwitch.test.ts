@@ -69,4 +69,26 @@ describe('character switching', () => {
       queuedPlayerId: 'home-2',
     });
   });
+
+  it('switches to the teammate under the actual set trajectory instead of always the ace', () => {
+    const base = createMatch(5);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-1',
+        position: { x: 0.4, y: 2.1, z: -1.1 },
+        velocity: { x: 4.2, y: 3.6, z: 0.35 },
+      },
+    };
+
+    expect(
+      getSwitchCandidate(state, {
+        mode: 'STANDARD',
+        currentPlayerId: 'home-1',
+      }).playerId,
+    ).toBe('home-2');
+  });
 });
