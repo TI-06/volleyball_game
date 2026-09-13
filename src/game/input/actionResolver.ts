@@ -62,7 +62,7 @@ export function resolveAction(
   }
 
   if (nearNet && !ownSide && incoming && ballHigh && distance <= 2.8) {
-    return 'BLOCK';
+    return 'JUMP';
   }
 
   if (ownSide && incoming && ballDescending) {
