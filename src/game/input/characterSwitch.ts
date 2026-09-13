@@ -84,6 +84,10 @@ export function getSwitchCandidate(
     return { playerId: null, warningLead: 0, reason: 'MANUAL_MODE' };
   }
 
+  if (state.rally.phase === 'POINT' || state.rally.phase === 'MATCH_OVER') {
+    return { playerId: null, warningLead: 0, reason: 'NO_CANDIDATE' };
+  }
+
   const serve = serveCandidate(state);
   const offense = offensiveCandidate(state);
   const candidate = serve ?? offense ?? targetCandidate(state);
