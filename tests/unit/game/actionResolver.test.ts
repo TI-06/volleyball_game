@@ -45,6 +45,28 @@ describe('resolveAction', () => {
     expect(resolveAction(state, 'home-1')).toBe('SET');
   });
 
+  it('keeps a descending teammate set in jump context instead of receive', () => {
+    const base = createMatch(1);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      players: base.players.map((player) =>
+        player.id === 'home-0'
+          ? { ...player, position: { x: -2.6, y: 0, z: -1.1 } }
+          : player,
+      ),
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-1',
+        position: { x: -2.5, y: 2.7, z: -0.9 },
+        velocity: { x: 0, y: -1.1, z: 0.2 },
+      },
+    };
+
+    expect(resolveAction(state, 'home-0')).toBe('JUMP');
+  });
+
   it('returns no action after the match is over', () => {
     const base = createMatch(1);
     expect(resolveAction({ ...base, winner: 'home' }, 'home-0')).toBeNull();
