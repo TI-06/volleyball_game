@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { RuntimeEvent } from '../game/runtime/matchRuntime';
 
 interface MatchFeedbackProps {
@@ -51,19 +51,32 @@ function feedbackFor(event: RuntimeEvent): { title: string; detail?: string; emp
 
 export function MatchFeedback({ event }: MatchFeedbackProps) {
   const [visibleEvent, setVisibleEvent] = useState<RuntimeEvent | null>(null);
+  const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!event) return undefined;
+    if (!event) return;
     const feedback = feedbackFor(event);
-    if (!feedback) return undefined;
+    if (!feedback) return;
+
+    if (timeoutRef.current !== null) {
+      window.clearTimeout(timeoutRef.current);
+    }
 
     setVisibleEvent(event);
-    const timeout = window.setTimeout(
-      () => setVisibleEvent((current) => (current === event ? null : current)),
-      event.type === 'POINT' ? 780 : 620,
-    );
-    return () => window.clearTimeout(timeout);
+    timeoutRef.current = window.setTimeout(() => {
+      setVisibleEvent((current) => (current === event ? null : current));
+      timeoutRef.current = null;
+    }, event.type === 'POINT' ? 780 : 620);
   }, [event]);
+
+  useEffect(
+    () => () => {
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current);
+      }
+    },
+    [],
+  );
 
   const feedback = useMemo(
     () => (visibleEvent ? feedbackFor(visibleEvent) : null),
