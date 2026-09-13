@@ -41,5 +41,6 @@ export function performServe(
         : { x: 0.8 * direction, y: 1.2 * (0.5 - normalizedPower), z: 0 },
     inPlay: true,
     lastTouchedBy: server.id,
+    attackTimingBonus: 0,
   };
 }
