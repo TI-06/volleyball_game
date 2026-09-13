@@ -26,15 +26,6 @@ function isCurrentServer(state: MatchState, player: PlayerState): boolean {
   return server?.id === player.id;
 }
 
-function lastTouchWasOpponentSetter(state: MatchState, player: PlayerState): boolean {
-  const lastToucher = state.players.find((candidate) => candidate.id === state.ball.lastTouchedBy);
-  return Boolean(
-    lastToucher &&
-    lastToucher.side !== player.side &&
-    lastToucher.role === 'SETTER',
-  );
-}
-
 export function resolveAction(
   state: MatchState,
   controlledPlayerId: string,
@@ -58,7 +49,8 @@ export function resolveAction(
   const ballDescending = state.ball.velocity.y < 0;
   const ownSide = isBallOnSide(state, player);
   const incoming = isBallTravelingTowardPlayer(state, player);
-  const opponentSetterOwnsBall = lastTouchWasOpponentSetter(state, player);
+  const blockableAttack = state.ball.lastContact === 'SPIKE';
+  const canPrepareBlock = state.ball.lastContact === 'SET' || blockableAttack;
   const lastTouchWasTeammate = state.ball.lastTouchedBy?.startsWith(`${player.side}-`) ?? false;
   const lastTouchWasOtherTeammate =
     lastTouchWasTeammate && state.ball.lastTouchedBy !== player.id;
@@ -69,7 +61,7 @@ export function resolveAction(
       !ownSide &&
       incoming &&
       ballHigh &&
-      !opponentSetterOwnsBall &&
+      blockableAttack &&
       distance <= 2.1
     ) {
       return 'BLOCK';
@@ -80,7 +72,7 @@ export function resolveAction(
     return null;
   }
 
-  if (nearNet && !ownSide && incoming && ballHigh && distance <= 2.8) {
+  if (nearNet && !ownSide && incoming && ballHigh && canPrepareBlock && distance <= 2.8) {
     return 'JUMP';
   }
 
