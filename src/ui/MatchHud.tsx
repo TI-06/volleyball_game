@@ -1,13 +1,16 @@
 import type { CharacterId } from '../game/characters/roster';
 import type { ActionKind, SwipeInput } from '../game/input/inputTypes';
+import type { RuntimeEvent } from '../game/runtime/matchRuntime';
 import { ActionButton } from './ActionButton';
 import { CharacterSwitcher } from './CharacterSwitcher';
+import { MatchFeedback } from './MatchFeedback';
 import { VirtualStick } from './VirtualStick';
 
 interface MatchHudProps {
   homeScore: number;
   awayScore: number;
   action: ActionKind | null;
+  event: RuntimeEvent | null;
   characterIds: readonly CharacterId[];
   activeCharacterId: CharacterId;
   suggestedCharacterId?: CharacterId | null;
@@ -22,6 +25,7 @@ export function MatchHud({
   homeScore,
   awayScore,
   action,
+  event,
   characterIds,
   activeCharacterId,
   suggestedCharacterId,
@@ -36,6 +40,7 @@ export function MatchHud({
       <div className="score-hud" aria-label={`PLAYER ${homeScore} CPU ${awayScore}`}>
         <span>PLAYER</span><strong>{homeScore}</strong><i>SET 1</i><strong>{awayScore}</strong><span>CPU</span>
       </div>
+      <MatchFeedback event={event} />
       <div className="match-hud__move">
         <VirtualStick onMove={onMove} />
       </div>
