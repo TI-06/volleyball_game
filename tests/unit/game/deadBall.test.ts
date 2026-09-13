@@ -27,6 +27,22 @@ describe('dead-ball resolution', () => {
     expect(next.ball.inPlay).toBe(true);
   });
 
+  it('lets an untouched standard serve land in and score for the server', () => {
+    let state = createMatch(162);
+    const server = state.players.find((player) => player.id === 'home-0')!;
+    state = startRallyWithBall(
+      state,
+      performServe(state.ball, server, { x: 0, y: 0, z: 6.2 }, 'FLOAT', 0.72),
+    );
+
+    for (let frame = 0; frame < 360 && state.score.home === 0; frame += 1) {
+      state = stepMatch(state, idleInput, 1 / 120);
+    }
+
+    expect(state.score).toEqual({ home: 1, away: 0 });
+    expect(state.rally.phase).toBe('POINT');
+  });
+
   it('awards an out ball only after it contacts the floor outside the court', () => {
     const base = createMatch(161);
     const state = {
