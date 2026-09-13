@@ -17,6 +17,19 @@ export interface SetResult {
   ball: BallState;
 }
 
+function nextAttackTimingBonus(
+  character: CharacterDefinition,
+  quality: ContactQuality,
+): number {
+  if (quality === 'PERFECT') {
+    return character.trait === 'CLEAN_CONNECTION' ? 0.045 : 0.018;
+  }
+  if (quality === 'GREAT') {
+    return character.trait === 'CLEAN_CONNECTION' ? 0.018 : 0.008;
+  }
+  return 0;
+}
+
 export function performSet(
   ball: BallState,
   character: CharacterDefinition,
@@ -42,7 +55,8 @@ export function performSet(
     BAD: 0.58,
   };
   const scale = qualityScale[quality];
-  const t = FLIGHT_TIME[tempo];
+  const tempoScale = character.trait === 'FAST_TEMPO' && tempo === 'QUICK' ? 0.82 : 1;
+  const t = FLIGHT_TIME[tempo] * tempoScale;
   const ideal = {
     x: (target.x - ball.position.x) / t,
     y: (target.y - ball.position.y + 0.5 * BALL_GRAVITY * t * t) / t,
@@ -61,6 +75,7 @@ export function performSet(
       spin: { x: 0, y: 0, z: 0 },
       inPlay: true,
       lastTouchedBy: setterId,
+      attackTimingBonus: nextAttackTimingBonus(character, quality),
     },
   };
 }
