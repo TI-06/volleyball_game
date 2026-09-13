@@ -50,12 +50,14 @@ export function resolveAction(
   const ownSide = isBallOnSide(state, player);
   const incoming = isBallTravelingTowardPlayer(state, player);
   const lastTouchWasTeammate = state.ball.lastTouchedBy?.startsWith(`${player.side}-`) ?? false;
+  const lastTouchWasOtherTeammate =
+    lastTouchWasTeammate && state.ball.lastTouchedBy !== player.id;
 
   if (player.isAirborne) {
     if (nearNet && !ownSide && incoming && ballHigh && distance <= 2.1) {
       return 'BLOCK';
     }
-    if (ownSide && lastTouchWasTeammate && ballHigh && distance <= 2.2) {
+    if (ownSide && lastTouchWasOtherTeammate && ballHigh && distance <= 2.2) {
       return 'SPIKE';
     }
     return null;
@@ -74,11 +76,17 @@ export function resolveAction(
     }
   }
 
-  if (player.role === 'SETTER' && ownSide && state.ball.position.y >= 0.9 && distance <= 2.25) {
+  if (
+    player.role === 'SETTER' &&
+    ownSide &&
+    state.ball.lastTouchedBy !== player.id &&
+    state.ball.position.y >= 0.9 &&
+    distance <= 2.25
+  ) {
     return 'SET';
   }
 
-  if (!player.isAirborne && lastTouchWasTeammate && ballHigh && distance <= 3.2) {
+  if (!player.isAirborne && lastTouchWasOtherTeammate && ballHigh && distance <= 3.2) {
     return 'JUMP';
   }
 
