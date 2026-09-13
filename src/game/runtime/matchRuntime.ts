@@ -214,6 +214,17 @@ function attackTarget(side: 'home' | 'away', intent: AttackIntent, aimX = 0): Ve
   return { x: clamp(intentX, -4.1, 4.1), y: 0.05, z };
 }
 
+function homeSetAttacker(match: MatchState, setterId: string, aimX: number): PlayerState | null {
+  return (
+    [...match.players]
+      .filter((candidate) => candidate.side === 'home' && candidate.id !== setterId)
+      .sort(
+        (a, b) =>
+          Math.abs(a.position.x - aimX) - Math.abs(b.position.x - aimX),
+      )[0] ?? null
+  );
+}
+
 function jumpPlayer(match: MatchState, player: PlayerState): MatchState {
   if (player.isAirborne) return match;
   const profile = getMovementProfile(characterFor(player));
@@ -295,9 +306,7 @@ function performUserAction(
     };
     event = { ...event, quality: result.quality };
   } else if (action === 'SET') {
-    const attacker = match.players.find(
-      (candidate) => candidate.side === 'home' && candidate.role === 'ACE',
-    );
+    const attacker = homeSetAttacker(match, player.id, input.aim.x);
     if (attacker) {
       const result = performSet(
         match.ball,
