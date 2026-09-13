@@ -57,6 +57,65 @@ describe('CPU AI', () => {
     expect(['TIP', 'CROSS', 'LINE']).toContain(intent.attackIntent);
   });
 
+  it('approaches the net before a back-row blocker becomes block-ready', () => {
+    const base = createMatch(120);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      players: base.players.map((player) =>
+        player.id === 'away-1'
+          ? { ...player, position: { x: 0, y: 0, z: 4.1 } }
+          : player,
+      ),
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-0',
+        position: { x: 0.6, y: 2.8, z: -0.6 },
+        velocity: { x: 0, y: 0.5, z: 4.5 },
+      },
+    };
+
+    const intent = decideCpuIntent(
+      state,
+      'away-1',
+      DIFFICULTY_PROFILES.HARD,
+      createTendencyHistory(),
+    );
+
+    expect(intent.state).toBe('APPROACH');
+    expect(intent.target.z).toBeCloseTo(0.55);
+  });
+
+  it('enters BLOCK only after the blocker reaches the front zone', () => {
+    const base = createMatch(121);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      players: base.players.map((player) =>
+        player.id === 'away-1'
+          ? { ...player, position: { x: 0.4, y: 0, z: 1.2 } }
+          : player,
+      ),
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-0',
+        position: { x: 0.7, y: 2.9, z: -0.5 },
+        velocity: { x: 0, y: 0.3, z: 4.2 },
+      },
+    };
+
+    const intent = decideCpuIntent(
+      state,
+      'away-1',
+      DIFFICULTY_PROFILES.HARD,
+      createTendencyHistory(),
+    );
+
+    expect(intent.state).toBe('BLOCK');
+  });
+
   it('gives higher levels tighter receive prediction error than beginner', () => {
     expect(DIFFICULTY_PROFILES.MASTER.predictionError).toBeLessThan(
       DIFFICULTY_PROFILES.BEGINNER.predictionError,
