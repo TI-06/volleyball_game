@@ -1,4 +1,16 @@
-import type { MatchState } from './types';
+import type { BallState, MatchState, TeamSide } from './types';
+
+export function startRallyWithBall(state: MatchState, ball: BallState): MatchState {
+  return {
+    ...state,
+    ball: { ...ball, inPlay: true },
+    rally: {
+      ...state.rally,
+      phase: 'RALLY',
+      pointResolvedAt: null,
+    },
+  };
+}
 
 export function prepareNextRally(state: MatchState): MatchState {
   if (state.winner) {
@@ -27,4 +39,10 @@ export function prepareNextRally(state: MatchState): MatchState {
       pointResolvedAt: null,
     },
   };
+}
+
+export function sideFromPlayerId(playerId: string | null): TeamSide | null {
+  if (playerId?.startsWith('home-')) return 'home';
+  if (playerId?.startsWith('away-')) return 'away';
+  return null;
 }
