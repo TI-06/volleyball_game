@@ -1,4 +1,3 @@
-import { BALL_GRAVITY } from '../ball/ballPhysics';
 import { COURT } from '../core/constants';
 import type { BallState, PlayerState, Vec3 } from '../core/types';
 
@@ -12,7 +11,7 @@ export function getServeOrigin(server: PlayerState, kind: ServeKind): Vec3 {
   const endLine = COURT.length / 2 + 0.35;
   return {
     x: server.position.x,
-    y: kind === 'JUMP' ? 2.75 : 2.05,
+    y: kind === 'JUMP' ? 3.25 : 2.35,
     z: server.side === 'home' ? -endLine : endLine,
   };
 }
@@ -26,21 +25,23 @@ export function performServe(
 ): BallState {
   const normalizedPower = clamp01(power);
   const origin = getServeOrigin(server, kind);
-  const flightTime = kind === 'JUMP'
-    ? 0.72 - normalizedPower * 0.1
-    : 1.05 - normalizedPower * 0.16;
-
-  const velocity = {
-    x: (target.x - origin.x) / flightTime,
-    y: (target.y - origin.y + 0.5 * BALL_GRAVITY * flightTime * flightTime) / flightTime,
-    z: (target.z - origin.z) / flightTime,
-  };
-  const direction = Math.sign(target.z - origin.z) || 1;
+  const deltaX = target.x - origin.x;
+  const deltaZ = target.z - origin.z;
+  const horizontalDistance = Math.max(0.001, Math.hypot(deltaX, deltaZ));
+  const horizontalSpeed = kind === 'JUMP'
+    ? 17.3 + normalizedPower * 3.2
+    : 12.8 + normalizedPower * 2.8;
+  const verticalSpeed = kind === 'JUMP' ? 1.8 : 3.5;
+  const direction = Math.sign(deltaZ) || 1;
 
   return {
     ...ball,
     position: origin,
-    velocity,
+    velocity: {
+      x: (deltaX / horizontalDistance) * horizontalSpeed,
+      y: verticalSpeed,
+      z: (deltaZ / horizontalDistance) * horizontalSpeed,
+    },
     spin:
       kind === 'JUMP'
         ? { x: 18 * direction, y: 0, z: 0 }
