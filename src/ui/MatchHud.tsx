@@ -1,5 +1,5 @@
 import type { CharacterId } from '../game/characters/roster';
-import type { ActionKind } from '../game/input/inputTypes';
+import type { ActionKind, SwipeInput } from '../game/input/inputTypes';
 import { ActionButton } from './ActionButton';
 import { CharacterSwitcher } from './CharacterSwitcher';
 import { VirtualStick } from './VirtualStick';
@@ -14,6 +14,7 @@ interface MatchHudProps {
   onMove: (move: { x: number; z: number }) => void;
   onActionPress: (action: ActionKind) => void;
   onActionRelease: (action: ActionKind) => void;
+  onActionGesture: (action: ActionKind, swipe: SwipeInput) => void;
   onCharacterSelect: (characterId: CharacterId) => void;
 }
 
@@ -27,6 +28,7 @@ export function MatchHud({
   onMove,
   onActionPress,
   onActionRelease,
+  onActionGesture,
   onCharacterSelect,
 }: MatchHudProps) {
   return (
@@ -46,7 +48,12 @@ export function MatchHud({
         />
       </div>
       <div className="match-hud__action">
-        <ActionButton action={action} onPress={onActionPress} onRelease={onActionRelease} />
+        <ActionButton
+          action={action}
+          onPress={onActionPress}
+          onRelease={onActionRelease}
+          onGesture={onActionGesture}
+        />
       </div>
     </div>
   );

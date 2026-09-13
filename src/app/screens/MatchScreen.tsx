@@ -4,7 +4,8 @@ import type { CameraSetting } from '../../game/camera/cameraDirector';
 import { PLAYER_TEAM, type CharacterId } from '../../game/characters/roster';
 import { FIXED_STEP_SECONDS } from '../../game/core/constants';
 import { getSwitchCandidate } from '../../game/input/characterSwitch';
-import type { ActionKind, SwitchMode } from '../../game/input/inputTypes';
+import { interpretActionGesture } from '../../game/input/gesture';
+import type { ActionKind, SwipeInput, SwitchMode } from '../../game/input/inputTypes';
 import { GameScene } from '../../game/render/GameScene';
 import {
   createMatchRuntime,
@@ -193,6 +194,15 @@ export function MatchScreen({
     onTutorialComplete();
   }, [onTutorialComplete]);
 
+  const commitGesture = useCallback((action: ActionKind, swipe: SwipeInput) => {
+    const intent = interpretActionGesture(action, swipe);
+    inputRef.current.swipe = swipe;
+    inputRef.current.aim = { x: intent.aimX, z: intent.aimZ };
+    if (intent.attackIntent) inputRef.current.selectedAttack = intent.attackIntent;
+    if (intent.setTempo) inputRef.current.selectedSetTempo = intent.setTempo;
+    inputRef.current.actionPressed = true;
+  }, []);
+
   return (
     <main className="match-screen" data-testid="match-screen">
       <div ref={sceneHostRef} className="match-scene" />
@@ -213,6 +223,7 @@ export function MatchScreen({
         onActionRelease={() => {
           inputRef.current.actionReleased = true;
         }}
+        onActionGesture={commitGesture}
         onCharacterSelect={(characterId) => {
           const player = runtimeRef.current.match.players.find(
             (candidate) => candidate.side === 'home' && candidate.characterId === characterId,
