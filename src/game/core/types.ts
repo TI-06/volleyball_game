@@ -8,6 +8,7 @@ export type RallyPhase =
   | 'MATCH_OVER';
 
 export type PlayerRole = 'ACE' | 'SETTER' | 'LIBERO' | 'MIDDLE';
+export type ContactQuality = 'PERFECT' | 'GREAT' | 'GOOD' | 'BAD' | 'MISS';
 
 export interface Vec3 {
   x: number;
