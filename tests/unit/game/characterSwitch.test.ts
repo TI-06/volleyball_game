@@ -70,7 +70,7 @@ describe('character switching', () => {
     });
   });
 
-  it('switches to the teammate under the actual set trajectory instead of always the ace', () => {
+  it('switches quickly to the teammate under the actual set trajectory', () => {
     const base = createMatch(5);
     const state = {
       ...base,
@@ -84,11 +84,12 @@ describe('character switching', () => {
       },
     };
 
-    expect(
-      getSwitchCandidate(state, {
-        mode: 'STANDARD',
-        currentPlayerId: 'home-1',
-      }).playerId,
-    ).toBe('home-2');
+    const decision = getSwitchCandidate(state, {
+      mode: 'STANDARD',
+      currentPlayerId: 'home-1',
+    });
+
+    expect(decision.playerId).toBe('home-2');
+    expect(decision.warningLead).toBeCloseTo(0.08);
   });
 });
