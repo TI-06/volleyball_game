@@ -36,6 +36,13 @@ export function ActionButton({ action, onPress, onRelease, onGesture }: ActionBu
     });
   };
 
+  const cancelGesture = (event: PointerEvent<HTMLButtonElement>) => {
+    pointerStart.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
   return (
     <button
       type="button"
@@ -61,7 +68,7 @@ export function ActionButton({ action, onPress, onRelease, onGesture }: ActionBu
       }}
       onPointerCancel={(event) => {
         if (gestureAction) {
-          finishGesture(event);
+          cancelGesture(event);
         } else {
           onRelease?.(action);
         }
