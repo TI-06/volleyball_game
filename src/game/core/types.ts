@@ -33,6 +33,7 @@ export interface BallState {
   spin: Vec3;
   inPlay: boolean;
   lastTouchedBy: string | null;
+  attackTimingBonus?: number;
 }
 
 export interface ScoreState {
