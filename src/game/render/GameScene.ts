@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { getLandingAssist } from '../ball/landingAssist';
 import {
   getCameraIntent,
   type CameraSetting,
@@ -12,6 +13,7 @@ import type { MatchState, PlayerState } from '../core/types';
 import { BallView } from './BallView';
 import { CameraView } from './CameraView';
 import { CourtView } from './CourtView';
+import { LandingMarkerView } from './LandingMarkerView';
 import { PlayerView } from './PlayerView';
 
 function currentServer(state: MatchState): PlayerState | null {
@@ -26,6 +28,7 @@ export class GameScene {
   private readonly camera: THREE.PerspectiveCamera;
   private readonly cameraView: CameraView;
   private readonly ballView = new BallView();
+  private readonly landingMarkerView = new LandingMarkerView();
   private readonly playerViews = new Map<string, PlayerView>();
   private readonly resizeObserver: ResizeObserver;
 
@@ -43,6 +46,7 @@ export class GameScene {
     const court = new CourtView();
     this.scene.add(court.group);
     this.scene.add(this.ballView.mesh);
+    this.scene.add(this.landingMarkerView.mesh);
 
     const hemi = new THREE.HemisphereLight(0xe8fbff, 0x102331, 2.2);
     this.scene.add(hemi);
@@ -101,6 +105,12 @@ export class GameScene {
     } else {
       this.ballView.update(state.ball);
     }
+
+    this.landingMarkerView.update(
+      options.controlledPlayerId
+        ? getLandingAssist(state, options.controlledPlayerId)
+        : null,
+    );
 
     this.cameraView.update(
       getCameraIntent(state, {
