@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getBlockReach,
   getMovementProfile,
+  getReadAssist,
   getReceiveAssist,
   getSetAssist,
   getSpikeTimingWindow,
@@ -39,6 +40,14 @@ describe('character ability helpers', () => {
 
     expect(ren.targetError).toBeLessThan(gou.targetError);
     expect(ren.perfectWindowBonus).toBeGreaterThan(gou.perfectWindowBonus);
+  });
+
+  it('makes high read ability reduce reaction and prediction penalties', () => {
+    const yu = getReadAssist(STARTER_ROSTER.yu);
+    const kai = getReadAssist(STARTER_ROSTER.kai);
+
+    expect(yu.reactionBias).toBeLessThan(kai.reactionBias);
+    expect(yu.predictionErrorScale).toBeLessThan(kai.predictionErrorScale);
   });
 
   it('keeps every Phase 1 roster ability inside the approved range', () => {
