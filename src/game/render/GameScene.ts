@@ -7,11 +7,18 @@ import {
   STARTER_ROSTER,
   type CharacterId,
 } from '../characters/roster';
-import type { MatchState } from '../core/types';
+import { COURT } from '../core/constants';
+import type { MatchState, PlayerState } from '../core/types';
 import { BallView } from './BallView';
 import { CameraView } from './CameraView';
 import { CourtView } from './CourtView';
 import { PlayerView } from './PlayerView';
+
+function currentServer(state: MatchState): PlayerState | null {
+  if (state.rally.phase !== 'SERVE_READY') return null;
+  const players = state.players.filter((player) => player.side === state.rally.servingSide);
+  return players[state.rally.serverIndex[state.rally.servingSide] % players.length] ?? null;
+}
 
 export class GameScene {
   private readonly scene = new THREE.Scene();
@@ -72,10 +79,27 @@ export class GameScene {
       cameraSetting?: CameraSetting;
     } = {},
   ): void {
+    const server = currentServer(state);
+    const serveZ = server
+      ? (server.side === 'home' ? -1 : 1) * (COURT.length / 2 + 0.35)
+      : null;
+
     for (const player of state.players) {
-      this.playerViews.get(player.id)?.update(player);
+      const displayPlayer = server?.id === player.id && serveZ !== null
+        ? { ...player, position: { ...player.position, z: serveZ } }
+        : player;
+      this.playerViews.get(player.id)?.update(displayPlayer);
     }
-    this.ballView.update(state.ball);
+
+    if (server && serveZ !== null) {
+      this.ballView.update({
+        ...state.ball,
+        position: { x: server.position.x, y: 1.25, z: serveZ },
+      });
+    } else {
+      this.ballView.update(state.ball);
+    }
+
     this.cameraView.update(
       getCameraIntent(state, {
         controlledPlayerId: options.controlledPlayerId,
