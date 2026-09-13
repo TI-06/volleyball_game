@@ -35,4 +35,26 @@ describe('ball physics', () => {
     const source = ball({ spin: { x: 20, y: 0, z: 0 } });
     expect(applySpin(source, 1 / 60).velocity.y).toBeLessThan(source.velocity.y);
   });
+
+  it('bounces a low ball back when it crosses the net plane', () => {
+    const source = ball({
+      position: { x: 0, y: 1.55, z: -0.08 },
+      velocity: { x: 0, y: 0, z: 8 },
+    });
+    const next = integrateBall(source, 1 / 60);
+
+    expect(next.position.z).toBeLessThan(0);
+    expect(next.velocity.z).toBeLessThan(0);
+  });
+
+  it('allows a ball above the net to cross normally', () => {
+    const source = ball({
+      position: { x: 0, y: 3.1, z: -0.08 },
+      velocity: { x: 0, y: 0, z: 8 },
+    });
+    const next = integrateBall(source, 1 / 60);
+
+    expect(next.position.z).toBeGreaterThan(0);
+    expect(next.velocity.z).toBeGreaterThan(0);
+  });
 });
