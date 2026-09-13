@@ -9,6 +9,7 @@ export type RallyPhase =
 
 export type PlayerRole = 'ACE' | 'SETTER' | 'LIBERO' | 'MIDDLE';
 export type ContactQuality = 'PERFECT' | 'GREAT' | 'GOOD' | 'BAD' | 'MISS';
+export type BallContactKind = 'SERVE' | 'RECEIVE' | 'DIVE' | 'SET' | 'SPIKE' | 'BLOCK';
 
 export interface Vec3 {
   x: number;
@@ -33,6 +34,7 @@ export interface BallState {
   spin: Vec3;
   inPlay: boolean;
   lastTouchedBy: string | null;
+  lastContact?: BallContactKind;
   attackTimingBonus?: number;
 }
 
