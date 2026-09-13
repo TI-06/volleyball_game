@@ -28,10 +28,16 @@ export function performBlock(
   }
 
   const reboundScale: Record<Exclude<ContactQuality, 'MISS'>, number> = {
-    PERFECT: 0.74,
-    GREAT: 0.56,
-    GOOD: 0.4,
-    BAD: 0.25,
+    PERFECT: 0.82,
+    GREAT: 0.58,
+    GOOD: 0.42,
+    BAD: 0.28,
+  };
+  const reboundY: Record<Exclude<ContactQuality, 'MISS'>, number> = {
+    PERFECT: -3.4,
+    GREAT: 0.85,
+    GOOD: 2.2,
+    BAD: 3.05,
   };
   const scale = reboundScale[timing];
 
@@ -42,7 +48,7 @@ export function performBlock(
       ...ball,
       velocity: {
         x: ball.velocity.x * 0.72,
-        y: Math.max(2.4, Math.abs(ball.velocity.y) * 0.34),
+        y: reboundY[timing],
         z: -ball.velocity.z * scale,
       },
       spin: {
