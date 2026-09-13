@@ -29,6 +29,21 @@ describe('receive landing assist', () => {
     expect(hina!.opacity).toBeGreaterThan(kai!.opacity);
   });
 
+  it('lets HINA see a high incoming ball before KAI does', () => {
+    const state = incomingState();
+    const early = {
+      ...state,
+      ball: {
+        ...state.ball,
+        position: { x: 1.2, y: 8, z: 4 },
+        velocity: { x: 0.15, y: -0.8, z: -7.4 },
+      },
+    };
+
+    expect(getLandingAssist(early, 'home-0')).toBeNull();
+    expect(getLandingAssist(early, 'home-2')).not.toBeNull();
+  });
+
   it('hides the marker when the ball is not traveling toward the home court', () => {
     const state = incomingState();
     const outgoing = {
