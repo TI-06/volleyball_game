@@ -20,6 +20,7 @@ describe('block context', () => {
         ...base.ball,
         inPlay: true,
         lastTouchedBy: 'away-2',
+        lastContact: 'SET' as const,
         position: { x: -1, y: 2.8, z: 0.7 },
         velocity: { x: 0, y: 2, z: -1.2 },
       },
@@ -39,6 +40,29 @@ describe('block context', () => {
     expect(resolveAction(airborne, 'home-0')).not.toBe('BLOCK');
   });
 
+  it('does not allow a serve to be blocked', () => {
+    const base = createMatch(174);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      players: base.players.map((player) =>
+        player.id === 'home-0'
+          ? { ...player, isAirborne: true, position: { x: 0, y: 0.75, z: -0.7 } }
+          : player,
+      ),
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'away-0',
+        lastContact: 'SERVE' as const,
+        position: { x: 0, y: 2.7, z: 0.65 },
+        velocity: { x: 0, y: -0.6, z: -14 },
+      },
+    };
+
+    expect(resolveAction(state, 'home-0')).not.toBe('BLOCK');
+  });
+
   it('allows an airborne block after the opponent attacker touches the ball', () => {
     const base = createMatch(171);
     const state = {
@@ -53,6 +77,7 @@ describe('block context', () => {
         ...base.ball,
         inPlay: true,
         lastTouchedBy: 'away-0',
+        lastContact: 'SPIKE' as const,
         position: { x: -1, y: 2.8, z: 0.7 },
         velocity: { x: 0, y: -1.5, z: -8 },
       },
@@ -75,6 +100,7 @@ describe('block context', () => {
         ...base.ball,
         inPlay: true,
         lastTouchedBy: 'home-1',
+        lastContact: 'SET' as const,
         position: { x: 0.5, y: 2.9, z: -0.6 },
         velocity: { x: 0, y: 2, z: 1.2 },
       },
@@ -99,6 +125,7 @@ describe('block context', () => {
         ...base.ball,
         inPlay: true,
         lastTouchedBy: 'home-0',
+        lastContact: 'SPIKE' as const,
         position: { x: 0.5, y: 2.9, z: -0.6 },
         velocity: { x: 0, y: -1.2, z: 8 },
       },
