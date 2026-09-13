@@ -1,9 +1,9 @@
 # Phase 1 Core Game Design
 
-Date: 2026-09-14
-Status: Design review
-Repository: `TI-06/volleyball_game`
-Target: Smartphone landscape Web app
+Date: 2026-09-14  
+Status: Design review  
+Repository: `TI-06/volleyball_game`  
+Target: Smartphone landscape Web app  
 Deployment: Cloudflare Workers Static Assets
 
 ## 1. Goal
@@ -46,7 +46,7 @@ Phase 1 の目的は、育成・ガチャ・オンライン対戦を入れる前
 - 難易度解放
 - ローカル保存
 - 初期6キャラクター
-- WebGL/Three.jsによる3Dトゥーン表現
+- WebGL / Three.jsによる3Dトゥーン表現
 - Cloudflare公開
 
 ### Out of scope
@@ -73,8 +73,6 @@ Phase 1 の目的は、育成・ガチャ・オンライン対戦を入れる前
 
 能力値は「自動成功率」ではなく、操作を助ける方向に効かせる。
 
-例:
-
 - レシーブ能力が高い -> 落下予測が早く正確、許容範囲が広い
 - スパイク能力が高い -> 狙いのブレが小さく、Perfect受付時間が広い
 - ブロック能力が高い -> 手の有効範囲が広い
@@ -86,14 +84,7 @@ Phase 1 の目的は、育成・ガチャ・オンライン対戦を入れる前
 
 CPUはユーザーの入力値を直接参照しない。
 
-参照可能な情報:
-
-- 選手位置
-- ボール位置、速度、軌道
-- ブロック位置
-- 守備位置
-- 過去の攻撃傾向
-- ラリー状況
+参照可能なのは、選手位置、ボール位置・速度・軌道、ブロック位置、守備位置、過去の攻撃傾向、ラリー状況など、プレイヤーからも観測可能なゲーム状態だけとする。
 
 ### 3.3 アニメ演出はプレイを邪魔しない
 
@@ -104,7 +95,7 @@ CPUはユーザーの入力値を直接参照しない。
 - 長いラリーの決着
 - Match Point決着
 
-通常プレイでは短いテキスト・SE・軽い振動のみ。
+通常プレイでは短いテキスト、SE、軽い振動のみとする。
 
 ## 4. Match rules
 
@@ -117,10 +108,21 @@ CPUはユーザーの入力値を直接参照しない。
 | Hard cap | 20 |
 | Timeout | なし |
 | Court change | なし |
-| Rotation | Phase 1では簡略化 |
 | Match target duration | 約3〜6分 |
 
-20-19になった場合、20点上限により20点側の勝利とする。
+20-19になった場合は20点上限により20点側の勝利とする。
+
+### 4.1 Phase 1 rotation rule
+
+通常の6人制バレーのローテーションは採用しない。
+
+- 3人はポジション役割を維持したまま自由移動する。
+- ラリー開始時は役割に応じた基本配置へ戻る。
+- サーブ権を新たに獲得したときだけ、チーム内のサーバー番号を `0 -> 1 -> 2 -> 0` と循環させる。
+- サーブ権を保持したまま連続得点した場合は同じ選手が続けてサーブする。
+- サーバー変更によって選手の役割や基本配置そのものは入れ替えない。
+
+これにより、3キャラ全員がサーブ機会を持ちながら、Phase 1では複雑なローテーション管理を不要にする。
 
 ## 5. Match flow
 
@@ -158,9 +160,7 @@ HP・スタミナゲージは表示しない。
 | Airborne attack | SPIKE |
 | Net defense | BLOCK |
 
-ACTIONは文字とアイコンの両方を表示する。
-
-操作不可能なACTIONは表示しない。
+ACTIONは文字とアイコンの両方を表示し、操作不可能なACTIONは表示しない。
 
 ### 6.3 UI opacity
 
@@ -197,7 +197,7 @@ Phase 1 の標準は `STANDARD`。
 
 画面下の3人カードをタップすると切替。
 
-キャンセル不能モーション中の場合は「予約切替」として、自然な復帰タイミングで切り替える。
+キャンセル不能モーション中の場合は予約切替として、自然な復帰タイミングで切り替える。
 
 ### 7.4 Selection priority
 
@@ -233,7 +233,7 @@ Phase 1 の標準は `STANDARD`。
 
 スパイク / 重要なブロック時。肩越し視点まで寄る。
 
-完全な一人称にはしない。自キャラを画面内に残す。
+完全な一人称にはせず、自キャラを画面内に残す。
 
 カメラ遷移は原則0.2〜0.35秒程度で補間する。
 
@@ -361,8 +361,6 @@ Perfect Set時は、対象アタッカーのスパイクPerfect受付時間を�
 
 入力が成立しているときだけ、ボールを「次のプレイが成立する範囲」へ限定的に補正する。
 
-例:
-
 - Perfect Receive -> セッター付近へ強く補正
 - Good Receive -> 補正弱め
 - Bad Receive -> ほぼ物理任せ
@@ -405,7 +403,7 @@ Perfect Set時は、対象アタッカーのスパイクPerfect受付時間を�
 - opponent pose / attack phase
 - own role
 
-能力が低いAIでも「意味不明な方向へ走る」のではなく、予測地点の誤差や反応時間が悪化する設計とする。
+能力が低いAIでも意味不明な方向へ走るのではなく、予測地点の誤差や反応時間が悪化する設計とする。
 
 ## 18. CPU difficulty
 
@@ -416,7 +414,7 @@ CPUレベルとキャラ能力は別管理する。
 | Parameter | Beginner | Normal | Hard | Expert | Master |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Decision delay | 550-800ms | 350-550ms | 220-400ms | 130-260ms | 80-170ms |
-| Ball prediction accuracy | 60% | 72% | 84% | 92% | 97% |
+| Prediction quality | 0.60 | 0.72 | 0.84 | 0.92 | 0.97 |
 | Course variation | Low | Low-Mid | Mid | High | High |
 | Feint frequency | 2% | 7% | 12% | 18% | 22% |
 | Block read quality | Poor | Basic | Good | Very good | Excellent |
@@ -424,7 +422,9 @@ CPUレベルとキャラ能力は別管理する。
 | Player tendency history | 0 rallies | 1 | 3 | 5 | 8 |
 | Intentional human-like error | High | Medium-high | Medium | Low | Low |
 
-数値は初期チューニング値であり、プレイテストで調整可能なデータとして保持する。
+`Prediction quality` は成功確率ではない。ボール到達地点・攻撃意図の推定に加える誤差量を決める正規化係数として扱う。最終的な成功可否は、キャラ位置、反応遅延、能力、移動可能距離、タイミングによって決まる。
+
+難易度パラメータはデータとして保持し、プレイテストで調整可能にする。
 
 ### CPU behavior by level
 
@@ -459,11 +459,11 @@ CPUレベルとキャラ能力は別管理する。
 - 過去数ラリーの傾向を利用
 - 攻撃選択を分散
 - 強打 / コース / フェイントの読み合い
-- ただしユーザー入力の直接参照は禁止
+- ユーザー入力の直接参照は禁止
 
 ## 19. Initial characters
 
-初期6キャラは2チーム分。名前や外見は仮称として扱うが、役割と操作感はPhase 1で固定する。
+初期6キャラは2チーム分。名前・外見の細部は本番アート制作時に変更可能だが、役割と操作感はPhase 1で固定する。
 
 能力値は0〜100。
 
@@ -482,8 +482,7 @@ CPUレベルとキャラ能力は別管理する。
 | Block | 72 |
 | Read | 70 |
 
-Trait: `Heavy Finish`
-
+Trait: `Heavy Finish`  
 Perfect Spike時の打球初速補正が高い。
 
 #### REN - Setter / Technical
@@ -499,8 +498,7 @@ Perfect Spike時の打球初速補正が高い。
 | Block | 64 |
 | Read | 91 |
 
-Trait: `Clean Connection`
-
+Trait: `Clean Connection`  
 Perfect Set時のアタッカーPerfect受付拡大量が大きい。
 
 #### HINA - Libero / Speed
@@ -516,8 +514,7 @@ Perfect Set時のアタッカーPerfect受付拡大量が大きい。
 | Block | 38 |
 | Read | 90 |
 
-Trait: `Never Down`
-
+Trait: `Never Down`  
 DIVE可能距離と復帰速度に優れる。
 
 ### Rival team
@@ -535,8 +532,7 @@ DIVE可能距離と復帰速度に優れる。
 | Block | 70 |
 | Read | 88 |
 
-Trait: `Tool the Block`
-
+Trait: `Tool the Block`  
 ブロックアウト狙いの精度が高い。
 
 #### GOU - Middle / Block
@@ -552,8 +548,7 @@ Trait: `Tool the Block`
 | Block | 97 |
 | Read | 78 |
 
-Trait: `Wall`
-
+Trait: `Wall`  
 Perfect Block判定と手の有効範囲に優れる。
 
 #### YU - Setter / Speed
@@ -569,8 +564,7 @@ Perfect Block判定と手の有効範囲に優れる。
 | Block | 62 |
 | Read | 92 |
 
-Trait: `Fast Tempo`
-
+Trait: `Fast Tempo`  
 Quick Setと速攻連携の準備時間が短い。
 
 ## 20. Character visual direction
@@ -611,7 +605,7 @@ Quick Setと速攻連携の準備時間が短い。
 
 ### Match point
 
-13点以降、接戦時にBGMと表情を少し強める。
+13点以降の接戦ではBGMと表情を少し強める。
 
 能力補正は行わず、演出だけ変える。
 
@@ -647,7 +641,7 @@ Quick Setと速攻連携の準備時間が短い。
 
 Phase 1では報酬・経験値は付与しない。
 
-## 24. Difficulty unlock
+## 24. Difficulty unlock and local save
 
 初期解放:
 
@@ -655,12 +649,11 @@ Phase 1では報酬・経験値は付与しない。
 - Normal
 - Hard
 
-Hard勝利でExpert解放。
+Hard勝利でExpert解放。Expert勝利でMaster解放。
 
-Expert勝利でMaster解放。
+保存項目:
 
-保存:
-
+- schemaVersion
 - unlocked difficulty
 - best score by difficulty
 - best spike speed
@@ -668,7 +661,7 @@ Expert勝利でMaster解放。
 - camera setting
 - tutorial completed
 
-保存先はlocalStorage。
+保存先はlocalStorage。保存データは`schemaVersion`を持ち、将来のマイグレーションに備える。
 
 ## 25. Technical architecture
 
@@ -709,13 +702,15 @@ Responsibilities:
 
 RendererはSimulation Stateを読むだけにし、Three.jsオブジェクトそのものをゲーム状態として扱わない。
 
-### State update
+### State update and determinism
 
 ゲームロジックは固定タイムステップを使用する。
 
-初期値は60Hz相当を基準とし、描画フレームレートと分離する。
+- Simulation: 60Hz基準
+- Rendering: requestAnimationFrame依存
+- Randomness: seedable RNGを経由
 
-これにより、端末性能差でボール挙動やCPU判断が変化しにくい構成にする。
+描画フレームレートとSimulationを分離し、端末性能差でボール挙動やCPU判断が変化しにくくする。テストではseed固定で同一入力から同一結果を再現できるようにする。
 
 ## 26. Repository architecture
 
@@ -757,7 +752,7 @@ docs/
 
 ## 27. Cloudflare deployment
 
-Phase 1は Cloudflare Workers Static Assets でSPAを配信する。
+Phase 1はCloudflare Workers Static AssetsでSPAを配信する。
 
 - Cloudflare Vite pluginを利用
 - `wrangler.jsonc`
@@ -767,7 +762,7 @@ Phase 1は Cloudflare Workers Static Assets でSPAを配信する。
 
 Phase 1ではWorker APIを必須としない。
 
-将来PvPを追加する場合は、Cloudflare Durable Objects + WebSocketを候補とする。Phase 1のゲームSimulationをクライアントUI・Rendererから分離しておくことで、将来的なauthoritative server化を可能にする。
+将来PvPを追加する場合はCloudflare Durable Objects + WebSocketを候補とする。Phase 1のGame SimulationをUI・Rendererから分離しておくことで、将来的なauthoritative server化を可能にする。
 
 ## 28. Testing strategy
 
@@ -776,10 +771,12 @@ Phase 1ではWorker APIを必須としない。
 - ball trajectory
 - timing judgement
 - score / deuce / hard cap
+- service order
 - character switching priority
 - CPU difficulty configuration
 - AI state transitions
 - stat modifiers
+- deterministic RNG
 
 ### Integration
 
@@ -788,7 +785,7 @@ Phase 1ではWorker APIを必須としない。
 - character switch during rally
 - rally termination
 - match finish
-- localStorage persistence
+- localStorage persistence and schemaVersion
 
 ### E2E
 
@@ -820,7 +817,7 @@ Phase 1の基準:
 - 維持困難な端末では30fpsへ落ちてもSimulation結果は変えない
 - 初期表示で不要なキャラアセットを一括ロードしない
 - GLB / texture / audioを必要単位で分割
-- メモリリークを防ぐためThree.js resource disposeを明示する
+- Three.js resourceを明示的にdisposeする
 - heavy post-processingはPhase 1では採用しない
 
 具体的なasset容量上限は本番モデル作成時に実機計測して決定する。
@@ -831,13 +828,11 @@ Phase 1の基準:
 - model load失敗 -> fallback model + diagnostic message
 - audio load失敗 -> 無音で試合継続
 - localStorage unavailable -> セッション中のみ設定保持
-- unexpected game state -> ラリーを安全に再セットできるrecover pathを用意
+- unexpected game state -> ラリーを安全に再セットできるrecover path
 
 ゲーム中に白画面で停止する状態を許容しない。
 
 ## 31. Phase 1 acceptance criteria
-
-Phase 1完了条件:
 
 1. スマホ横持ちで3vs3 CPU戦を最後までプレイできる。
 2. Beginner〜Masterの5段階がゲームデータとして実装される。
@@ -852,7 +847,8 @@ Phase 1完了条件:
 11. リザルトとベスト記録が表示・保存される。
 12. Unit / Integration / Mobile E2EがCIでGREENになる。
 13. Cloudflare Workers Static Assetsへデプロイできる。
-14. ゲームコアがキャラ育成・PvPを追加できる責務分離になっている。
+14. 固定タイムステップとseed固定により主要Simulationテストを再現できる。
+15. ゲームコアがキャラ育成・PvPを追加できる責務分離になっている。
 
 ## 32. Phase boundary
 
@@ -868,3 +864,9 @@ Phase 1完了後に初めて以下を設計する。
 - PvP
 
 Phase 1の試合コアが面白くない状態で、育成やコンテンツ量によって補わない。
+
+## 33. External technical references
+
+- Cloudflare Workers Static Assets / React + Vite: Cloudflare公式ドキュメントに合わせる。
+- 将来のリアルタイム対戦候補: Cloudflare Durable Objects + WebSocket。
+- 3Dモデル: glTF 2.0をThree.js `GLTFLoader`で読み込み、アニメーションは`AnimationMixer`で管理する。
