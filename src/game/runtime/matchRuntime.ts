@@ -70,6 +70,8 @@ export interface MatchRuntimeState {
   match: MatchState;
   controlledPlayerId: string;
   queuedPlayerId: string | null;
+  autoSwitchPlayerId: string | null;
+  autoSwitchAt: number | null;
   switchMode: SwitchMode;
   difficulty: CpuDifficulty;
   history: TendencyHistory;
@@ -91,6 +93,8 @@ export function createMatchRuntime(
     match: createMatch(seed),
     controlledPlayerId: 'home-0',
     queuedPlayerId: null,
+    autoSwitchPlayerId: null,
+    autoSwitchAt: null,
     switchMode,
     difficulty,
     history: createTendencyHistory(),
@@ -646,6 +650,11 @@ function resetFormation(match: MatchState): MatchState {
   };
 }
 
+function clearAutoSwitch(runtime: MatchRuntimeState): MatchRuntimeState {
+  if (runtime.autoSwitchPlayerId === null && runtime.autoSwitchAt === null) return runtime;
+  return { ...runtime, autoSwitchPlayerId: null, autoSwitchAt: null };
+}
+
 function applyAutomaticSwitch(runtime: MatchRuntimeState, input: RuntimeInput): MatchRuntimeState {
   if (runtime.queuedPlayerId) {
     const current = runtime.match.players.find(
@@ -656,6 +665,8 @@ function applyAutomaticSwitch(runtime: MatchRuntimeState, input: RuntimeInput): 
         ...runtime,
         controlledPlayerId: runtime.queuedPlayerId,
         queuedPlayerId: null,
+        autoSwitchPlayerId: null,
+        autoSwitchAt: null,
       };
     }
   }
@@ -666,11 +677,40 @@ function applyAutomaticSwitch(runtime: MatchRuntimeState, input: RuntimeInput): 
     currentPlayerId: runtime.controlledPlayerId,
     strongMovement: moveStrength >= 0.7,
   });
+
   if (!decision.playerId || decision.playerId === runtime.controlledPlayerId) {
+    return clearAutoSwitch(runtime);
+  }
+
+  if (
+    runtime.autoSwitchPlayerId !== decision.playerId ||
+    runtime.autoSwitchAt === null
+  ) {
+    const lead = runtime.switchMode === 'CASUAL'
+      ? Math.min(0.18, decision.warningLead)
+      : decision.warningLead;
+    return {
+      ...runtime,
+      autoSwitchPlayerId: decision.playerId,
+      autoSwitchAt: runtime.match.time + lead,
+    };
+  }
+
+  if (runtime.match.time < runtime.autoSwitchAt) return runtime;
+
+  const current = runtime.match.players.find(
+    (player) => player.id === runtime.controlledPlayerId,
+  );
+  if (current && (current.isAirborne || current.actionLockUntil > runtime.match.time)) {
     return runtime;
   }
 
-  return { ...runtime, controlledPlayerId: decision.playerId };
+  return {
+    ...runtime,
+    controlledPlayerId: decision.playerId,
+    autoSwitchPlayerId: null,
+    autoSwitchAt: null,
+  };
 }
 
 export function requestRuntimeSwitch(
@@ -686,6 +726,8 @@ export function requestRuntimeSwitch(
     ...runtime,
     controlledPlayerId: result.activePlayerId,
     queuedPlayerId: result.queuedPlayerId,
+    autoSwitchPlayerId: null,
+    autoSwitchAt: null,
   };
 }
 
@@ -734,6 +776,8 @@ export function stepMatchRuntime(
     runtime = {
       ...runtime,
       cpuDecisions: {},
+      autoSwitchPlayerId: null,
+      autoSwitchAt: null,
       match: resetFormation(match),
     };
   }
