@@ -54,4 +54,22 @@ describe('ally AI', () => {
 
     expect(decideAllyIntent(state, 'home-0').state).toBe('APPROACH');
   });
+
+  it('lets the libero become the attacker when the set is projected to the right side', () => {
+    const base = createMatch(13);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-1',
+        position: { x: 0.4, y: 2.1, z: -1.1 },
+        velocity: { x: 4.2, y: 3.6, z: 0.35 },
+      },
+    };
+
+    expect(decideAllyIntent(state, 'home-2').state).toBe('APPROACH');
+    expect(decideAllyIntent(state, 'home-0').state).toBe('COVER');
+  });
 });
