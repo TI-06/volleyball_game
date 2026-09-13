@@ -44,7 +44,8 @@ export function getSpikeTimingWindow(character: CharacterDefinition): number {
 }
 
 export function getBlockReach(character: CharacterDefinition): number {
-  return lerp(0.28, 0.62, normalized(character.abilities.block));
+  const base = lerp(0.28, 0.62, normalized(character.abilities.block));
+  return base + (character.trait === 'WALL' ? 0.08 : 0);
 }
 
 export function getSetAssist(character: CharacterDefinition): {
