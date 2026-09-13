@@ -32,17 +32,28 @@ export function performSpike(
   timingOffsetSeconds: number,
   intent: AttackIntent,
 ): SpikeResult {
+  const blockOutTimingBonus =
+    character.trait === 'TOOL_THE_BLOCK' && intent === 'BLOCK_OUT' ? 0.025 : 0;
   const quality = classifyContactTiming(
     timingOffsetSeconds,
-    getSpikeTimingWindow(character),
+    getSpikeTimingWindow(character) + (ball.attackTimingBonus ?? 0) + blockOutTimingBonus,
   );
 
   if (quality === 'MISS') {
-    return { quality, ball, speedMetersPerSecond: 0 };
+    return { quality, ball: { ...ball, attackTimingBonus: 0 }, speedMetersPerSecond: 0 };
   }
 
   const rawSpeed = 16 + character.abilities.power * 0.18;
-  const speed = rawSpeed * CONTACT_POWER_MULTIPLIER[quality] * INTENT_SPEED[intent];
+  const heavyFinishBonus =
+    character.trait === 'HEAVY_FINISH' && quality === 'PERFECT' ? 1.08 : 1;
+  const blockOutBonus =
+    character.trait === 'TOOL_THE_BLOCK' && intent === 'BLOCK_OUT' ? 1.05 : 1;
+  const speed =
+    rawSpeed *
+    CONTACT_POWER_MULTIPLIER[quality] *
+    INTENT_SPEED[intent] *
+    heavyFinishBonus *
+    blockOutBonus;
   const direction = normalize({
     x: target.x - ball.position.x,
     y: target.y - ball.position.y,
@@ -63,6 +74,7 @@ export function performSpike(
       spin: intent === 'TIP' ? { x: 0, y: 0, z: 0 } : { x: 22 * forwardSign, y: 0, z: 0 },
       inPlay: true,
       lastTouchedBy: attackerId,
+      attackTimingBonus: 0,
     },
   };
 }
