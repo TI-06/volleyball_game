@@ -34,6 +34,22 @@ describe('match runtime', () => {
     expect(next.match.ball.lastTouchedBy).toBe('home-0');
   });
 
+  it('uses an upward committed serve swipe as a jump serve', () => {
+    const runtime = createMatchRuntime(105, 'NORMAL', 'MANUAL');
+    const next = stepMatchRuntime(
+      runtime,
+      input({
+        actionPressed: true,
+        aim: { x: 0.6, z: 6.8 },
+        swipe: { x: 24, y: -150, durationMs: 520 },
+      }),
+      1 / 60,
+    );
+
+    expect(next.match.ball.lastTouchedBy).toBe('home-0');
+    expect(next.match.ball.position.y).toBeGreaterThan(2.4);
+  });
+
   it('moves the controlled player from stick input while keeping them on their court side', () => {
     const runtime = createMatchRuntime(102, 'NORMAL', 'MANUAL');
     let next = runtime;
@@ -85,5 +101,22 @@ describe('match runtime', () => {
     const next = stepMatchRuntime(awayServe, input({ move: { x: -1, z: -1 } }), 1 / 60);
     expect(next.match.rally.phase).toBe('RALLY');
     expect(next.match.ball.lastTouchedBy).toBe('away-0');
+  });
+
+  it('updates beginner cpu decisions less frequently than master', () => {
+    const beginner = stepMatchRuntime(
+      createMatchRuntime(106, 'BEGINNER', 'MANUAL'),
+      input(),
+      1 / 60,
+    );
+    const master = stepMatchRuntime(
+      createMatchRuntime(106, 'MASTER', 'MANUAL'),
+      input(),
+      1 / 60,
+    );
+
+    expect(beginner.cpuDecisions['away-0']?.nextDecisionAt).toBeGreaterThan(
+      master.cpuDecisions['away-0']?.nextDecisionAt ?? Number.POSITIVE_INFINITY,
+    );
   });
 });
