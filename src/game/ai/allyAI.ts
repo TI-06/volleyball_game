@@ -48,8 +48,9 @@ export function decideAllyIntent(state: MatchState, playerId: string): AllyInten
   const ballOnHomeSide = state.ball.position.z <= 0;
   const ballDescending = state.ball.velocity.y < 0;
   const landing = predictLanding(state.ball);
+  const teammateTouched = state.ball.lastTouchedBy?.startsWith('home-') ?? false;
 
-  if (ballOnHomeSide && ballDescending) {
+  if (ballOnHomeSide && ballDescending && !teammateTouched) {
     const receiver = closestHomePlayer(state, landing);
     if (receiver?.id === player.id) {
       return { state: 'RECEIVE', target: { ...landing, y: 0 } };
@@ -60,8 +61,7 @@ export function decideAllyIntent(state: MatchState, playerId: string): AllyInten
     return { state: 'COVER', target: basePosition(player) };
   }
 
-  const teammateTouched = state.ball.lastTouchedBy?.startsWith('home-') ?? false;
-  if (ballOnHomeSide && teammateTouched && state.ball.velocity.y >= 0) {
+  if (ballOnHomeSide && teammateTouched) {
     const lastToucher = state.players.find((candidate) => candidate.id === state.ball.lastTouchedBy);
 
     if (lastToucher?.role === 'SETTER') {
