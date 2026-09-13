@@ -28,6 +28,7 @@ export function performReceive(
         : {
             ...corrected,
             lastTouchedBy: receiverId,
+            lastContact: 'RECEIVE',
             inPlay: true,
             attackTimingBonus: 0,
           },
