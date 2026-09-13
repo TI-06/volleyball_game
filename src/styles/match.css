@@ -79,3 +79,22 @@
   .match-hud__action { right: 26px; bottom: 20px; width: 82px; height: 82px; }
   .character-card { padding: 5px 9px; }
 }
+
+@media (orientation: portrait) {
+  .match-screen::after {
+    content: '端末を横向きにしてください';
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: grid;
+    place-items: center;
+    padding: 32px;
+    color: #f6fbff;
+    background: #07111f;
+    font-size: clamp(1rem,4vw,1.35rem);
+    font-weight: 900;
+    letter-spacing: .05em;
+    text-align: center;
+  }
+  .match-hud,.controlled-player-label,.tutorial-coach { visibility: hidden; }
+}
