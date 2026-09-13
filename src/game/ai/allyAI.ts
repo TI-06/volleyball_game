@@ -26,6 +26,15 @@ function closestHomePlayer(state: MatchState, target: Vec3): PlayerState | null 
   })[0] ?? null;
 }
 
+function projectedAttacker(state: MatchState, setterId: string): PlayerState | null {
+  const target = predictLanding(state.ball);
+  return (
+    [...state.players]
+      .filter((player) => player.side === 'home' && player.id !== setterId)
+      .sort((a, b) => distanceXZ(a, target) - distanceXZ(b, target))[0] ?? null
+  );
+}
+
 export function decideAllyIntent(state: MatchState, playerId: string): AllyIntent {
   const player = state.players.find((candidate) => candidate.id === playerId && candidate.side === 'home');
   if (!player) {
@@ -53,10 +62,23 @@ export function decideAllyIntent(state: MatchState, playerId: string): AllyInten
 
   const teammateTouched = state.ball.lastTouchedBy?.startsWith('home-') ?? false;
   if (ballOnHomeSide && teammateTouched && state.ball.velocity.y >= 0) {
+    const lastToucher = state.players.find((candidate) => candidate.id === state.ball.lastTouchedBy);
+
+    if (lastToucher?.role === 'SETTER') {
+      const attacker = projectedAttacker(state, lastToucher.id);
+      if (attacker?.id === player.id) {
+        return {
+          state: 'APPROACH',
+          target: { x: landing.x, y: 0, z: -0.85 },
+        };
+      }
+      return { state: 'COVER', target: { x: 0, y: 0, z: -3.4 } };
+    }
+
     if (player.role === 'SETTER' && state.ball.lastTouchedBy !== player.id) {
       return { state: 'SET', target: { x: 0, y: 0, z: -1.1 } };
     }
-    if (player.role === 'ACE' || player.role === 'MIDDLE') {
+    if (player.role === 'ACE') {
       return {
         state: 'APPROACH',
         target: { x: player.position.x, y: 0, z: -0.85 },
