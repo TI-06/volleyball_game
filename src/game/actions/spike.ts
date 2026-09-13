@@ -74,6 +74,7 @@ export function performSpike(
       spin: intent === 'TIP' ? { x: 0, y: 0, z: 0 } : { x: 22 * forwardSign, y: 0, z: 0 },
       inPlay: true,
       lastTouchedBy: attackerId,
+      lastContact: 'SPIKE',
       attackTimingBonus: 0,
     },
   };
