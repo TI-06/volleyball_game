@@ -3,7 +3,7 @@ import { decideAllyIntent } from '../../../src/game/ai/allyAI';
 import { createMatch } from '../../../src/game/core/createMatch';
 
 describe('ally AI', () => {
-  it('sends the most relevant defender to a descending ball', () => {
+  it('sends the most relevant defender to a descending opponent ball', () => {
     const base = createMatch(10);
     const state = {
       ...base,
@@ -11,6 +11,7 @@ describe('ally AI', () => {
       ball: {
         ...base.ball,
         inPlay: true,
+        lastTouchedBy: 'away-0',
         position: { x: 2.5, y: 3, z: -5 },
         velocity: { x: 0, y: -2, z: -0.2 },
       },
@@ -53,6 +54,24 @@ describe('ally AI', () => {
     };
 
     expect(decideAllyIntent(state, 'home-0').state).toBe('APPROACH');
+  });
+
+  it('keeps the selected attacker in APPROACH when their own set starts descending', () => {
+    const base = createMatch(14);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-1',
+        position: { x: -2.2, y: 2.9, z: -0.9 },
+        velocity: { x: -1.1, y: -1.2, z: 0.2 },
+      },
+    };
+
+    expect(decideAllyIntent(state, 'home-0').state).toBe('APPROACH');
+    expect(decideAllyIntent(state, 'home-0').state).not.toBe('RECEIVE');
   });
 
   it('lets the libero become the attacker when the set is projected to the right side', () => {
