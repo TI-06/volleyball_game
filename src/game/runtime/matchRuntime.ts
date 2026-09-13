@@ -111,6 +111,25 @@ function approach(current: number, target: number, maxDelta: number): number {
   return current;
 }
 
+function timingOffsetAtHeight(match: MatchState, height: number): number {
+  const velocityY = match.ball.velocity.y;
+  const deltaY = height - match.ball.position.y;
+  if (Math.abs(velocityY) < 0.2) {
+    return Math.sign(deltaY || 1) * Math.min(0.6, Math.abs(deltaY) * 0.4);
+  }
+  return clamp(deltaY / velocityY, -0.6, 0.6);
+}
+
+function actionTimingOffset(match: MatchState, player: PlayerState, action: ActionKind): number {
+  if (action === 'RECEIVE') return timingOffsetAtHeight(match, 0.9);
+  if (action === 'DIVE') return timingOffsetAtHeight(match, 0.5);
+  if (action === 'SET') return timingOffsetAtHeight(match, 2.05);
+  if (action === 'SPIKE' || action === 'BLOCK') {
+    return timingOffsetAtHeight(match, 2.05 + player.position.y);
+  }
+  return 0;
+}
+
 function movePlayerByVector(
   player: PlayerState,
   character: CharacterDefinition,
@@ -213,6 +232,7 @@ function performUserAction(
 
   let match = runtime.match;
   let event: RuntimeEvent = { type: action, actorId: player.id };
+  const timingOffset = actionTimingOffset(match, player, action);
 
   if (action === 'SERVE') {
     const target = {
@@ -228,7 +248,7 @@ function performUserAction(
       character,
       player.id,
       setterTarget('home'),
-      0,
+      timingOffset,
     );
     match = { ...match, ball: result.ball };
     event = { ...event, quality: result.quality };
@@ -238,7 +258,7 @@ function performUserAction(
       character,
       player.id,
       setterTarget('home'),
-      0,
+      timingOffset,
     );
     match = {
       ...match,
@@ -260,7 +280,7 @@ function performUserAction(
         character,
         player.id,
         { x: attacker.position.x, y: 3.15, z: -0.75 },
-        0,
+        timingOffset,
         input.selectedSetTempo ?? 'NORMAL',
       );
       match = { ...match, ball: result.ball };
@@ -275,7 +295,7 @@ function performUserAction(
       character,
       player.id,
       attackTarget('home', intent, input.aim.x),
-      0,
+      timingOffset,
       intent,
     );
     match = { ...match, ball: result.ball };
@@ -292,7 +312,7 @@ function performUserAction(
         match.ball,
         character,
         player.id,
-        0,
+        timingOffset,
         match.ball.position.x - player.position.x,
       );
       match = { ...match, ball: result.ball };

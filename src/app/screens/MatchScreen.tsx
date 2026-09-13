@@ -141,10 +141,11 @@ export function MatchScreen({
         accumulator -= FIXED_STEP_SECONDS;
       }
 
-      if (latestEvent?.quality === 'PERFECT') {
+      const isPlayerEvent = latestEvent?.actorId?.startsWith('home-') ?? false;
+      if (isPlayerEvent && latestEvent?.quality === 'PERFECT') {
         statsRef.current.perfectCount += 1;
       }
-      if (latestEvent?.type === 'SPIKE' && latestEvent.value) {
+      if (isPlayerEvent && latestEvent?.type === 'SPIKE' && latestEvent.value) {
         statsRef.current.highestSpikeKmh = Math.max(
           statsRef.current.highestSpikeKmh,
           latestEvent.value,
