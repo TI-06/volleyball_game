@@ -3,6 +3,7 @@ import type { MatchState, PlayerState } from '../core/types';
 import type { ManualSwitchResult, SwitchDecision, SwitchMode } from './inputTypes';
 
 const AUTO_WARNING_LEAD = 0.35;
+const ATTACK_HANDOFF_LEAD = 0.08;
 
 function distanceXZ(player: PlayerState, x: number, z: number): number {
   return Math.hypot(player.position.x - x, player.position.z - z);
@@ -63,6 +64,14 @@ function targetCandidate(state: MatchState): PlayerState | null {
   })[0] ?? null;
 }
 
+function offenseLead(state: MatchState, offense: PlayerState | null): number {
+  if (!offense) return AUTO_WARNING_LEAD;
+  const lastToucher = state.players.find((player) => player.id === state.ball.lastTouchedBy);
+  return lastToucher?.side === 'home' && lastToucher.role === 'SETTER'
+    ? ATTACK_HANDOFF_LEAD
+    : AUTO_WARNING_LEAD;
+}
+
 export function getSwitchCandidate(
   state: MatchState,
   options: {
@@ -78,21 +87,23 @@ export function getSwitchCandidate(
   const serve = serveCandidate(state);
   const offense = offensiveCandidate(state);
   const candidate = serve ?? offense ?? targetCandidate(state);
+  const warningLead = serve ? AUTO_WARNING_LEAD : offenseLead(state, offense);
+
   if (!candidate) {
     return { playerId: null, warningLead: AUTO_WARNING_LEAD, reason: 'NO_CANDIDATE' };
   }
 
   if (candidate.id === options.currentPlayerId) {
-    return { playerId: candidate.id, warningLead: AUTO_WARNING_LEAD, reason: 'CURRENT_PLAYER' };
+    return { playerId: candidate.id, warningLead, reason: 'CURRENT_PLAYER' };
   }
 
   if (options.mode === 'STANDARD' && options.strongMovement) {
-    return { playerId: null, warningLead: AUTO_WARNING_LEAD, reason: 'HELD_BY_INPUT' };
+    return { playerId: null, warningLead, reason: 'HELD_BY_INPUT' };
   }
 
   return {
     playerId: candidate.id,
-    warningLead: AUTO_WARNING_LEAD,
+    warningLead,
     reason: serve ? 'SERVE' : 'BALL_TARGET',
   };
 }
