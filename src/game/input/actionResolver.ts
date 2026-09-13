@@ -65,7 +65,7 @@ export function resolveAction(
     return 'BLOCK';
   }
 
-  if (ownSide && ballDescending) {
+  if (ownSide && incoming && ballDescending) {
     if (distance <= 1.65) {
       return 'RECEIVE';
     }
@@ -78,7 +78,7 @@ export function resolveAction(
     return 'SET';
   }
 
-  if (!player.isAirborne && lastTouchWasTeammate && state.ball.velocity.y > 0 && distance <= 3.2) {
+  if (!player.isAirborne && lastTouchWasTeammate && ballHigh && distance <= 3.2) {
     return 'JUMP';
   }
 
