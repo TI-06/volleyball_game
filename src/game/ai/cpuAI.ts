@@ -1,10 +1,7 @@
 import type { AttackIntent } from '../actions/spike';
 import { predictLanding } from '../ball/ballPhysics';
 import { getReadAssist } from '../characters/abilities';
-import {
-  STARTER_ROSTER,
-  type CharacterId,
-} from '../characters/roster';
+import { STARTER_ROSTER, type CharacterId } from '../characters/roster';
 import type { MatchState, PlayerState, Vec3 } from '../core/types';
 import type { DifficultyProfile } from './difficulty';
 import { dominantDefense, type TendencyHistory } from './tendencyTracker';
@@ -35,12 +32,8 @@ function basePosition(player: PlayerState): Vec3 {
   return { x: player.position.x, y: 0, z };
 }
 
-function readAssist(player: PlayerState | null): ReturnType<typeof getReadAssist> {
-  if (!player) return { reactionBias: 0.06, predictionErrorScale: 1 };
-  const character = STARTER_ROSTER[player.characterId as CharacterId];
-  return character
-    ? getReadAssist(character)
-    : { reactionBias: 0.06, predictionErrorScale: 1 };
+function characterFor(player: PlayerState) {
+  return STARTER_ROSTER[player.characterId as CharacterId] ?? STARTER_ROSTER.shin;
 }
 
 function reactionDelay(
@@ -50,10 +43,11 @@ function reactionDelay(
 ): number {
   const playerId = player?.id ?? 'missing';
   const random = hash01(state.rngState, `${playerId}:${Math.floor(state.time * 4)}`);
-  const base =
-    profile.reactionDelay.min +
+  const base = profile.reactionDelay.min +
     (profile.reactionDelay.max - profile.reactionDelay.min) * random;
-  return base + readAssist(player).reactionBias;
+  if (!player) return base;
+  const read = getReadAssist(characterFor(player));
+  return Math.max(0.04, base + read.reactionBias * 0.45);
 }
 
 function closestAwayPlayer(state: MatchState, target: Vec3): PlayerState | null {
@@ -122,7 +116,7 @@ export function decideCpuIntent(
     if (server?.id === player.id) {
       return {
         state: 'SERVE',
-        target: { x: 0, y: 0, z: -6.2 },
+        target: { x: player.position.x, y: 0, z: player.position.z },
         attackIntent: null,
         reactionDelay: delay,
       };
@@ -138,15 +132,10 @@ export function decideCpuIntent(
   if (ballOnAwaySide && state.ball.velocity.y < 0) {
     const receiver = closestAwayPlayer(state, landing);
     if (receiver?.id === player.id) {
-      const predictionScale = readAssist(player).predictionErrorScale;
-      const errorX =
-        (hash01(state.rngState, `px:${player.id}`) - 0.5) *
-        profile.predictionError *
-        predictionScale;
-      const errorZ =
-        (hash01(state.rngState, `pz:${player.id}`) - 0.5) *
-        profile.predictionError *
-        predictionScale;
+      const read = getReadAssist(characterFor(player));
+      const errorScale = profile.predictionError * read.predictionErrorScale;
+      const errorX = (hash01(state.rngState, `px:${player.id}`) - 0.5) * errorScale;
+      const errorZ = (hash01(state.rngState, `pz:${player.id}`) - 0.5) * errorScale;
       return {
         state: 'RECEIVE',
         target: { x: landing.x + errorX, y: 0, z: landing.z + errorZ },
