@@ -24,7 +24,12 @@ export function performReceive(
     quality,
     ball:
       quality === 'MISS'
-        ? corrected
-        : { ...corrected, lastTouchedBy: receiverId, inPlay: true },
+        ? { ...corrected, attackTimingBonus: 0 }
+        : {
+            ...corrected,
+            lastTouchedBy: receiverId,
+            inPlay: true,
+            attackTimingBonus: 0,
+          },
   };
 }
