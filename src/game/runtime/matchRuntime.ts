@@ -430,9 +430,70 @@ function cpuReceiveReach(profile: DifficultyProfile): number {
   return clamp(2.28 - profile.predictionError * 0.28, 1.82, 2.24);
 }
 
+function expectedCpuActionState(
+  runtime: MatchRuntimeState,
+  playerId: string,
+): CpuIntent['state'] | null {
+  const match = runtime.match;
+  const player = match.players.find((candidate) => candidate.id === playerId && candidate.side === 'away');
+  if (!player) return null;
+
+  if (match.rally.phase === 'SERVE_READY' && match.rally.servingSide === 'away') {
+    const away = match.players.filter((candidate) => candidate.side === 'away');
+    const server = away[match.rally.serverIndex.away % away.length];
+    return server?.id === player.id ? 'SERVE' : null;
+  }
+
+  if (match.rally.phase !== 'RALLY') return null;
+
+  const ball = match.ball;
+  const lastTouchHome = ball.lastTouchedBy?.startsWith('home-') ?? false;
+  const lastTouchAway = ball.lastTouchedBy?.startsWith('away-') ?? false;
+
+  if (
+    lastTouchHome &&
+    ball.velocity.z > 0 &&
+    Math.abs(ball.position.z) < 1.8 &&
+    ball.position.y > 1.8 &&
+    (player.role === 'MIDDLE' || player.role === 'ACE')
+  ) {
+    return 'BLOCK';
+  }
+
+  if (ball.position.z >= 0 && ball.velocity.y < 0 && lastTouchHome) {
+    return 'RECEIVE';
+  }
+
+  if (lastTouchAway && ball.velocity.y > 0) {
+    const lastToucher = match.players.find((candidate) => candidate.id === ball.lastTouchedBy);
+    if (lastToucher?.role !== 'SETTER' && player.role === 'SETTER') {
+      return 'SET';
+    }
+  }
+
+  if (lastTouchAway) {
+    const lastToucher = match.players.find((candidate) => candidate.id === ball.lastTouchedBy);
+    if (
+      lastToucher?.role === 'SETTER' &&
+      ball.position.y >= 2.1 &&
+      (player.role === 'ACE' || player.role === 'MIDDLE')
+    ) {
+      return 'APPROACH';
+    }
+  }
+
+  return null;
+}
+
 function cpuActionReady(runtime: MatchRuntimeState, playerId: string): boolean {
   const memory = runtime.cpuDecisions[playerId];
-  return Boolean(memory && runtime.match.time >= memory.actionReadyAt);
+  const expectedState = expectedCpuActionState(runtime, playerId);
+  return Boolean(
+    memory &&
+    expectedState &&
+    memory.intent.state === expectedState &&
+    runtime.match.time >= memory.actionReadyAt,
+  );
 }
 
 function consumeCpuAction(runtime: MatchRuntimeState, playerId: string): MatchRuntimeState {
