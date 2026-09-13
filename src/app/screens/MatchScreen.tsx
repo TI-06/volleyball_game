@@ -38,8 +38,6 @@ interface HudState {
   event: RuntimeEvent | null;
 }
 
-const BLOCK_INPUT_WINDOW_SECONDS = 0.42;
-
 function runtimeCharacterId(runtime: MatchRuntimeState, playerId: string): CharacterId {
   const characterId = runtime.match.players.find((player) => player.id === playerId)?.characterId;
   return (characterId ?? 'kai') as CharacterId;
@@ -71,7 +69,6 @@ export function MatchScreen({
   const inputRef = useRef<RuntimeInput>(createInput());
   const finishSentRef = useRef(false);
   const statsRef = useRef({ highestSpikeKmh: 0, perfectCount: 0 });
-  const blockWindowUntilRef = useRef(0);
   const initialTutorialRef = useRef(tutorial);
   const [tutorialActive, setTutorialActive] = useState(tutorial);
   const [hud, setHud] = useState<HudState>(() => ({
@@ -118,7 +115,6 @@ export function MatchScreen({
     }
     runtimeRef.current = runtime;
     inputRef.current = createInput();
-    blockWindowUntilRef.current = 0;
     finishSentRef.current = false;
     statsRef.current = { highestSpikeKmh: 0, perfectCount: 0 };
     updateHud(runtime, null);
@@ -158,10 +154,7 @@ export function MatchScreen({
           }
         }
 
-        const keepBlocking =
-          runtime.match.time < blockWindowUntilRef.current &&
-          getCurrentAction(runtime) === 'BLOCK';
-        inputRef.current.actionPressed = keepBlocking;
+        inputRef.current.actionPressed = false;
         inputRef.current.actionReleased = false;
         accumulator -= FIXED_STEP_SECONDS;
       }
@@ -231,12 +224,8 @@ export function MatchScreen({
         onMove={(move) => {
           inputRef.current.move = move;
         }}
-        onActionPress={(action) => {
+        onActionPress={() => {
           inputRef.current.actionPressed = true;
-          if (action === 'BLOCK') {
-            blockWindowUntilRef.current =
-              runtimeRef.current.match.time + BLOCK_INPUT_WINDOW_SECONDS;
-          }
         }}
         onActionRelease={() => {
           inputRef.current.actionReleased = true;
