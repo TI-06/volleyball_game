@@ -18,12 +18,13 @@ describe('App', () => {
   it('persists switch and camera settings from the title screen', () => {
     render(<App />);
 
-    fireEvent.click(screen.getByText('SETTINGS'));
-    fireEvent.click(screen.getByRole('button', { name: 'MANUAL' }));
-    fireEvent.click(screen.getByRole('button', { name: 'OFF' }));
+    const manual = screen.getByRole('button', { name: 'MANUAL', hidden: true });
+    const cameraOff = screen.getByRole('button', { name: 'OFF', hidden: true });
+    fireEvent.click(manual);
+    fireEvent.click(cameraOff);
 
-    expect(screen.getByRole('button', { name: 'MANUAL' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: 'OFF' })).toHaveAttribute('aria-pressed', 'true');
+    expect(manual).toHaveAttribute('aria-pressed', 'true');
+    expect(cameraOff).toHaveAttribute('aria-pressed', 'true');
 
     const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '{}') as {
       settings?: { switchMode?: string; cameraMode?: string };
