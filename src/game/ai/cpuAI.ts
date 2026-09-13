@@ -181,13 +181,15 @@ export function decideCpuIntent(
   }
 
   if (!ballOnAwaySide && (player.role === 'ACE' || player.role === 'MIDDLE')) {
+    if (state.ball.lastContact === 'SERVE') {
+      return { state: 'COVER', target: basePosition(player), attackIntent: null, reactionDelay: delay };
+    }
     const target = { x: state.ball.position.x, y: 0, z: BLOCK_TARGET_Z };
-    const lastHomeToucher = state.players.find(
-      (candidate) => candidate.id === state.ball.lastTouchedBy && candidate.side === 'home',
-    );
-    const attackContact = Boolean(lastHomeToucher && lastHomeToucher.role !== 'SETTER');
     return {
-      state: attackContact && player.position.z <= BLOCK_READY_Z ? 'BLOCK' : 'APPROACH',
+      state:
+        state.ball.lastContact === 'SPIKE' && player.position.z <= BLOCK_READY_Z
+          ? 'BLOCK'
+          : 'APPROACH',
       target,
       attackIntent: null,
       reactionDelay: delay,
