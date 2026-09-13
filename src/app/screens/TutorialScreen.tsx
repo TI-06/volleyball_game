@@ -6,7 +6,7 @@ const STEPS = [
   { event: 'SET', title: '攻撃につなぐ', body: 'セッターに切り替わったらSETをスワイプ。速さと方向でトスを選ぶ。' },
   { event: 'JUMP', title: '助走からジャンプ', body: 'アタッカーへ切り替わったら、打点に合わせてJUMP。' },
   { event: 'SPIKE', title: '自分で決める', body: '空中でSPIKEをスワイプ。コースとタイミングを合わせて打ち切ろう。' },
-  { event: 'BLOCK', title: '最後はブロック', body: '相手攻撃に合わせてネット前へ。位置とタイミングを合わせて実際にボールへ触ろう。' },
+  { event: 'BLOCK', title: '最後はブロック', body: '相手攻撃に合わせてネット前へ。JUMPして、空中でBLOCKをタイミングよく押そう。' },
 ] as const;
 
 interface TutorialScreenProps {
