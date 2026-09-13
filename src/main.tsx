@@ -4,6 +4,7 @@ import { App } from './app/App';
 import './styles/app.css';
 import './styles/match.css';
 import './styles/feedback.css';
+import './styles/orientation.css';
 
 const root = document.getElementById('root');
 
