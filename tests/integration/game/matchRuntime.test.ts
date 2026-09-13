@@ -33,6 +33,25 @@ function awayServe(runtime: MatchRuntimeState): MatchRuntimeState {
   };
 }
 
+function risingHomePass(): MatchRuntimeState {
+  const runtime = createMatchRuntime(103, 'NORMAL', 'STANDARD');
+  return {
+    ...runtime,
+    controlledPlayerId: 'home-2',
+    match: {
+      ...runtime.match,
+      rally: { ...runtime.match.rally, phase: 'RALLY' },
+      ball: {
+        ...runtime.match.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-2',
+        position: { x: 1, y: 1.4, z: -3.4 },
+        velocity: { x: -0.4, y: 4.2, z: 2.3 },
+      },
+    },
+  };
+}
+
 describe('match runtime', () => {
   it('connects the home contextual serve action to the rally state', () => {
     const runtime = createMatchRuntime(101, 'NORMAL', 'STANDARD');
@@ -77,26 +96,31 @@ describe('match runtime', () => {
     expect(player.position.z).toBeLessThan(0);
   });
 
-  it('switches from a receiver to the setter when a home pass is rising', () => {
-    const runtime = createMatchRuntime(103, 'NORMAL', 'STANDARD');
-    const prepared = {
-      ...runtime,
-      controlledPlayerId: 'home-2',
-      match: {
-        ...runtime.match,
-        rally: { ...runtime.match.rally, phase: 'RALLY' as const },
-        ball: {
-          ...runtime.match.ball,
-          inPlay: true,
-          lastTouchedBy: 'home-2',
-          position: { x: 1, y: 1.4, z: -3.4 },
-          velocity: { x: -0.4, y: 4.2, z: 2.3 },
-        },
-      },
-    };
+  it('warns before switching from a receiver to the setter', () => {
+    let next = stepMatchRuntime(risingHomePass(), input(), 1 / 60);
 
-    const next = stepMatchRuntime(prepared, input(), 1 / 60);
+    expect(next.controlledPlayerId).toBe('home-2');
+    expect(next.autoSwitchPlayerId).toBe('home-1');
+    expect(next.autoSwitchAt).toBeGreaterThan(next.match.time);
+
+    for (let frame = 0; frame < 30 && next.controlledPlayerId !== 'home-1'; frame += 1) {
+      next = stepMatchRuntime(next, input(), 1 / 60);
+    }
+
     expect(next.controlledPlayerId).toBe('home-1');
+    expect(next.autoSwitchPlayerId).toBeNull();
+    expect(next.autoSwitchAt).toBeNull();
+  });
+
+  it('does not auto-switch while STANDARD mode has strong manual movement', () => {
+    let next = risingHomePass();
+
+    for (let frame = 0; frame < 30; frame += 1) {
+      next = stepMatchRuntime(next, input({ move: { x: 1, z: 0 } }), 1 / 60);
+    }
+
+    expect(next.controlledPlayerId).toBe('home-2');
+    expect(next.autoSwitchPlayerId).toBeNull();
   });
 
   it('routes a right-side set gesture toward the right-side teammate', () => {
