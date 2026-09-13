@@ -12,6 +12,10 @@ function isBallOnSide(state: MatchState, player: PlayerState): boolean {
   return state.ball.position.z >= 0;
 }
 
+function isBallTravelingTowardPlayer(state: MatchState, player: PlayerState): boolean {
+  return player.side === 'home' ? state.ball.velocity.z < -0.05 : state.ball.velocity.z > 0.05;
+}
+
 function isCurrentServer(state: MatchState, player: PlayerState): boolean {
   if (state.rally.servingSide !== player.side) {
     return false;
@@ -44,18 +48,20 @@ export function resolveAction(
   const ballHigh = state.ball.position.y >= 2.1;
   const ballDescending = state.ball.velocity.y < 0;
   const ownSide = isBallOnSide(state, player);
+  const incoming = isBallTravelingTowardPlayer(state, player);
+  const lastTouchWasTeammate = state.ball.lastTouchedBy?.startsWith(`${player.side}-`) ?? false;
 
   if (player.isAirborne) {
-    if (nearNet && !ownSide && ballHigh && distance <= 2.1) {
+    if (nearNet && !ownSide && incoming && ballHigh && distance <= 2.1) {
       return 'BLOCK';
     }
-    if (ownSide && ballHigh && distance <= 2.2) {
+    if (ownSide && lastTouchWasTeammate && ballHigh && distance <= 2.2) {
       return 'SPIKE';
     }
     return null;
   }
 
-  if (nearNet && !ownSide && ballHigh && distance <= 2.8) {
+  if (nearNet && !ownSide && incoming && ballHigh && distance <= 2.8) {
     return 'BLOCK';
   }
 
@@ -72,7 +78,6 @@ export function resolveAction(
     return 'SET';
   }
 
-  const lastTouchWasTeammate = state.ball.lastTouchedBy?.startsWith(`${player.side}-`) ?? false;
   if (!player.isAirborne && lastTouchWasTeammate && state.ball.velocity.y > 0 && distance <= 3.2) {
     return 'JUMP';
   }
