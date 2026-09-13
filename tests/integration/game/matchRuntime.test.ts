@@ -84,6 +84,43 @@ describe('match runtime', () => {
     expect(next.controlledPlayerId).toBe('home-1');
   });
 
+  it('routes a right-side set gesture toward the right-side teammate', () => {
+    const runtime = createMatchRuntime(107, 'NORMAL', 'MANUAL');
+    const prepared = {
+      ...runtime,
+      controlledPlayerId: 'home-1',
+      match: {
+        ...runtime.match,
+        rally: { ...runtime.match.rally, phase: 'RALLY' as const },
+        players: runtime.match.players.map((player) =>
+          player.id === 'home-1'
+            ? { ...player, position: { x: 0, y: 0, z: -1.2 } }
+            : player,
+        ),
+        ball: {
+          ...runtime.match.ball,
+          inPlay: true,
+          lastTouchedBy: 'home-2',
+          position: { x: 0, y: 2.05, z: -1.2 },
+          velocity: { x: 0, y: 0.2, z: 0 },
+        },
+      },
+    };
+
+    const next = stepMatchRuntime(
+      prepared,
+      input({
+        actionPressed: true,
+        aim: { x: 4, z: -0.8 },
+        selectedSetTempo: 'NORMAL',
+      }),
+      1 / 60,
+    );
+
+    expect(next.match.ball.lastTouchedBy).toBe('home-1');
+    expect(next.match.ball.velocity.x).toBeGreaterThan(0);
+  });
+
   it('lets an away CPU server start the rally without reading player input', () => {
     const runtime = createMatchRuntime(104, 'HARD', 'MANUAL');
     const awayServe = {
