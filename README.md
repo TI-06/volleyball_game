@@ -20,7 +20,7 @@ Phase 1では、CPU戦の操作感を完成させることを最優先にして�
 
 ## Development
 
-Node.js 22以上を使用します。
+Vite 8の要件に合わせ、Node.js 22.12以上を使用します。
 
 ```bash
 npm install
@@ -29,13 +29,19 @@ npm run dev
 
 ### Local verification
 
-リモートCIより先に、ローカルで以下をすべて通します。
+GitHub Actionsを自動実行する前に、ローカルで検証します。
 
 ```bash
-npm run typecheck
-npm test
-npm run build
-npm run test:e2e
+npm run verify
+```
+
+`verify` は `typecheck -> unit/integration tests -> production build` の順に実行します。
+
+Playwrightを含むスマホE2Eまで確認する場合:
+
+```bash
+npx playwright install chromium
+npm run verify:full
 ```
 
 ## Cloudflare
@@ -54,7 +60,7 @@ npm run deploy
 
 Phase 1 foundationではGitHub Actionsを意図的に追加していません。開発初期の失敗ジョブによる通知メールを増やさないためです。
 
-まずローカル検証を安定させ、その後必要になった場合のみ、PR単位で1本に集約したCIを追加します。定期実行・pushごとの大量workflow・重複workflowは作りません。
+まず `npm run verify` / `npm run verify:full` を安定させ、その後必要になった場合のみ、PR単位で1本に集約したCIを追加します。定期実行・pushごとの大量workflow・重複workflowは作りません。
 
 ## Documents
 
