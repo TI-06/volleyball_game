@@ -14,7 +14,8 @@ export interface ReworkServePreviewTarget extends Vec3 {
 
 export function getReworkServeTarget(swipe: ReworkSwipe | null): Vec3 {
   const lane = clamp((swipe?.x ?? 0) / 80, -1, 1);
-  return { x: -lane * SERVE_TARGET_X, y: 0, z: SERVE_TARGET_Z };
+  const x = Math.abs(lane) < 0.0001 ? 0 : -lane * SERVE_TARGET_X;
+  return { x, y: 0, z: SERVE_TARGET_Z };
 }
 
 export function getReworkServePreviewTarget(
