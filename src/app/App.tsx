@@ -1,9 +1,14 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { CpuDifficulty } from '../game/ai/difficulty';
 import type { CameraSetting } from '../game/camera/cameraDirector';
 import type { SwitchMode } from '../game/input/inputTypes';
 import { loadSettings, saveSettings } from '../persistence/settingsStore';
 import { saveMatchResult } from '../persistence/recordStore';
+import {
+  TUTORIAL_MATCH_SEED,
+  createSessionSeed,
+  nextMatchSeed,
+} from './matchSeed';
 import { DifficultyScreen } from './screens/DifficultyScreen';
 import { MatchScreen } from './screens/MatchScreen';
 import { ResultScreen, type MatchResultView } from './screens/ResultScreen';
@@ -17,12 +22,21 @@ export function App() {
   const [difficulty, setDifficulty] = useState<CpuDifficulty>('NORMAL');
   const [result, setResult] = useState<MatchResultView | null>(null);
   const [tutorialForMatch, setTutorialForMatch] = useState(false);
+  const [matchSeed, setMatchSeed] = useState(TUTORIAL_MATCH_SEED);
+  const normalSeedRef = useRef(createSessionSeed());
 
   const startMatch = useCallback(
     (nextDifficulty: CpuDifficulty) => {
+      const tutorial = !settings.tutorialComplete;
       setDifficulty(nextDifficulty);
       setResult(null);
-      setTutorialForMatch(!settings.tutorialComplete);
+      setTutorialForMatch(tutorial);
+      if (tutorial) {
+        setMatchSeed(TUTORIAL_MATCH_SEED);
+      } else {
+        normalSeedRef.current = nextMatchSeed(normalSeedRef.current);
+        setMatchSeed(normalSeedRef.current);
+      }
       setScreen('MATCH');
     },
     [settings.tutorialComplete],
@@ -79,6 +93,7 @@ export function App() {
   if (screen === 'MATCH') {
     return (
       <MatchScreen
+        seed={matchSeed}
         difficulty={difficulty}
         switchMode={settings.switchMode}
         cameraMode={settings.cameraMode}
