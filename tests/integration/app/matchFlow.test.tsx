@@ -15,11 +15,11 @@ describe('application match flow', () => {
     expect(screen.getByRole('button', { name: /EXPERT/ })).toBeDisabled();
   });
 
-  it('opens the match shell after selecting an unlocked difficulty', () => {
+  it('opens the rework match shell after selecting an unlocked difficulty', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'CPU MATCH' }));
     fireEvent.click(screen.getByRole('button', { name: /NORMAL/ }));
-    expect(screen.getByTestId('match-screen')).toBeInTheDocument();
-    expect(screen.getByText(/TUTORIAL/)).toBeInTheDocument();
+    expect(screen.getByTestId('rework-match-screen')).toBeInTheDocument();
+    expect(screen.getByText(/QUICK START/)).toBeInTheDocument();
   });
 });
