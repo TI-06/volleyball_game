@@ -141,4 +141,51 @@ describe('playable cpu runtime', () => {
 
     expect(sawBlockJump).toBe(false);
   });
+
+  it('lets a ready cpu setter rescue a descending pass without an instant follow-up spike', () => {
+    let runtime = withRally(createMatchRuntime(183, 'NORMAL', 'MANUAL'));
+    runtime = {
+      ...runtime,
+      match: {
+        ...runtime.match,
+        time: 1,
+        players: runtime.match.players.map((player) => {
+          if (player.id === 'away-2') {
+            return { ...player, position: { x: 0, y: 0, z: 1.15 } };
+          }
+          if (player.id === 'away-0') {
+            return { ...player, position: { x: -1.8, y: 0, z: 0.9 } };
+          }
+          return player;
+        }),
+        ball: {
+          ...runtime.match.ball,
+          inPlay: true,
+          lastTouchedBy: 'away-0',
+          lastContact: 'RECEIVE',
+          position: { x: 0.15, y: 2.15, z: 1.2 },
+          velocity: { x: 0, y: -0.7, z: 0.1 },
+        },
+      },
+      cpuDecisions: {
+        'away-2': {
+          intent: {
+            state: 'SET',
+            target: { x: 0, y: 0, z: 1.05 },
+            attackIntent: null,
+            reactionDelay: 0.4,
+          },
+          nextDecisionAt: 10,
+          actionReadyAt: 0.5,
+        },
+      } as unknown as MatchRuntimeState['cpuDecisions'],
+    };
+
+    const next = stepMatchRuntime(runtime, idleInput(), 1 / 60);
+
+    expect(next.match.ball.lastTouchedBy).toBe('away-2');
+    expect(next.match.ball.lastContact).toBe('SET');
+    expect(next.lastEvent?.type).toBe('SET');
+    expect(next.match.players.find((player) => player.id === 'away-0')?.isAirborne).toBe(false);
+  });
 });
