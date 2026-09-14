@@ -10,6 +10,7 @@ import {
 } from '../characters/roster';
 import { COURT } from '../core/constants';
 import type { MatchState, PlayerState } from '../core/types';
+import type { RuntimeEvent } from '../runtime/matchRuntime';
 import { BallView } from './BallView';
 import { CameraView } from './CameraView';
 import { CourtView } from './CourtView';
@@ -73,6 +74,11 @@ export class GameScene {
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.host);
     this.resize();
+  }
+
+  playEvent(event: RuntimeEvent): void {
+    if (!event.actorId) return;
+    this.playerViews.get(event.actorId)?.playAction(event.type);
   }
 
   update(
