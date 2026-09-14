@@ -1,16 +1,14 @@
 import { useCallback, useRef, useState } from 'react';
 import type { CpuDifficulty } from '../game/ai/difficulty';
-import type { CameraSetting } from '../game/camera/cameraDirector';
-import type { SwitchMode } from '../game/input/inputTypes';
-import { loadSettings, saveSettings } from '../persistence/settingsStore';
 import { saveMatchResult } from '../persistence/recordStore';
+import { loadSettings, saveSettings } from '../persistence/settingsStore';
 import {
   TUTORIAL_MATCH_SEED,
   createSessionSeed,
   nextMatchSeed,
 } from './matchSeed';
 import { DifficultyScreen } from './screens/DifficultyScreen';
-import { MatchScreen } from './screens/MatchScreen';
+import { ReworkMatchScreen } from './screens/ReworkMatchScreen';
 import { ResultScreen, type MatchResultView } from './screens/ResultScreen';
 import { TitleScreen } from './screens/TitleScreen';
 
@@ -41,22 +39,6 @@ export function App() {
     },
     [settings.tutorialComplete],
   );
-
-  const updateSwitchMode = useCallback((switchMode: SwitchMode) => {
-    setSettings((current) => {
-      const next = { ...current, switchMode };
-      saveSettings(next);
-      return next;
-    });
-  }, []);
-
-  const updateCameraMode = useCallback((cameraMode: CameraSetting) => {
-    setSettings((current) => {
-      const next = { ...current, cameraMode };
-      saveSettings(next);
-      return next;
-    });
-  }, []);
 
   const finishTutorial = useCallback(() => {
     setTutorialForMatch(false);
@@ -92,11 +74,9 @@ export function App() {
 
   if (screen === 'MATCH') {
     return (
-      <MatchScreen
+      <ReworkMatchScreen
         seed={matchSeed}
         difficulty={difficulty}
-        switchMode={settings.switchMode}
-        cameraMode={settings.cameraMode}
         tutorial={tutorialForMatch}
         onTutorialComplete={finishTutorial}
         onFinished={finishMatch}
@@ -115,13 +95,5 @@ export function App() {
     );
   }
 
-  return (
-    <TitleScreen
-      switchMode={settings.switchMode}
-      cameraMode={settings.cameraMode}
-      onCpuMatch={() => setScreen('DIFFICULTY')}
-      onSwitchModeChange={updateSwitchMode}
-      onCameraModeChange={updateCameraMode}
-    />
-  );
+  return <TitleScreen onCpuMatch={() => setScreen('DIFFICULTY')} />;
 }

@@ -31,7 +31,7 @@ export function performServe(
   const horizontalSpeed = kind === 'JUMP'
     ? 17.3 + normalizedPower * 3.2
     : 12.8 + normalizedPower * 2.8;
-  const verticalSpeed = kind === 'JUMP' ? 1.8 : 3.5;
+  const verticalSpeed = kind === 'JUMP' ? 1.8 : 3.55;
   const direction = Math.sign(deltaZ) || 1;
 
   return {

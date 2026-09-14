@@ -57,15 +57,15 @@ export function DifficultyScreen({ unlocked, onSelect, onBack }: DifficultyScree
 
       <section className="team-preview">
         <div>
-          <span className="menu-kicker">YOUR TEAM</span>
-          <h2>RALLY</h2>
+          <span className="menu-kicker">FOCUS PLAYER</span>
+          <h2>KAI + SUPPORT</h2>
         </div>
         <div className="team-preview__players">
           {PLAYER_TEAM.map((id) => {
             const character = STARTER_ROSTER[id];
             return (
               <article key={id} className="mini-player-card">
-                <span>{character.role}</span>
+                <span>{id === 'kai' ? `YOU · ${character.role}` : `AI · ${character.role}`}</span>
                 <strong>{character.name}</strong>
                 <small>{character.archetype}</small>
               </article>
