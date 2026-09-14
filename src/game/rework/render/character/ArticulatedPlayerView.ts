@@ -163,7 +163,7 @@ export class ArticulatedMotionController {
   }
 }
 
-interface PartLayout {
+export interface PartLayout {
   joint: JointName;
   width: number;
   height: number;
@@ -172,24 +172,26 @@ interface PartLayout {
   order: number;
 }
 
-const PART_LAYOUT: Record<CharacterPartName, PartLayout> = {
+export const ARTICULATED_PLAYER_DISPLAY_SCALE = 1.14;
+
+export const ARTICULATED_PART_LAYOUT: Record<CharacterPartName, PartLayout> = {
   hairBack: { joint: 'head', width: 0.72, height: 0.72, offsetX: 0, offsetY: 0.03, order: 10 },
   head: { joint: 'head', width: 0.64, height: 0.68, offsetX: 0, offsetY: 0, order: 11 },
   face: { joint: 'head', width: 0.62, height: 0.65, offsetX: 0, offsetY: 0, order: 12 },
   hairFront: { joint: 'head', width: 0.72, height: 0.72, offsetX: 0, offsetY: 0.03, order: 13 },
-  torso: { joint: 'chest', width: 0.78, height: 0.78, offsetX: 0, offsetY: -0.18, order: 8 },
-  upperArmL: { joint: 'shoulderL', width: 0.38, height: 0.2, offsetX: -0.17, offsetY: -0.01, order: 7 },
-  upperArmR: { joint: 'shoulderR', width: 0.38, height: 0.2, offsetX: 0.17, offsetY: -0.01, order: 7 },
-  foreArmL: { joint: 'elbowL', width: 0.35, height: 0.18, offsetX: -0.16, offsetY: -0.01, order: 7 },
-  foreArmR: { joint: 'elbowR', width: 0.35, height: 0.18, offsetX: 0.16, offsetY: -0.01, order: 7 },
-  handL: { joint: 'wristL', width: 0.22, height: 0.2, offsetX: -0.08, offsetY: 0, order: 9 },
-  handR: { joint: 'wristR', width: 0.22, height: 0.2, offsetX: 0.08, offsetY: 0, order: 9 },
-  thighL: { joint: 'hipL', width: 0.27, height: 0.6, offsetX: 0, offsetY: -0.27, order: 6 },
-  thighR: { joint: 'hipR', width: 0.27, height: 0.6, offsetX: 0, offsetY: -0.27, order: 6 },
-  shinL: { joint: 'kneeL', width: 0.24, height: 0.58, offsetX: 0, offsetY: -0.26, order: 5 },
-  shinR: { joint: 'kneeR', width: 0.24, height: 0.58, offsetX: 0, offsetY: -0.26, order: 5 },
-  shoeL: { joint: 'ankleL', width: 0.36, height: 0.18, offsetX: -0.06, offsetY: -0.04, order: 6 },
-  shoeR: { joint: 'ankleR', width: 0.36, height: 0.18, offsetX: 0.06, offsetY: -0.04, order: 6 },
+  torso: { joint: 'chest', width: 0.7, height: 0.88, offsetX: 0, offsetY: -0.2, order: 8 },
+  upperArmL: { joint: 'shoulderL', width: 0.42, height: 0.3, offsetX: -0.19, offsetY: -0.01, order: 7 },
+  upperArmR: { joint: 'shoulderR', width: 0.42, height: 0.3, offsetX: 0.19, offsetY: -0.01, order: 7 },
+  foreArmL: { joint: 'elbowL', width: 0.39, height: 0.28, offsetX: -0.18, offsetY: -0.01, order: 7 },
+  foreArmR: { joint: 'elbowR', width: 0.39, height: 0.28, offsetX: 0.18, offsetY: -0.01, order: 7 },
+  handL: { joint: 'wristL', width: 0.24, height: 0.22, offsetX: -0.09, offsetY: 0, order: 9 },
+  handR: { joint: 'wristR', width: 0.24, height: 0.22, offsetX: 0.09, offsetY: 0, order: 9 },
+  thighL: { joint: 'hipL', width: 0.3, height: 0.62, offsetX: 0, offsetY: -0.28, order: 6 },
+  thighR: { joint: 'hipR', width: 0.3, height: 0.62, offsetX: 0, offsetY: -0.28, order: 6 },
+  shinL: { joint: 'kneeL', width: 0.27, height: 0.6, offsetX: 0, offsetY: -0.27, order: 5 },
+  shinR: { joint: 'kneeR', width: 0.27, height: 0.6, offsetX: 0, offsetY: -0.27, order: 5 },
+  shoeL: { joint: 'ankleL', width: 0.38, height: 0.19, offsetX: -0.06, offsetY: -0.04, order: 6 },
+  shoeR: { joint: 'ankleR', width: 0.38, height: 0.19, offsetX: 0.06, offsetY: -0.04, order: 6 },
 };
 
 const ATLAS_WIDTH = 640;
@@ -274,7 +276,12 @@ function profiledTransform(
     x *= visual.armScale;
     y *= visual.armScale;
   }
-  if (jointName === 'kneeL' || jointName === 'kneeR' || jointName === 'ankleL' || jointName === 'ankleR') {
+  if (
+    jointName === 'kneeL' ||
+    jointName === 'kneeR' ||
+    jointName === 'ankleL' ||
+    jointName === 'ankleR'
+  ) {
     y *= visual.legScale;
   }
   if (jointName === 'root' && clipId?.startsWith('spike_approach_')) {
@@ -317,7 +324,10 @@ export class ArticulatedPlayerView {
       else this.bodyRoot.add(joint);
     }
 
-    for (const [partName, layout] of Object.entries(PART_LAYOUT) as [CharacterPartName, PartLayout][]) {
+    for (const [partName, layout] of Object.entries(ARTICULATED_PART_LAYOUT) as [
+      CharacterPartName,
+      PartLayout,
+    ][]) {
       const texture = partTexture(skin, partName);
       this.partTextures.push(texture);
       const material = new THREE.MeshBasicMaterial({
@@ -337,12 +347,14 @@ export class ArticulatedPlayerView {
       this.partMeshes.push(mesh);
     }
 
-    this.bodyRoot.scale.setScalar(skin.visual.heightScale);
+    this.bodyRoot.scale.setScalar(
+      skin.visual.heightScale * ARTICULATED_PLAYER_DISPLAY_SCALE,
+    );
     this.bodyRoot.rotation.y = this.side === 'home' ? -0.08 : 0.08;
     this.group.add(this.bodyRoot);
 
     this.shadow = new THREE.Mesh(
-      new THREE.CircleGeometry(0.54, 28),
+      new THREE.CircleGeometry(0.6, 28),
       new THREE.MeshBasicMaterial({
         color: 0x02060a,
         transparent: true,
@@ -356,7 +368,7 @@ export class ArticulatedPlayerView {
     this.group.add(this.shadow);
 
     this.selectionRing = new THREE.Mesh(
-      new THREE.RingGeometry(0.62, 0.76, 32),
+      new THREE.RingGeometry(0.7, 0.86, 32),
       new THREE.MeshBasicMaterial({
         color: 0x59f4df,
         transparent: true,
