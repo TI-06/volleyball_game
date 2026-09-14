@@ -15,16 +15,16 @@ jobs:
           node-version: '22.12.0'
           cache: npm
       - run: npm ci
-      - name: Run focused Task 1 verification without failing workflow
+      - name: Run Task 2 verification without failing workflow
         shell: bash
         run: |
           set +e
-          npm test -- tests/unit/game/serveTrajectory.test.ts tests/integration/game/reworkPowerControls.test.ts > focused.log 2>&1
-          test_code=$?
-          npm run typecheck > typecheck.log 2>&1
-          typecheck_code=$?
+          npm test -- tests/unit/game/serveTrajectory.test.ts tests/integration/game/reworkServeLanding.test.ts tests/integration/game/reworkPowerControls.test.ts > focused.log 2>&1
+          focused_code=$?
+          npm run verify > verify.log 2>&1
+          verify_code=$?
           cat focused.log
-          cat typecheck.log
-          echo "FOCUSED_TEST_EXIT=$test_code"
-          echo "TYPECHECK_EXIT=$typecheck_code"
+          cat verify.log
+          echo "FOCUSED_TEST_EXIT=$focused_code"
+          echo "VERIFY_EXIT=$verify_code"
           exit 0
