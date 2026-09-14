@@ -1,4 +1,5 @@
 import { predictLanding } from '../ball/ballPhysics';
+import { STARTER_ROSTER, type CharacterId } from '../characters/roster';
 import type { MatchState, PlayerState, Vec3 } from '../core/types';
 
 export type AllyAIState = 'RECEIVE' | 'SET' | 'APPROACH' | 'BLOCK' | 'COVER' | 'RECOVER';
@@ -10,6 +11,10 @@ export interface AllyIntent {
 
 function distanceXZ(player: PlayerState, target: Vec3): number {
   return Math.hypot(player.position.x - target.x, player.position.z - target.z);
+}
+
+function setAbility(player: PlayerState): number {
+  return STARTER_ROSTER[player.characterId as CharacterId]?.abilities.set ?? 0;
 }
 
 function basePosition(player: PlayerState): Vec3 {
@@ -24,6 +29,29 @@ function closestHomePlayer(state: MatchState, target: Vec3): PlayerState | null 
     const bBias = b.role === 'LIBERO' ? -0.28 : 0;
     return distanceXZ(a, target) + aBias - (distanceXZ(b, target) + bBias);
   })[0] ?? null;
+}
+
+function isFirstTouchContact(state: MatchState): boolean {
+  return (
+    state.ball.lastContact === 'RECEIVE' ||
+    state.ball.lastContact === 'DIVE' ||
+    state.ball.lastContact === 'BLOCK'
+  );
+}
+
+function secondTouchPlayer(state: MatchState, lastToucherId: string): PlayerState | null {
+  const target = state.ball.position;
+  return (
+    [...state.players]
+      .filter((player) => player.side === 'home' && player.id !== lastToucherId)
+      .sort((a, b) => {
+        const aSetterBonus = a.role === 'SETTER' ? 1000 : 0;
+        const bSetterBonus = b.role === 'SETTER' ? 1000 : 0;
+        const setOrder = (bSetterBonus + setAbility(b)) - (aSetterBonus + setAbility(a));
+        if (setOrder !== 0) return setOrder;
+        return distanceXZ(a, target) - distanceXZ(b, target);
+      })[0] ?? null
+  );
 }
 
 function projectedAttacker(state: MatchState, setterId: string): PlayerState | null {
@@ -55,17 +83,28 @@ export function decideAllyIntent(state: MatchState, playerId: string): AllyInten
     if (receiver?.id === player.id) {
       return { state: 'RECEIVE', target: { ...landing, y: 0 } };
     }
-    if (player.role === 'SETTER') {
-      return { state: 'SET', target: { x: 0, y: 0, z: -1.25 } };
-    }
     return { state: 'COVER', target: basePosition(player) };
   }
 
   if (ballOnHomeSide && teammateTouched) {
-    const lastToucher = state.players.find((candidate) => candidate.id === state.ball.lastTouchedBy);
+    const lastToucherId = state.ball.lastTouchedBy!;
 
-    if (lastToucher?.role === 'SETTER') {
-      const attacker = projectedAttacker(state, lastToucher.id);
+    if (isFirstTouchContact(state)) {
+      const setter = secondTouchPlayer(state, lastToucherId);
+      if (setter?.id === player.id) {
+        return { state: 'SET', target: { x: 0, y: 0, z: -1.1 } };
+      }
+      if (player.id !== lastToucherId && player.role === 'ACE') {
+        return {
+          state: 'APPROACH',
+          target: { x: player.position.x, y: 0, z: -0.85 },
+        };
+      }
+      return { state: 'COVER', target: { x: 0, y: 0, z: -3.4 } };
+    }
+
+    if (state.ball.lastContact === 'SET') {
+      const attacker = projectedAttacker(state, lastToucherId);
       if (attacker?.id === player.id) {
         return {
           state: 'APPROACH',
@@ -75,20 +114,18 @@ export function decideAllyIntent(state: MatchState, playerId: string): AllyInten
       return { state: 'COVER', target: { x: 0, y: 0, z: -3.4 } };
     }
 
-    if (player.role === 'SETTER' && state.ball.lastTouchedBy !== player.id) {
-      return { state: 'SET', target: { x: 0, y: 0, z: -1.1 } };
-    }
-    if (player.role === 'ACE') {
-      return {
-        state: 'APPROACH',
-        target: { x: player.position.x, y: 0, z: -0.85 },
-      };
-    }
-    return { state: 'COVER', target: { x: 0, y: 0, z: -3.4 } };
+    return { state: 'COVER', target: basePosition(player) };
   }
 
   if (!ballOnHomeSide) {
-    if ((player.role === 'ACE' || player.role === 'MIDDLE') && Math.abs(player.position.z) < 3.2) {
+    if (state.ball.lastContact === 'SERVE') {
+      return { state: 'COVER', target: basePosition(player) };
+    }
+    if (
+      (state.ball.lastContact === 'SET' || state.ball.lastContact === 'SPIKE') &&
+      (player.role === 'ACE' || player.role === 'MIDDLE') &&
+      Math.abs(player.position.z) < 3.2
+    ) {
       return {
         state: 'BLOCK',
         target: { x: state.ball.position.x, y: 0, z: -0.55 },
