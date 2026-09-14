@@ -94,4 +94,41 @@ describe('rework rally AI', () => {
     expect(events).toContain('SPIKE');
     expect(spikeActor).toBe('away-1');
   });
+
+  it('does not let a backcourt cpu blocker contact a spike from meters away', () => {
+    let runtime = rally(createReworkRuntime(82, 'MASTER'));
+    runtime = {
+      ...runtime,
+      cpuMemory: {
+        'away-1': { role: 'BLOCK', readyAt: 0 },
+      },
+      match: {
+        ...runtime.match,
+        players: runtime.match.players.map((player) => {
+          if (player.id === 'away-1') {
+            return {
+              ...player,
+              isAirborne: true,
+              position: { x: 0, y: 0.8, z: 5.0 },
+              velocity: { ...player.velocity, y: 1.2 },
+            };
+          }
+          return player;
+        }),
+        ball: {
+          ...runtime.match.ball,
+          inPlay: true,
+          lastTouchedBy: 'home-0',
+          lastContact: 'SPIKE',
+          position: { x: 0, y: 2.55, z: 0.65 },
+          velocity: { x: 0, y: -1.1, z: 12.5 },
+        },
+      },
+    };
+
+    runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
+
+    expect(runtime.lastEvent?.type).not.toBe('BLOCK');
+    expect(runtime.match.ball.lastContact).toBe('SPIKE');
+  });
 });
