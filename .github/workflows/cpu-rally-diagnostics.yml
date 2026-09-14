@@ -19,7 +19,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          npx vitest run tests/integration/game/reworkRallyAI.test.ts tests/unit/render/ballView.test.ts > focused.log 2>&1
+          npx vitest run tests/integration/game/reworkRallyAI.test.ts tests/unit/render/ballView.test.ts tests/unit/render/characterSkin.test.ts > focused.log 2>&1
           code=$?
           cat focused.log
           echo "FOCUSED_EXIT=$code"
