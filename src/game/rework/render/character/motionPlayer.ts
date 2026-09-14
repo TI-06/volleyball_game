@@ -19,6 +19,8 @@ interface ResolvedKeyframe {
 const CONTACT_WINDOW = 0.05;
 const IDLE_SHOULDER_DROP = 0.9;
 const IDLE_ELBOW_BEND = 0.24;
+const SERVE_READY_MIN_SHOULDER_ROTATION = 0.9;
+const SERVE_READY_MIN_ELBOW_BEND = 0.55;
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
@@ -64,12 +66,33 @@ function applyPresentationPose(
   clip: MotionClip,
   pose: Record<JointName, JointTransform>,
 ): Record<JointName, JointTransform> {
-  if (clip.id !== 'idle_ready') return pose;
+  if (clip.id !== 'idle_ready' && clip.id !== 'serve_ready') return pose;
   const styled = clonePose(pose);
-  styled.shoulderL.rotation += IDLE_SHOULDER_DROP;
-  styled.shoulderR.rotation -= IDLE_SHOULDER_DROP;
-  styled.elbowL.rotation -= IDLE_ELBOW_BEND;
-  styled.elbowR.rotation += IDLE_ELBOW_BEND;
+
+  if (clip.id === 'idle_ready') {
+    styled.shoulderL.rotation += IDLE_SHOULDER_DROP;
+    styled.shoulderR.rotation -= IDLE_SHOULDER_DROP;
+    styled.elbowL.rotation -= IDLE_ELBOW_BEND;
+    styled.elbowR.rotation += IDLE_ELBOW_BEND;
+    return styled;
+  }
+
+  styled.shoulderL.rotation = Math.max(
+    styled.shoulderL.rotation,
+    SERVE_READY_MIN_SHOULDER_ROTATION,
+  );
+  styled.shoulderR.rotation = Math.min(
+    styled.shoulderR.rotation,
+    -SERVE_READY_MIN_SHOULDER_ROTATION,
+  );
+  styled.elbowL.rotation = Math.min(
+    styled.elbowL.rotation,
+    -SERVE_READY_MIN_ELBOW_BEND,
+  );
+  styled.elbowR.rotation = Math.max(
+    styled.elbowR.rotation,
+    SERVE_READY_MIN_ELBOW_BEND,
+  );
   return styled;
 }
 

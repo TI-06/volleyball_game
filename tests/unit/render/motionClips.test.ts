@@ -4,6 +4,7 @@ import {
   MOTION_CLIP_IDS,
   type MotionClipId,
 } from '../../../src/game/rework/render/character/motionClips';
+import { MotionPlayer } from '../../../src/game/rework/render/character/motionPlayer';
 import { JOINT_NAMES } from '../../../src/game/rework/render/character/visualRig';
 
 const EXPECTED_IDS: readonly MotionClipId[] = [
@@ -88,11 +89,14 @@ describe('MOTION_CLIPS', () => {
   });
 
   it('keeps serve-ready arms compact instead of returning to a T-pose', () => {
-    const first = MOTION_CLIPS.serve_ready.keyframes[0].joints;
-    expect(first.shoulderL?.rotation ?? 0).toBeGreaterThanOrEqual(0.75);
-    expect(first.shoulderR?.rotation ?? 0).toBeLessThanOrEqual(-0.75);
-    expect(first.elbowL?.rotation ?? 0).toBeLessThanOrEqual(-0.45);
-    expect(first.elbowR?.rotation ?? 0).toBeGreaterThanOrEqual(0.45);
+    const player = new MotionPlayer();
+    player.play(MOTION_CLIPS.serve_ready, 0);
+    const pose = player.sample(0).pose;
+
+    expect(pose.shoulderL.rotation).toBeGreaterThanOrEqual(0.75);
+    expect(pose.shoulderR.rotation).toBeLessThanOrEqual(-0.75);
+    expect(pose.elbowL.rotation).toBeLessThanOrEqual(-0.45);
+    expect(pose.elbowR.rotation).toBeGreaterThanOrEqual(0.45);
   });
 
   it('encodes readable volleyball silhouettes instead of generic pose swaps', () => {
