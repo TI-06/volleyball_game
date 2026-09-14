@@ -30,4 +30,8 @@ describe('rework receive ownership', () => {
   it('gives a ball near HINA to HINA', () => {
     expect(chooseHomeReceiveOwner(incomingAt(2.5, -5.0))).toBe('home-2');
   });
+
+  it('assigns nobody when the predicted landing is outside the court', () => {
+    expect(chooseHomeReceiveOwner(incomingAt(5.1, -5.0))).toBeNull();
+  });
 });
