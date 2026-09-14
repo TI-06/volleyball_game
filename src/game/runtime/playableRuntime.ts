@@ -1,3 +1,4 @@
+import { performBlock } from '../actions/block';
 import { performSet } from '../actions/set';
 import { performSpike, type AttackIntent } from '../actions/spike';
 import { DIFFICULTY_PROFILES } from '../ai/difficulty';
@@ -18,6 +19,7 @@ import {
 const PLAYER_GRAVITY = 22;
 const CPU_CONTACT_DELAY_AFTER_JUMP = 0.075;
 const CPU_BLOCK_READY_Z = 1.8;
+const CPU_BLOCK_ATTEMPT_RECOVERY = 0.28;
 const PLAYER_CONTACT_READ_RESET = 0.05;
 
 interface CpuMemoryShape {
@@ -294,6 +296,41 @@ function startCpuJump(
   };
 }
 
+function chooseBlockPrepJumper(runtime: MatchRuntimeState): PlayerState | null {
+  const { ball } = runtime.match;
+  if (
+    ball.lastContact !== 'SET' ||
+    !(ball.lastTouchedBy?.startsWith('home-') ?? false) ||
+    ball.position.y < 2.1 ||
+    ball.position.z > 0.8
+  ) {
+    return null;
+  }
+
+  const memories = cpuMemories(runtime);
+  return (
+    [...runtime.match.players]
+      .filter((player) => {
+        const memory = memories[player.id];
+        return (
+          player.side === 'away' &&
+          (player.role === 'ACE' || player.role === 'MIDDLE') &&
+          !player.isAirborne &&
+          player.position.z <= CPU_BLOCK_READY_Z &&
+          memory?.intent.state === 'APPROACH' &&
+          runtime.match.time >= memory.actionReadyAt &&
+          Math.abs(player.position.x - ball.position.x) <= 1.55 &&
+          horizontalDistance(player, ball.position.x, 0.55) <= 2.2
+        );
+      })
+      .sort(
+        (a, b) =>
+          horizontalDistance(a, ball.position.x, 0.55) -
+          horizontalDistance(b, ball.position.x, 0.55),
+      )[0] ?? null
+  );
+}
+
 function chooseBlockJumper(runtime: MatchRuntimeState): PlayerState | null {
   const { ball } = runtime.match;
   if (
@@ -366,6 +403,11 @@ function prepareCpuJump(runtime: MatchRuntimeState): {
   runtime: MatchRuntimeState;
   jumperId: string | null;
 } {
+  const prepBlocker = chooseBlockPrepJumper(runtime);
+  if (prepBlocker) {
+    return { runtime: startCpuJump(runtime, prepBlocker), jumperId: prepBlocker.id };
+  }
+
   const blocker = chooseBlockJumper(runtime);
   if (blocker) {
     return { runtime: startCpuJump(runtime, blocker), jumperId: blocker.id };
@@ -377,6 +419,85 @@ function prepareCpuJump(runtime: MatchRuntimeState): {
   }
 
   return { runtime, jumperId: null };
+}
+
+function performPreparedCpuBlock(runtime: MatchRuntimeState): {
+  runtime: MatchRuntimeState;
+  event: RuntimeEvent | null;
+} {
+  const { match } = runtime;
+  const { ball } = match;
+  if (
+    match.rally.phase !== 'RALLY' ||
+    ball.lastContact !== 'SPIKE' ||
+    !(ball.lastTouchedBy?.startsWith('home-') ?? false) ||
+    ball.velocity.z <= 0 ||
+    Math.abs(ball.position.z) > 1.8 ||
+    ball.position.y < 1.65
+  ) {
+    return { runtime, event: null };
+  }
+
+  const memories = cpuMemories(runtime);
+  const blocker = (
+    [...match.players]
+      .filter((player) => {
+        const memory = memories[player.id];
+        return (
+          player.side === 'away' &&
+          (player.role === 'ACE' || player.role === 'MIDDLE') &&
+          player.isAirborne &&
+          player.position.z <= CPU_BLOCK_READY_Z &&
+          (memory?.intent.state === 'APPROACH' || memory?.intent.state === 'BLOCK') &&
+          match.time >= memory.actionReadyAt &&
+          Math.abs(player.position.x - ball.position.x) <= 1.3
+        );
+      })
+      .sort(
+        (a, b) =>
+          horizontalDistance(a, ball.position.x, ball.position.z) -
+          horizontalDistance(b, ball.position.x, ball.position.z),
+      )[0] ?? null
+  );
+  if (!blocker) return { runtime, event: null };
+
+  const memory = memories[blocker.id];
+  if (!memory) return { runtime, event: null };
+  const result = performBlock(
+    ball,
+    characterFor(blocker),
+    blocker.id,
+    cpuTimingError(runtime),
+    ball.position.x - blocker.position.x,
+  );
+  const readyAt = match.time + Math.max(
+    CPU_BLOCK_ATTEMPT_RECOVERY,
+    memory.intent.reactionDelay,
+  );
+  const recoverIntent: CpuIntent = {
+    state: 'RECOVER',
+    target: { x: blocker.position.x, y: 0, z: blocker.position.z },
+    attackIntent: null,
+    reactionDelay: memory.intent.reactionDelay,
+  };
+
+  return {
+    runtime: {
+      ...runtime,
+      match: result.touched ? { ...match, ball: result.ball } : match,
+      cpuDecisions: {
+        ...runtime.cpuDecisions,
+        [blocker.id]: {
+          intent: recoverIntent,
+          nextDecisionAt: readyAt,
+          actionReadyAt: readyAt,
+        },
+      },
+    },
+    event: result.touched
+      ? { type: 'BLOCK', actorId: blocker.id, quality: result.quality }
+      : null,
+  };
 }
 
 function performEmergencyCpuSpike(runtime: MatchRuntimeState): {
@@ -464,10 +585,14 @@ export function stepMatchRuntime(
   const guarded = clearStaleBlockIntent(source, input);
   const setAssist = performCpuSetAssist(guarded);
   const prepared = prepareCpuJump(setAssist.runtime);
-  const emergencySpike = performEmergencyCpuSpike(prepared.runtime);
+  const preparedBlock = performPreparedCpuBlock(prepared.runtime);
+  const emergencySpike = performEmergencyCpuSpike(preparedBlock.runtime);
   const stepped = stepBaseRuntime(emergencySpike.runtime, input, dt);
 
   if (stepped.lastEvent === null) {
+    if (preparedBlock.event) {
+      return { ...stepped, lastEvent: preparedBlock.event };
+    }
     if (emergencySpike.event) {
       return { ...stepped, lastEvent: emergencySpike.event };
     }
