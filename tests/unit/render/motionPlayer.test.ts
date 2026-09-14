@@ -39,7 +39,7 @@ describe('MotionPlayer', () => {
     expect(sample.pose.wristR.rotation).toBeCloseTo(1, 5);
   });
 
-  it('drops idle shoulders into a readable athletic ready stance', () => {
+  it('drops and bends idle arms into a natural athletic ready stance', () => {
     const player = new MotionPlayer();
     player.play(
       clip({
@@ -60,8 +60,10 @@ describe('MotionPlayer', () => {
     );
 
     const sample = player.sample(0);
-    expect(sample.pose.shoulderL.rotation).toBeCloseTo(0.62, 5);
-    expect(sample.pose.shoulderR.rotation).toBeCloseTo(-0.62, 5);
+    expect(sample.pose.shoulderL.rotation).toBeGreaterThanOrEqual(1.05);
+    expect(sample.pose.shoulderR.rotation).toBeLessThanOrEqual(-1.05);
+    expect(sample.pose.elbowL.rotation).toBeLessThanOrEqual(-0.2);
+    expect(sample.pose.elbowR.rotation).toBeGreaterThanOrEqual(0.2);
   });
 
   it('loops a looping clip deterministically', () => {
