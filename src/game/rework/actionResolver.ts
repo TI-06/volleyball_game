@@ -1,4 +1,5 @@
 import type { MatchState, PlayerState } from '../core/types';
+import { chooseHomeReceiveOwner } from './receiveOwnership';
 import type { ReworkActionLabel } from './types';
 
 const FOCUS_PLAYER_ID = 'home-0';
@@ -65,7 +66,8 @@ export function resolveReworkActions(state: MatchState): ReworkActionSlots {
     ball.velocity.z < -0.05 &&
     ball.velocity.y < 0.8 &&
     ball.position.y <= 2.5 &&
-    distance <= 2.5
+    distance <= 2.5 &&
+    chooseHomeReceiveOwner(state) === focus.id
   ) {
     return { play: 'RECEIVE', power: 'NONE' };
   }
