@@ -73,4 +73,4 @@ jobs:
 
           exit 0
 
-# verification rerun after gameplay/test fixes
+# final verification rerun after current match-flow assertion update
