@@ -18,10 +18,10 @@ function after(start: number, clip: keyof typeof MOTION_CLIPS): number {
 }
 
 describe('ArticulatedMotionController', () => {
-  it('returns from a receive contact through recovery to ready', () => {
+  it('shows receive-ready before contact, then recovers to ready', () => {
     const controller = new ArticulatedMotionController();
-    controller.update(input('READY'), 0);
-    expect(controller.currentClipId).toBe('idle_ready');
+    controller.update(input('RECEIVE'), 0);
+    expect(controller.currentClipId).toBe('receive_ready');
 
     const event: ReworkEvent = { type: 'RECEIVE', actorId: 'home-0', quality: 'GOOD' };
     controller.update(input('RECEIVE', event), 100);
@@ -36,7 +36,7 @@ describe('ArticulatedMotionController', () => {
     expect(controller.currentClipId).toBe('idle_ready');
   });
 
-  it('plays approach, jump, spike contact, landing, then returns to ready', () => {
+  it('plays approach, plant, takeoff, cock, spike contact, landing, then ready', () => {
     const controller = new ArticulatedMotionController();
     let now = 0;
     controller.update(input('SPIKE_APPROACH'), now);
@@ -76,20 +76,44 @@ describe('ArticulatedMotionController', () => {
     expect(controller.currentClipId).toBe('idle_ready');
   });
 
-  it('keeps serve ready before contact and follows through after the real serve event', () => {
+  it('shows a toss before serve contact, then swing and followthrough', () => {
     const controller = new ArticulatedMotionController();
-    controller.update(input('SERVE'), 0);
+    let now = 0;
+    controller.update(input('SERVE'), now);
     expect(controller.currentClipId).toBe('serve_ready');
 
+    now = after(now, 'serve_ready');
+    controller.update(input('SERVE'), now);
+    expect(controller.currentClipId).toBe('serve_toss');
+
     const serve: ReworkEvent = { type: 'SERVE', actorId: 'home-0' };
-    controller.update(input('SERVE', serve), 200);
+    now += 40;
+    controller.update(input('SERVE', serve), now);
     expect(controller.currentClipId).toBe('serve_swing');
 
-    let now = after(200, 'serve_swing');
+    now = after(now, 'serve_swing');
     controller.update(input('READY'), now);
     expect(controller.currentClipId).toBe('serve_followthrough');
 
     now = after(now, 'serve_followthrough');
+    controller.update(input('READY'), now);
+    expect(controller.currentClipId).toBe('idle_ready');
+  });
+
+  it('shows block takeoff before the real block press contact', () => {
+    const controller = new ArticulatedMotionController();
+    controller.update(input('BLOCK'), 0);
+    expect(controller.currentClipId).toBe('block_takeoff');
+
+    const block: ReworkEvent = { type: 'BLOCK', actorId: 'home-0', quality: 'GOOD' };
+    controller.update(input('BLOCK', block), 100);
+    expect(controller.currentClipId).toBe('block_press');
+
+    let now = after(100, 'block_press');
+    controller.update(input('READY'), now);
+    expect(controller.currentClipId).toBe('block_land');
+
+    now = after(now, 'block_land');
     controller.update(input('READY'), now);
     expect(controller.currentClipId).toBe('idle_ready');
   });
