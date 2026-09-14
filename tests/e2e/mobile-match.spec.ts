@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('smartphone landscape can enter a CPU match without layout overflow', async ({ page }) => {
+test('smartphone landscape can enter and control a CPU match without layout overflow', async ({ page }) => {
   await page.goto('/');
 
   await expect(page.getByRole('heading', { name: 'VOLLEYBALL' })).toBeVisible();
@@ -10,6 +10,10 @@ test('smartphone landscape can enter a CPU match without layout overflow', async
 
   await expect(page.getByTestId('match-screen')).toBeVisible();
   await expect(page.getByText(/TUTORIAL/)).toBeVisible();
+
+  await page.getByRole('button', { name: /KAI/ }).click();
+  await expect(page.locator('.controlled-player-label')).toHaveText('KAI');
+
   const actionButton = page.locator('.action-button');
   await expect(actionButton).toBeVisible({ timeout: 5000 });
 
