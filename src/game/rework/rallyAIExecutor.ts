@@ -110,12 +110,13 @@ function updateCpuMemory(
   for (const decision of decisions) {
     const previous = current[decision.playerId];
     if (!previous || previous.role !== decision.role) {
-      const preserveRead = previous?.role === 'APPROACH' && decision.role === 'BLOCK';
+      const preservedReadyAt =
+        previous?.role === 'APPROACH' && decision.role === 'BLOCK'
+          ? previous.readyAt
+          : null;
       next[decision.playerId] = {
         role: decision.role,
-        readyAt: preserveRead
-          ? previous.readyAt
-          : match.time + decision.reactionDelay,
+        readyAt: preservedReadyAt ?? match.time + decision.reactionDelay,
       };
     }
   }
@@ -165,6 +166,13 @@ function cpuAttackTarget(intent: AttackIntent | null): Vec3 {
   if (intent === 'CROSS') return { x: 3.2, y: 0.75, z: -6.7 };
   if (intent === 'BLOCK_OUT') return { x: 3.8, y: 0.9, z: -5.8 };
   return { x: 0, y: 0.75, z: -6.8 };
+}
+
+function attackerRank(player: PlayerState | undefined): number {
+  if (!player) return 99;
+  if (player.role === 'ACE') return 0;
+  if (player.role === 'MIDDLE') return 1;
+  return 2;
 }
 
 function tryCpuServe(
@@ -277,6 +285,8 @@ function tryCpuSet(
     .sort((a, b) => {
       const aPlayer = match.players.find((player) => player.id === a.playerId);
       const bPlayer = match.players.find((player) => player.id === b.playerId);
+      const rankDelta = attackerRank(aPlayer) - attackerRank(bPlayer);
+      if (rankDelta !== 0) return rankDelta;
       return (
         (aPlayer ? distanceXZ(aPlayer, match.ball.position) : 999) -
         (bPlayer ? distanceXZ(bPlayer, match.ball.position) : 999)
@@ -366,9 +376,15 @@ function tryCpuBlockOrAttack(
     }
   }
 
-  const attackDecision = decisions.find(
-    (candidate) => candidate.role === 'APPROACH' && ready(match, memory, candidate.playerId),
-  );
+  const attackDecision = decisions
+    .filter((candidate) => candidate.role === 'APPROACH' && ready(match, memory, candidate.playerId))
+    .sort((a, b) => {
+      const aPlayer = match.players.find((player) => player.id === a.playerId);
+      const bPlayer = match.players.find((player) => player.id === b.playerId);
+      const rankDelta = attackerRank(aPlayer) - attackerRank(bPlayer);
+      if (rankDelta !== 0) return rankDelta;
+      return a.playerId.localeCompare(b.playerId);
+    })[0];
   const attacker = attackDecision
     ? match.players.find((player) => player.id === attackDecision.playerId)
     : null;
