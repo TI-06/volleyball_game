@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { BALL_RADIUS } from '../../../src/game/ball/ballPhysics';
 import { BALL_RENDER_RADIUS, BallView } from '../../../src/game/render/BallView';
@@ -9,8 +10,9 @@ describe('BallView', () => {
     expect(BALL_RENDER_RADIUS / BALL_RADIUS).toBeGreaterThanOrEqual(1.5);
 
     const view = new BallView();
-    expect(view.mesh.geometry.parameters.radius).toBe(BALL_RENDER_RADIUS);
-    view.mesh.geometry.dispose();
+    const geometry = view.mesh.geometry as THREE.SphereGeometry;
+    expect(geometry.parameters.radius).toBe(BALL_RENDER_RADIUS);
+    geometry.dispose();
     if (Array.isArray(view.mesh.material)) {
       view.mesh.material.forEach((material) => material.dispose());
     } else {
