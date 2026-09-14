@@ -50,6 +50,7 @@ export interface CharacterSkin {
 }
 
 const CELL = 128;
+const CHARACTER_ATLAS_REVISION = 'athletic-v2';
 
 const ATLAS_RECTS: Record<CharacterPartName, AtlasRect> = {
   head: { x: 0, y: 0, width: CELL, height: CELL },
@@ -71,8 +72,12 @@ const ATLAS_RECTS: Record<CharacterPartName, AtlasRect> = {
   shoeR: { x: CELL, y: CELL * 3, width: CELL, height: CELL },
 };
 
+function atlasUrlFor(id: CharacterId): string {
+  return `/assets/characters/${id}/parts.svg?rev=${CHARACTER_ATLAS_REVISION}`;
+}
+
 function partsFor(id: CharacterId): Record<CharacterPartName, string> {
-  const atlasUrl = `/assets/characters/${id}/parts.svg`;
+  const atlasUrl = atlasUrlFor(id);
   return Object.fromEntries(
     REQUIRED_CHARACTER_PARTS.map((part) => [part, `${atlasUrl}#${part}`]),
   ) as Record<CharacterPartName, string>;
@@ -82,7 +87,7 @@ function skin(id: CharacterId, visual: CharacterVisualProfile): CharacterSkin {
   return {
     id,
     visual,
-    atlasUrl: `/assets/characters/${id}/parts.svg`,
+    atlasUrl: atlasUrlFor(id),
     parts: partsFor(id),
     atlasRects: ATLAS_RECTS,
   };
