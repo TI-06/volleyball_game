@@ -19,10 +19,12 @@ test('smartphone landscape can enter a CPU match without layout overflow', async
   expect(hasHorizontalOverflow).toBe(false);
 
   const actionBox = await actionButton.boundingBox();
+  const viewport = page.viewportSize();
   expect(actionBox).not.toBeNull();
-  if (actionBox) {
-    const rightGutter = 844 - (actionBox.x + actionBox.width);
-    const bottomGutter = 390 - (actionBox.y + actionBox.height);
+  expect(viewport).not.toBeNull();
+  if (actionBox && viewport) {
+    const rightGutter = viewport.width - (actionBox.x + actionBox.width);
+    const bottomGutter = viewport.height - (actionBox.y + actionBox.height);
     expect(rightGutter).toBeGreaterThanOrEqual(28);
     expect(bottomGutter).toBeGreaterThanOrEqual(20);
   }
