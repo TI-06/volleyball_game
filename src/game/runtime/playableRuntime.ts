@@ -582,7 +582,10 @@ export function stepMatchRuntime(
   input: RuntimeInput,
   dt: number,
 ): MatchRuntimeState {
-  const guarded = clearStaleBlockIntent(source, input);
+  const carryoverSafe = source.match.rally.phase === 'POINT' && source.queuedPlayerId !== null
+    ? { ...source, queuedPlayerId: null }
+    : source;
+  const guarded = clearStaleBlockIntent(carryoverSafe, input);
   const setAssist = performCpuSetAssist(guarded);
   const prepared = prepareCpuJump(setAssist.runtime);
   const preparedBlock = performPreparedCpuBlock(prepared.runtime);
