@@ -41,8 +41,25 @@ function cpuMemories(runtime: MatchRuntimeState): Record<string, CpuMemoryShape>
   return runtime.cpuDecisions as Record<string, CpuMemoryShape>;
 }
 
-function clearStaleBlockIntent(runtime: MatchRuntimeState): MatchRuntimeState {
-  if (runtime.match.ball.lastContact === 'SPIKE') return runtime;
+function playerActionEndsIncomingAttack(
+  runtime: MatchRuntimeState,
+  input: RuntimeInput,
+): boolean {
+  if (!input.actionPressed) return false;
+  const action = getCurrentAction(runtime);
+  return action === 'RECEIVE' || action === 'DIVE' || action === 'SET' || action === 'BLOCK';
+}
+
+function clearStaleBlockIntent(
+  runtime: MatchRuntimeState,
+  input: RuntimeInput,
+): MatchRuntimeState {
+  if (
+    runtime.match.ball.lastContact === 'SPIKE' &&
+    !playerActionEndsIncomingAttack(runtime, input)
+  ) {
+    return runtime;
+  }
 
   const memories = cpuMemories(runtime);
   const next: Record<string, CpuMemoryShape> = { ...memories };
@@ -193,7 +210,7 @@ export function stepMatchRuntime(
   input: RuntimeInput,
   dt: number,
 ): MatchRuntimeState {
-  const guarded = clearStaleBlockIntent(source);
+  const guarded = clearStaleBlockIntent(source, input);
   const prepared = prepareCpuJump(guarded);
   const stepped = stepBaseRuntime(prepared.runtime, input, dt);
 
