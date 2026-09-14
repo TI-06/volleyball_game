@@ -26,6 +26,14 @@ function isCurrentServer(state: MatchState, player: PlayerState): boolean {
   return server?.id === player.id;
 }
 
+function isFirstTouchContact(state: MatchState): boolean {
+  return (
+    state.ball.lastContact === 'RECEIVE' ||
+    state.ball.lastContact === 'DIVE' ||
+    state.ball.lastContact === 'BLOCK'
+  );
+}
+
 export function resolveAction(
   state: MatchState,
   controlledPlayerId: string,
@@ -66,7 +74,7 @@ export function resolveAction(
     ) {
       return 'BLOCK';
     }
-    if (ownSide && lastTouchWasOtherTeammate && ballHigh && distance <= 2.2) {
+    if (ownSide && lastTouchWasOtherTeammate && state.ball.lastContact === 'SET' && ballHigh && distance <= 2.2) {
       return 'SPIKE';
     }
     return null;
@@ -76,7 +84,7 @@ export function resolveAction(
     return 'JUMP';
   }
 
-  if (ownSide && incoming && ballDescending) {
+  if (ownSide && incoming && ballDescending && !lastTouchWasTeammate) {
     if (distance <= 1.65) {
       return 'RECEIVE';
     }
@@ -85,17 +93,23 @@ export function resolveAction(
     }
   }
 
-  if (
-    player.role === 'SETTER' &&
+  const secondTouchAvailable =
     ownSide &&
-    state.ball.lastTouchedBy !== player.id &&
-    state.ball.position.y >= 0.9 &&
-    distance <= 2.25
-  ) {
+    lastTouchWasOtherTeammate &&
+    isFirstTouchContact(state) &&
+    state.ball.position.y >= 0.9;
+  const setReach = player.role === 'SETTER' ? 2.25 : 1.85;
+  if (secondTouchAvailable && distance <= setReach) {
     return 'SET';
   }
 
-  if (!player.isAirborne && lastTouchWasOtherTeammate && ballHigh && distance <= 3.2) {
+  if (
+    !player.isAirborne &&
+    lastTouchWasOtherTeammate &&
+    state.ball.lastContact === 'SET' &&
+    ballHigh &&
+    distance <= 3.2
+  ) {
     return 'JUMP';
   }
 
