@@ -20,6 +20,13 @@ describe('player motion poses', () => {
     expect(pose.armSpread).toBeLessThan(0.2);
   });
 
+  it('uses stronger body pitch for diving than ordinary receive', () => {
+    const receive = getPlayerMotionPose('RECEIVE');
+    const dive = getPlayerMotionPose('DIVE');
+    expect(Math.abs(receive.bodyPitch)).toBeGreaterThan(0.05);
+    expect(Math.abs(dive.bodyPitch)).toBeGreaterThan(Math.abs(receive.bodyPitch));
+  });
+
   it('gives set and block distinct overhead silhouettes', () => {
     const set = getPlayerMotionPose('SET');
     const block = getPlayerMotionPose('BLOCK');
