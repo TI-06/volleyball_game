@@ -13,6 +13,7 @@ interface ReworkHudProps {
   onPlayPress: () => void;
   onPowerPress: () => void;
   onPowerRelease: (swipe: ReworkSwipe | null) => void;
+  onPowerCancel: () => void;
 }
 
 export function ReworkHud({
@@ -25,6 +26,7 @@ export function ReworkHud({
   onPlayPress,
   onPowerPress,
   onPowerRelease,
+  onPowerCancel,
 }: ReworkHudProps) {
   return (
     <div className="rework-hud">
@@ -50,6 +52,7 @@ export function ReworkHud({
           onPlayPress={onPlayPress}
           onPowerPress={onPowerPress}
           onPowerRelease={onPowerRelease}
+          onPowerCancel={onPowerCancel}
         />
       </div>
     </div>
