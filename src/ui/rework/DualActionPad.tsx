@@ -7,6 +7,7 @@ interface DualActionPadProps {
   onPlayPress: () => void;
   onPowerPress: () => void;
   onPowerRelease: (swipe: ReworkSwipe | null) => void;
+  onPowerCancel: () => void;
 }
 
 const MIN_SWIPE_DISTANCE = 14;
@@ -21,6 +22,7 @@ export function DualActionPad({
   onPlayPress,
   onPowerPress,
   onPowerRelease,
+  onPowerCancel,
 }: DualActionPadProps) {
   const powerPointerId = useRef<number | null>(null);
   const powerStart = useRef({ x: 0, y: 0, time: 0 });
@@ -40,6 +42,13 @@ export function DualActionPad({
     powerLast.current = { x: event.clientX, y: event.clientY };
   };
 
+  const clearPointer = (event: PointerEvent<HTMLButtonElement>) => {
+    powerPointerId.current = null;
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+    }
+  };
+
   const finishPower = (event: PointerEvent<HTMLButtonElement>) => {
     if (powerPointerId.current !== event.pointerId) return;
     const last = {
@@ -57,11 +66,14 @@ export function DualActionPad({
         }
       : null;
 
-    powerPointerId.current = null;
-    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
-      event.currentTarget.releasePointerCapture?.(event.pointerId);
-    }
+    clearPointer(event);
     onPowerRelease(swipe);
+  };
+
+  const cancelPower = (event: PointerEvent<HTMLButtonElement>) => {
+    if (powerPointerId.current !== event.pointerId) return;
+    clearPointer(event);
+    onPowerCancel();
   };
 
   return (
@@ -86,7 +98,7 @@ export function DualActionPad({
         onPointerDown={onPowerPointerDown}
         onPointerMove={onPowerPointerMove}
         onPointerUp={finishPower}
-        onPointerCancel={finishPower}
+        onPointerCancel={cancelPower}
       >
         <strong>POWER</strong>
         <span>{contextText(powerLabel)}</span>
