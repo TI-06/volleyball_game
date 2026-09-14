@@ -2,15 +2,3 @@
 > volleyball-game@0.1.0 typecheck
 > tsc -b --pretty false
 
-tests/integration/game/reworkRotationServe.test.ts(47,5): error TS2322: Type 'ReworkRuntimeState' is not assignable to type '{ match: { rally: { phase: "SERVE_READY"; servingSide: "home"; serverIndex: { home: number; away: number; }; lastPointWinner: TeamSide | null; pointResolvedAt: number | null; }; ... 6 more ...; winner: TeamSide | null; }; ... 8 more ...; lastEvent: ReworkEvent | null; }'.
-  The types of 'match.rally.phase' are incompatible between these types.
-    Type 'RallyPhase' is not assignable to type '"SERVE_READY"'.
-      Type '"SERVING"' is not assignable to type '"SERVE_READY"'.
-tests/integration/game/reworkRotationServe.test.ts(64,5): error TS2322: Type 'ReworkRuntimeState' is not assignable to type '{ match: { rally: { phase: "SERVE_READY"; servingSide: "home"; serverIndex: { home: number; away: number; }; lastPointWinner: TeamSide | null; pointResolvedAt: number | null; }; ... 6 more ...; winner: TeamSide | null; }; ... 8 more ...; lastEvent: ReworkEvent | null; }'.
-  The types of 'match.rally.phase' are incompatible between these types.
-    Type 'RallyPhase' is not assignable to type '"SERVE_READY"'.
-      Type '"SERVING"' is not assignable to type '"SERVE_READY"'.
-tests/integration/game/reworkRotationServe.test.ts(81,7): error TS2322: Type 'ReworkRuntimeState' is not assignable to type '{ match: { rally: { phase: "SERVE_READY"; servingSide: "home"; serverIndex: { home: number; away: number; }; lastPointWinner: TeamSide | null; pointResolvedAt: number | null; }; ... 6 more ...; winner: TeamSide | null; }; ... 8 more ...; lastEvent: ReworkEvent | null; }'.
-  The types of 'match.rally.phase' are incompatible between these types.
-    Type 'RallyPhase' is not assignable to type '"SERVE_READY"'.
-      Type '"SERVING"' is not assignable to type '"SERVE_READY"'.

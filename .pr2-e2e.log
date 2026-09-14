@@ -2,7 +2,12 @@
 > volleyball-game@0.1.0 test:e2e
 > playwright test
 
+[WebServer] [plugin builtin:vite-reporter] 
+[WebServer] (!) Some chunks are larger than 500 kB after minification. Consider:
+[WebServer] - Using dynamic import() to code-split the application
+[WebServer] - Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+[WebServer] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
 
-Error: Process from config.webServer was not able to start. Exit code: 1
-
-
+Running 2 tests using 2 workers
+··
+  2 passed (15.1s)
