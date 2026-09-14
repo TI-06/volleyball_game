@@ -188,4 +188,50 @@ describe('playable cpu runtime', () => {
     expect(next.lastEvent?.type).toBe('SET');
     expect(next.match.players.find((player) => player.id === 'away-0')?.isAirborne).toBe(false);
   });
+
+  it('lets SHIN execute the emergency set when YU made the first touch', () => {
+    let runtime = withRally(createMatchRuntime(184, 'NORMAL', 'MANUAL'));
+    runtime = {
+      ...runtime,
+      match: {
+        ...runtime.match,
+        time: 1,
+        players: runtime.match.players.map((player) => {
+          if (player.id === 'away-0') {
+            return { ...player, position: { x: 0.1, y: 0, z: 1.1 } };
+          }
+          if (player.id === 'away-1') {
+            return { ...player, position: { x: 2.1, y: 0, z: 0.9 } };
+          }
+          return player;
+        }),
+        ball: {
+          ...runtime.match.ball,
+          inPlay: true,
+          lastTouchedBy: 'away-2',
+          lastContact: 'RECEIVE',
+          position: { x: 0.15, y: 2.2, z: 1.15 },
+          velocity: { x: 0, y: 0.8, z: 0.1 },
+        },
+      },
+      cpuDecisions: {
+        'away-0': {
+          intent: {
+            state: 'SET',
+            target: { x: 0, y: 0, z: 1.05 },
+            attackIntent: null,
+            reactionDelay: 0.42,
+          },
+          nextDecisionAt: 10,
+          actionReadyAt: 0.5,
+        },
+      } as unknown as MatchRuntimeState['cpuDecisions'],
+    };
+
+    const next = stepMatchRuntime(runtime, idleInput(), 1 / 60);
+
+    expect(next.match.ball.lastTouchedBy).toBe('away-0');
+    expect(next.match.ball.lastContact).toBe('SET');
+    expect(next.lastEvent?.type).toBe('SET');
+  });
 });
