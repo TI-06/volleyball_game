@@ -51,7 +51,9 @@ describe('2.5d presentation contract', () => {
   it('uses reusable per-character SVG atlases instead of generated pose textures', () => {
     for (const id of ['kai', 'ren', 'hina', 'shin', 'gou', 'yu'] as const) {
       const skin = CHARACTER_SKINS[id];
-      expect(skin.atlasUrl).toMatch(/^\/assets\/characters\/[a-z]+\/parts\.svg$/);
+      expect(skin.atlasUrl).toMatch(
+        /^\/assets\/characters\/[a-z]+\/parts\.svg(?:\?.+)?$/,
+      );
       expect(Object.keys(skin.atlasRects)).toHaveLength(17);
     }
   });
