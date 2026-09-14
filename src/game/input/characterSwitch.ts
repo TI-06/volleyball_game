@@ -1,4 +1,5 @@
 import { predictLanding } from '../ball/ballPhysics';
+import { STARTER_ROSTER, type CharacterId } from '../characters/roster';
 import type { MatchState, PlayerState } from '../core/types';
 import type { ManualSwitchResult, SwitchDecision, SwitchMode } from './inputTypes';
 
@@ -7,6 +8,10 @@ const ATTACK_HANDOFF_LEAD = 0.08;
 
 function distanceXZ(player: PlayerState, x: number, z: number): number {
   return Math.hypot(player.position.x - x, player.position.z - z);
+}
+
+function setAbility(player: PlayerState): number {
+  return STARTER_ROSTER[player.characterId as CharacterId]?.abilities.set ?? 0;
 }
 
 function homePlayers(state: MatchState): PlayerState[] {
@@ -22,9 +27,48 @@ function serveCandidate(state: MatchState): PlayerState | null {
   return players[state.rally.serverIndex.home % players.length] ?? null;
 }
 
+function isFirstTouchContact(state: MatchState): boolean {
+  return (
+    state.ball.lastContact === 'RECEIVE' ||
+    state.ball.lastContact === 'DIVE' ||
+    state.ball.lastContact === 'BLOCK'
+  );
+}
+
+function secondTouchCandidate(
+  state: MatchState,
+  lastToucher: PlayerState,
+): PlayerState | null {
+  const target = state.ball.position;
+  return (
+    [...homePlayers(state)]
+      .filter((player) => player.id !== lastToucher.id)
+      .sort((a, b) => {
+        const aSetterBonus = a.role === 'SETTER' ? 1000 : 0;
+        const bSetterBonus = b.role === 'SETTER' ? 1000 : 0;
+        const abilityOrder = (bSetterBonus + setAbility(b)) - (aSetterBonus + setAbility(a));
+        if (abilityOrder !== 0) return abilityOrder;
+        return distanceXZ(a, target.x, target.z) - distanceXZ(b, target.x, target.z);
+      })[0] ?? null
+  );
+}
+
+function projectedAttacker(state: MatchState, setterId: string): PlayerState | null {
+  const target = predictLanding(state.ball);
+  return (
+    [...homePlayers(state)]
+      .filter((player) => player.id !== setterId)
+      .sort(
+        (a, b) =>
+          distanceXZ(a, target.x, target.z) -
+          distanceXZ(b, target.x, target.z),
+      )[0] ?? null
+  );
+}
+
 function offensiveCandidate(state: MatchState): PlayerState | null {
   const lastTouchedBy = state.ball.lastTouchedBy;
-  if (!lastTouchedBy?.startsWith('home-') || state.ball.velocity.y < 0) {
+  if (!lastTouchedBy?.startsWith('home-')) {
     return null;
   }
 
@@ -32,20 +76,15 @@ function offensiveCandidate(state: MatchState): PlayerState | null {
   const lastToucher = players.find((player) => player.id === lastTouchedBy);
   if (!lastToucher) return null;
 
-  if (lastToucher.role !== 'SETTER') {
-    return players.find((player) => player.role === 'SETTER') ?? null;
+  if (isFirstTouchContact(state)) {
+    return secondTouchCandidate(state, lastToucher);
   }
 
-  const projectedAttackPoint = predictLanding(state.ball);
-  return (
-    [...players]
-      .filter((player) => player.id !== lastToucher.id)
-      .sort(
-        (a, b) =>
-          distanceXZ(a, projectedAttackPoint.x, projectedAttackPoint.z) -
-          distanceXZ(b, projectedAttackPoint.x, projectedAttackPoint.z),
-      )[0] ?? null
-  );
+  if (state.ball.lastContact === 'SET') {
+    return projectedAttacker(state, lastToucher.id);
+  }
+
+  return null;
 }
 
 function targetCandidate(state: MatchState): PlayerState | null {
@@ -66,8 +105,7 @@ function targetCandidate(state: MatchState): PlayerState | null {
 
 function offenseLead(state: MatchState, offense: PlayerState | null): number {
   if (!offense) return AUTO_WARNING_LEAD;
-  const lastToucher = state.players.find((player) => player.id === state.ball.lastTouchedBy);
-  return lastToucher?.side === 'home' && lastToucher.role === 'SETTER'
+  return state.ball.lastContact === 'SET'
     ? ATTACK_HANDOFF_LEAD
     : AUTO_WARNING_LEAD;
 }
