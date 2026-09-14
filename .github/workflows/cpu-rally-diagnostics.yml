@@ -15,11 +15,11 @@ jobs:
           node-version: '22.12.0'
           cache: npm
       - run: npm ci
-      - name: Run CPU rally reproduction without failing workflow
+      - name: Run focused match diagnostics without failing workflow
         shell: bash
         run: |
           set +e
-          npx vitest run tests/integration/game/reworkRallyAI.test.ts > focused.log 2>&1
+          npx vitest run tests/integration/game/reworkRallyAI.test.ts tests/unit/render/ballView.test.ts > focused.log 2>&1
           code=$?
           cat focused.log
           echo "FOCUSED_EXIT=$code"
