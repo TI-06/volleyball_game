@@ -1,13 +1,37 @@
 import * as THREE from 'three';
 import { STARTER_ROSTER, type CharacterId } from '../../characters/roster';
-import type { MatchState } from '../../core/types';
+import { COURT } from '../../core/constants';
+import type { MatchState, PlayerState } from '../../core/types';
 import { BallView } from '../../render/BallView';
 import type { ReworkEvent } from '../types';
-import { ReworkCameraFrame, getReworkCameraFrame } from './ReworkCamera';
+import { getReworkCameraFrame, type ReworkCameraFrame } from './ReworkCamera';
 import { ReworkCourtView } from './ReworkCourtView';
 import { ReworkMarkers } from './ReworkMarkers';
 import { getReworkMarkerState } from './markerState';
 import { ToonPlayerProxy } from './ToonPlayerProxy';
+
+const SERVE_RETURN_MS = 420;
+
+interface ServeFollowThrough {
+  playerId: string;
+  serviceZ: number;
+  startedAt: number;
+}
+
+function currentServer(state: MatchState): PlayerState | null {
+  if (state.rally.phase !== 'SERVE_READY') return null;
+  const players = state.players.filter((player) => player.side === state.rally.servingSide);
+  return players[state.rally.serverIndex[state.rally.servingSide] % players.length] ?? null;
+}
+
+function serviceZ(player: PlayerState): number {
+  return (player.side === 'home' ? -1 : 1) * (COURT.length / 2 + 0.35);
+}
+
+function easeOutCubic(value: number): number {
+  const clamped = Math.max(0, Math.min(1, value));
+  return 1 - Math.pow(1 - clamped, 3);
+}
 
 function eventImpact(event: ReworkEvent): number {
   if (event.type === 'SPIKE' && event.quality === 'PERFECT') return 0.05;
@@ -36,6 +60,7 @@ export class ReworkScene {
   private readonly resizeObserver: ResizeObserver;
   private impactPeak = 0;
   private impactStartedAt = 0;
+  private serveFollowThrough: ServeFollowThrough | null = null;
 
   constructor(
     private readonly host: HTMLElement,
@@ -91,6 +116,14 @@ export class ReworkScene {
       this.impactPeak = impact;
       this.impactStartedAt = performance.now();
     }
+    if (event.type === 'SERVE' && event.actorId) {
+      const side = event.actorId.startsWith('home-') ? 'home' : 'away';
+      this.serveFollowThrough = {
+        playerId: event.actorId,
+        serviceZ: (side === 'home' ? -1 : 1) * (COURT.length / 2 + 0.35),
+        startedAt: performance.now(),
+      };
+    }
     if (event.type === 'POINT' && event.value && event.value > 0) {
       this.players.get(this.focusPlayerId)?.playEvent({ type: 'POINT', actorId: this.focusPlayerId });
     }
@@ -103,17 +136,48 @@ export class ReworkScene {
     const impact = this.impactPeak * decay;
     if (decay === 0) this.impactPeak = 0;
 
+    const server = currentServer(state);
+    const follow = this.serveFollowThrough;
+    const followElapsed = follow ? Math.max(0, now - follow.startedAt) : 0;
+    const followActive = Boolean(follow && followElapsed < SERVE_RETURN_MS);
+
     for (const player of state.players) {
       const proxy = this.players.get(player.id);
       if (!proxy) continue;
       proxy.setFocused(player.id === this.focusPlayerId);
-      proxy.update(player);
-    }
-    this.ball.update(state.ball);
-    this.markers.update(getReworkMarkerState(state, this.focusPlayerId), state.time);
 
-    const frame = getReworkCameraFrame(state, impact);
-    applyCameraFrame(this.camera, frame);
+      let displayPlayer = player;
+      if (server?.id === player.id) {
+        displayPlayer = {
+          ...player,
+          position: { ...player.position, z: serviceZ(player) },
+        };
+      } else if (followActive && follow?.playerId === player.id) {
+        const amount = easeOutCubic(followElapsed / SERVE_RETURN_MS);
+        displayPlayer = {
+          ...player,
+          position: {
+            ...player.position,
+            z: follow.serviceZ + (player.position.z - follow.serviceZ) * amount,
+          },
+        };
+      }
+      proxy.update(displayPlayer);
+    }
+
+    if (follow && !followActive) this.serveFollowThrough = null;
+
+    if (server) {
+      this.ball.update({
+        ...state.ball,
+        position: { x: server.position.x, y: 1.35, z: serviceZ(server) },
+      });
+    } else {
+      this.ball.update(state.ball);
+    }
+
+    this.markers.update(getReworkMarkerState(state, this.focusPlayerId), state.time);
+    applyCameraFrame(this.camera, getReworkCameraFrame(state, impact));
     this.renderer.render(this.scene, this.camera);
     void dt;
   }
