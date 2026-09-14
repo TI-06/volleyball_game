@@ -7,6 +7,7 @@ import {
   motionFromRuntimeEvent,
   type PlayerMotion,
 } from './playerMotion';
+import { selectionRingLocalY } from './playerPresentation';
 
 const HEIGHT_SCALE: Record<CharacterDefinition['heightClass'], number> = {
   SHORT: 0.9,
@@ -148,6 +149,7 @@ function blend(base: number, target: number, amount: number): number {
 
 export class PlayerView {
   readonly group = new THREE.Group();
+  private readonly poseGroup = new THREE.Group();
   private readonly heightScale: number;
   private readonly bodyScale: number;
   private readonly leftArm: THREE.Mesh;
@@ -168,6 +170,7 @@ export class PlayerView {
     this.heightScale = HEIGHT_SCALE[character.heightClass];
     this.bodyScale = bodyWidth(character);
     this.phaseOffset = [...playerId].reduce((sum, value) => sum + value.charCodeAt(0), 0) * 0.11;
+    this.group.add(this.poseGroup);
 
     const jerseyColor = side === 'home' ? 0x102b48 : 0x7a2027;
     const accentColor = new THREE.Color(character.accent);
@@ -200,7 +203,7 @@ export class PlayerView {
     torso.position.y = 1.28 * this.heightScale;
     torso.scale.y = this.heightScale;
     torso.castShadow = true;
-    this.group.add(torso);
+    this.poseGroup.add(torso);
 
     const shortsMesh = new THREE.Mesh(
       new THREE.BoxGeometry(0.55 * this.bodyScale, 0.3, 0.34),
@@ -208,21 +211,21 @@ export class PlayerView {
     );
     shortsMesh.position.y = 0.82 * this.heightScale;
     shortsMesh.castShadow = true;
-    this.group.add(shortsMesh);
+    this.poseGroup.add(shortsMesh);
 
     const headY = 2.04 * this.heightScale;
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 16, 12), skin);
     head.position.y = headY;
     head.castShadow = true;
-    this.group.add(head);
-    addHair(this.group, character, hair, headY);
+    this.poseGroup.add(head);
+    addHair(this.poseGroup, character, hair, headY);
 
     const shoulderStripe = new THREE.Mesh(
       new THREE.BoxGeometry(0.7 * this.bodyScale, 0.075, 0.36),
       accent,
     );
     shoulderStripe.position.y = 1.59 * this.heightScale;
-    this.group.add(shoulderStripe);
+    this.poseGroup.add(shoulderStripe);
 
     const armGeometry = new THREE.CapsuleGeometry(0.075, 0.5, 4, 6);
     this.leftArm = new THREE.Mesh(armGeometry, skin);
@@ -233,7 +236,7 @@ export class PlayerView {
     this.rightArm.rotation.z = 0.12;
     this.leftArm.castShadow = true;
     this.rightArm.castShadow = true;
-    this.group.add(this.leftArm, this.rightArm);
+    this.poseGroup.add(this.leftArm, this.rightArm);
 
     const legGeometry = new THREE.CapsuleGeometry(0.085, 0.5, 4, 6);
     this.leftLeg = new THREE.Mesh(legGeometry, shorts);
@@ -244,13 +247,13 @@ export class PlayerView {
     this.rightLeg.scale.y = this.heightScale;
     this.leftLeg.castShadow = true;
     this.rightLeg.castShadow = true;
-    this.group.add(this.leftLeg, this.rightLeg);
+    this.poseGroup.add(this.leftLeg, this.rightLeg);
 
     for (const x of [-0.17, 0.17]) {
       const sneaker = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.1, 0.31), shoe);
       sneaker.position.set(x * this.bodyScale, 0.08, -0.05);
       sneaker.castShadow = true;
-      this.group.add(sneaker);
+      this.poseGroup.add(sneaker);
     }
 
     this.numberTexture = createNumberTexture(JERSEY_NUMBER[character.id], character.accent);
@@ -266,7 +269,7 @@ export class PlayerView {
       );
       number.position.set(0, 1.31 * this.heightScale, -0.305 * this.bodyScale);
       number.rotation.y = Math.PI;
-      this.group.add(number);
+      this.poseGroup.add(number);
     }
 
     this.group.rotation.y = side === 'home' ? 0 : Math.PI;
@@ -285,6 +288,7 @@ export class PlayerView {
 
   update(player: PlayerState): void {
     this.group.position.set(player.position.x, player.position.y, player.position.z);
+    this.selectionRing.position.y = selectionRingLocalY(player.position.y);
 
     const groundSpeed = Math.hypot(player.velocity.x, player.velocity.z);
     const runAmount = Math.min(1, groundSpeed / 7.5);
@@ -340,10 +344,10 @@ export class PlayerView {
       : baseRightLegX;
 
     const lateralLean = THREE.MathUtils.clamp(player.velocity.x * -0.018, -0.13, 0.13);
-    this.group.rotation.x = bodyPitch;
-    this.group.rotation.z = lateralLean;
+    this.poseGroup.rotation.x = bodyPitch;
+    this.poseGroup.rotation.z = lateralLean;
     const airborneStretch = player.isAirborne ? 1.025 : 1;
-    this.group.scale.set(airborneStretch, airborneStretch, airborneStretch);
+    this.poseGroup.scale.set(airborneStretch, airborneStretch, airborneStretch);
   }
 
   dispose(): void {
