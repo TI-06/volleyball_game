@@ -16,7 +16,7 @@ import {
   type MatchRuntimeState,
   type RuntimeEvent,
   type RuntimeInput,
-} from '../../game/runtime/playableRuntime';
+} from '../../game/runtime/gameRuntime';
 import { MatchHud } from '../../ui/MatchHud';
 import { shouldPauseMatchForViewport } from '../matchViewport';
 import { TutorialScreen } from './TutorialScreen';
