@@ -45,6 +45,10 @@ export function stepReworkRuntime(
   input: ReworkInput,
   dt: number,
 ): ReworkRuntimeState {
+  if (source.match.winner) {
+    return source.lastEvent === null ? source : { ...source, lastEvent: null };
+  }
+
   const effectiveInput = source.match.rally.phase === 'SERVE_READY'
     ? { ...input, moveAxis: 0 }
     : input;
