@@ -27,6 +27,47 @@ function withRally(runtime: MatchRuntimeState): MatchRuntimeState {
   };
 }
 
+function homeSetBlockPrep(velocityY: number, y = 2.9): MatchRuntimeState {
+  let runtime = withRally(createMatchRuntime(186, 'MASTER', 'MANUAL'));
+  runtime = {
+    ...runtime,
+    match: {
+      ...runtime.match,
+      time: 1,
+      players: runtime.match.players.map((player) => {
+        if (player.id === 'away-1') {
+          return { ...player, position: { x: 0, y: 0, z: 1.05 } };
+        }
+        if (player.id === 'away-0') {
+          return { ...player, position: { x: 3.4, y: 0, z: 1.2 } };
+        }
+        return player;
+      }),
+      ball: {
+        ...runtime.match.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-1',
+        lastContact: 'SET',
+        position: { x: 0, y, z: -0.7 },
+        velocity: { x: 0, y: velocityY, z: 1.1 },
+      },
+    },
+    cpuDecisions: {
+      'away-1': {
+        intent: {
+          state: 'APPROACH',
+          target: { x: 0, y: 0, z: 0.55 },
+          attackIntent: null,
+          reactionDelay: 0.1,
+        },
+        nextDecisionAt: 10,
+        actionReadyAt: 0.5,
+      },
+    } as unknown as MatchRuntimeState['cpuDecisions'],
+  };
+  return runtime;
+}
+
 describe('playable cpu runtime', () => {
   it('makes the cpu attacker jump before making set contact into a spike', () => {
     let runtime = withRally(createMatchRuntime(180, 'MASTER', 'MANUAL'));
@@ -73,44 +114,17 @@ describe('playable cpu runtime', () => {
     expect(sawSpike).toBe(true);
   });
 
-  it('pre-jumps a ready cpu blocker while reading the opponent set without touching it', () => {
-    let runtime = withRally(createMatchRuntime(186, 'MASTER', 'MANUAL'));
-    runtime = {
-      ...runtime,
-      match: {
-        ...runtime.match,
-        time: 1,
-        players: runtime.match.players.map((player) => {
-          if (player.id === 'away-1') {
-            return { ...player, position: { x: 0, y: 0, z: 1.05 } };
-          }
-          if (player.id === 'away-0') {
-            return { ...player, position: { x: 3.4, y: 0, z: 1.2 } };
-          }
-          return player;
-        }),
-        ball: {
-          ...runtime.match.ball,
-          inPlay: true,
-          lastTouchedBy: 'home-1',
-          lastContact: 'SET',
-          position: { x: 0, y: 2.9, z: -0.7 },
-          velocity: { x: 0, y: 1.6, z: 1.1 },
-        },
-      },
-      cpuDecisions: {
-        'away-1': {
-          intent: {
-            state: 'APPROACH',
-            target: { x: 0, y: 0, z: 0.55 },
-            attackIntent: null,
-            reactionDelay: 0.1,
-          },
-          nextDecisionAt: 10,
-          actionReadyAt: 0.5,
-        },
-      } as unknown as MatchRuntimeState['cpuDecisions'],
-    };
+  it('does not pre-jump a cpu blocker immediately after a high-rising opponent set', () => {
+    const runtime = homeSetBlockPrep(5.2, 2.2);
+    const next = stepMatchRuntime(runtime, idleInput(), 1 / 60);
+    const blocker = next.match.players.find((player) => player.id === 'away-1')!;
+
+    expect(blocker.isAirborne).toBe(false);
+    expect(next.match.ball.lastContact).toBe('SET');
+  });
+
+  it('pre-jumps a ready cpu blocker near the opponent set apex without touching it', () => {
+    let runtime = homeSetBlockPrep(1.6);
 
     runtime = stepMatchRuntime(runtime, idleInput(), 1 / 60);
     const blocker = runtime.match.players.find((player) => player.id === 'away-1')!;
