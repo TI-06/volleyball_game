@@ -314,6 +314,7 @@ export class PlayerView {
     const leftArmY = pose ? blend(baseArmY, pose.leftArmY, motionAmount) : baseArmY;
     const rightArmY = pose ? blend(baseArmY, pose.rightArmY, motionAmount) : baseArmY;
     const armSpread = pose ? blend(baseArmSpread, pose.armSpread, motionAmount) : baseArmSpread;
+    const bodyPitch = pose ? blend(0, pose.bodyPitch, motionAmount) : 0;
 
     this.leftArm.position.x = -armSpread * this.bodyScale;
     this.rightArm.position.x = armSpread * this.bodyScale;
@@ -339,6 +340,7 @@ export class PlayerView {
       : baseRightLegX;
 
     const lateralLean = THREE.MathUtils.clamp(player.velocity.x * -0.018, -0.13, 0.13);
+    this.group.rotation.x = bodyPitch;
     this.group.rotation.z = lateralLean;
     const airborneStretch = player.isAirborne ? 1.025 : 1;
     this.group.scale.set(airborneStretch, airborneStretch, airborneStretch);
