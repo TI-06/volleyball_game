@@ -399,14 +399,19 @@ export function stepReworkRuntime(
   let powerEvent: ReworkEvent | null = null;
   const actionsBeforePower = resolveReworkActions(match);
 
-  if (input.powerPressed && actionsBeforePower.power === 'SERVE' && powerHoldStartedAt === null) {
+  if (input.powerCancelled) {
+    blockHoldStartedAt = null;
+    powerHoldStartedAt = null;
+  }
+
+  if (!input.powerCancelled && input.powerPressed && actionsBeforePower.power === 'SERVE' && powerHoldStartedAt === null) {
     powerHoldStartedAt = match.time;
   }
-  if (input.powerPressed && actionsBeforePower.power === 'BLOCK_READY' && blockHoldStartedAt === null) {
+  if (!input.powerCancelled && input.powerPressed && actionsBeforePower.power === 'BLOCK_READY' && blockHoldStartedAt === null) {
     blockHoldStartedAt = match.time;
   }
 
-  if (input.powerReleased && actionsBeforePower.power === 'SERVE' && powerHoldStartedAt !== null) {
+  if (!input.powerCancelled && input.powerReleased && actionsBeforePower.power === 'SERVE' && powerHoldStartedAt !== null) {
     const focus = match.players.find((player) => player.id === FOCUS_PLAYER_ID);
     if (focus) {
       const ball = performServe(
@@ -420,7 +425,7 @@ export function stepReworkRuntime(
       powerEvent = { type: 'SERVE', actorId: focus.id };
     }
     powerHoldStartedAt = null;
-  } else if (input.powerReleased && blockHoldStartedAt !== null) {
+  } else if (!input.powerCancelled && input.powerReleased && blockHoldStartedAt !== null) {
     if (opponentAttackSequence(match)) {
       match = startFocusJump(match);
       powerEvent = { type: 'JUMP', actorId: FOCUS_PLAYER_ID };
