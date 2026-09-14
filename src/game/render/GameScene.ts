@@ -16,6 +16,16 @@ import { CameraView } from './CameraView';
 import { CourtView } from './CourtView';
 import { LandingMarkerView } from './LandingMarkerView';
 import { PlayerView } from './PlayerView';
+import {
+  SERVE_FOLLOW_THROUGH_MS,
+  interpolateServeReturnZ,
+} from './servePresentation';
+
+interface ServeFollowThrough {
+  playerId: string;
+  serviceZ: number;
+  startedAt: number;
+}
 
 function currentServer(state: MatchState): PlayerState | null {
   if (state.rally.phase !== 'SERVE_READY') return null;
@@ -32,6 +42,7 @@ export class GameScene {
   private readonly landingMarkerView = new LandingMarkerView();
   private readonly playerViews = new Map<string, PlayerView>();
   private readonly resizeObserver: ResizeObserver;
+  private serveFollowThrough: ServeFollowThrough | null = null;
 
   constructor(private readonly host: HTMLElement, initialState: MatchState) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -79,6 +90,15 @@ export class GameScene {
   playEvent(event: RuntimeEvent): void {
     if (!event.actorId) return;
     this.playerViews.get(event.actorId)?.playAction(event.type);
+
+    if (event.type === 'SERVE') {
+      const sideSign = event.actorId.startsWith('home-') ? -1 : 1;
+      this.serveFollowThrough = {
+        playerId: event.actorId,
+        serviceZ: sideSign * (COURT.length / 2 + 0.35),
+        startedAt: performance.now(),
+      };
+    }
   }
 
   update(
@@ -89,18 +109,44 @@ export class GameScene {
       cameraSetting?: CameraSetting;
     } = {},
   ): void {
+    const now = performance.now();
     const server = currentServer(state);
     const serveZ = server
       ? (server.side === 'home' ? -1 : 1) * (COURT.length / 2 + 0.35)
       : null;
+    const followThrough = this.serveFollowThrough;
+    const followThroughElapsed = followThrough
+      ? Math.max(0, now - followThrough.startedAt)
+      : 0;
+    const followThroughActive = Boolean(
+      followThrough && followThroughElapsed < SERVE_FOLLOW_THROUGH_MS,
+    );
 
     for (const player of state.players) {
-      const displayPlayer = server?.id === player.id && serveZ !== null
-        ? { ...player, position: { ...player.position, z: serveZ } }
-        : player;
+      let displayPlayer = player;
+      if (server?.id === player.id && serveZ !== null) {
+        displayPlayer = { ...player, position: { ...player.position, z: serveZ } };
+      } else if (followThroughActive && followThrough?.playerId === player.id) {
+        displayPlayer = {
+          ...player,
+          position: {
+            ...player.position,
+            z: interpolateServeReturnZ(
+              followThrough.serviceZ,
+              player.position.z,
+              followThroughElapsed,
+            ),
+          },
+        };
+      }
+
       const view = this.playerViews.get(player.id);
       view?.setSelected(player.id === options.controlledPlayerId);
       view?.update(displayPlayer);
+    }
+
+    if (followThrough && !followThroughActive) {
+      this.serveFollowThrough = null;
     }
 
     if (server && serveZ !== null) {
