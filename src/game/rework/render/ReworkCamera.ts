@@ -26,7 +26,9 @@ export function getReworkCameraFrame(
 
   return {
     mode: REWORK_CAMERA_MODE,
-    position: { x: 20.5, y: 8.0, z: -6.2 },
+    // From the negative-X sideline, home depth +Z projects screen-right.
+    // That keeps the MovementStrip contract intuitive: BACK <- -> NET.
+    position: { x: -20.5, y: 8.0, z: -6.2 },
     lookAt: { x: 0, y: 1.55, z: 0 },
     fov: 37 + extraFov - impactZoom * 35,
     impactZoom,
