@@ -301,8 +301,9 @@ function chooseBlockPrepJumper(runtime: MatchRuntimeState): PlayerState | null {
   if (
     ball.lastContact !== 'SET' ||
     !(ball.lastTouchedBy?.startsWith('home-') ?? false) ||
-    ball.position.y < 2.1 ||
-    ball.position.z > 0.8
+    ball.position.y < 2.4 ||
+    ball.position.z > 0.8 ||
+    ball.velocity.y > 2.2
   ) {
     return null;
   }
