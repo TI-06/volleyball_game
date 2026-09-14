@@ -50,6 +50,28 @@ describe('rework fixed action mapping', () => {
     expect(resolveReworkActions(state)).toEqual({ play: 'NONE', power: 'JUMP' });
   });
 
+  it('does not offer attack jump when KAI is still too far from the set', () => {
+    const base = rallyState();
+    const state = {
+      ...base,
+      players: base.players.map((player) =>
+        player.id === 'home-0'
+          ? { ...player, position: { x: -3.8, y: 0, z: -2.0 }, isAirborne: false }
+          : player,
+      ),
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-1',
+        lastContact: 'SET' as const,
+        position: { x: -1.6, y: 3.0, z: -0.8 },
+        velocity: { x: 0, y: 0.2, z: 0.1 },
+      },
+    };
+
+    expect(resolveReworkActions(state)).toEqual({ play: 'NONE', power: 'NONE' });
+  });
+
   it('keeps airborne spike on the same POWER zone', () => {
     const base = rallyState();
     const state = {
@@ -70,6 +92,28 @@ describe('rework fixed action mapping', () => {
     };
 
     expect(resolveReworkActions(state)).toEqual({ play: 'NONE', power: 'SPIKE' });
+  });
+
+  it('does not allow a remote spike from outside the real contact radius', () => {
+    const base = rallyState();
+    const state = {
+      ...base,
+      players: base.players.map((player) =>
+        player.id === 'home-0'
+          ? { ...player, position: { x: -3.2, y: 0.8, z: -1.9 }, isAirborne: true }
+          : player,
+      ),
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-1',
+        lastContact: 'SET' as const,
+        position: { x: -1.5, y: 3.0, z: -0.75 },
+        velocity: { x: 0, y: -0.2, z: 0.1 },
+      },
+    };
+
+    expect(resolveReworkActions(state)).toEqual({ play: 'NONE', power: 'NONE' });
   });
 
   it('uses POWER as block-ready during an opponent set', () => {
