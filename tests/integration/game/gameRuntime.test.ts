@@ -31,8 +31,11 @@ function awayServe(runtime: MatchRuntimeState): MatchRuntimeState {
   };
 }
 
-function runUntilCpuServe(seed: number): MatchRuntimeState {
-  let runtime = awayServe(createMatchRuntime(seed, 'EXPERT', 'MANUAL'));
+function runUntilCpuServe(
+  seed: number,
+  difficulty: 'HARD' | 'EXPERT' = 'EXPERT',
+): MatchRuntimeState {
+  let runtime = awayServe(createMatchRuntime(seed, difficulty, 'MANUAL'));
   for (let frame = 0; frame < 90 && runtime.match.rally.phase === 'SERVE_READY'; frame += 1) {
     runtime = stepMatchRuntime(runtime, idleInput(), 1 / 60);
   }
@@ -51,5 +54,12 @@ describe('game runtime cpu serve variation', () => {
     expect(first.match.ball.lastContact).toBe('SERVE');
     expect(second.match.ball.lastContact).toBe('SERVE');
     expect(first.match.ball.velocity.x).not.toBeCloseTo(second.match.ball.velocity.x, 2);
+  });
+
+  it('uses a float serve for the tutorial opening ball even if HARD was selected', () => {
+    const tutorial = runUntilCpuServe(1, 'HARD');
+
+    expect(tutorial.match.ball.lastContact).toBe('SERVE');
+    expect(tutorial.match.ball.position.y).toBeLessThan(2.6);
   });
 });
