@@ -73,6 +73,109 @@ describe('playable cpu runtime', () => {
     expect(sawSpike).toBe(true);
   });
 
+  it('pre-jumps a ready cpu blocker while reading the opponent set without touching it', () => {
+    let runtime = withRally(createMatchRuntime(186, 'MASTER', 'MANUAL'));
+    runtime = {
+      ...runtime,
+      match: {
+        ...runtime.match,
+        time: 1,
+        players: runtime.match.players.map((player) => {
+          if (player.id === 'away-1') {
+            return { ...player, position: { x: 0, y: 0, z: 1.05 } };
+          }
+          if (player.id === 'away-0') {
+            return { ...player, position: { x: 3.4, y: 0, z: 1.2 } };
+          }
+          return player;
+        }),
+        ball: {
+          ...runtime.match.ball,
+          inPlay: true,
+          lastTouchedBy: 'home-1',
+          lastContact: 'SET',
+          position: { x: 0, y: 2.9, z: -0.7 },
+          velocity: { x: 0, y: 1.6, z: 1.1 },
+        },
+      },
+      cpuDecisions: {
+        'away-1': {
+          intent: {
+            state: 'APPROACH',
+            target: { x: 0, y: 0, z: 0.55 },
+            attackIntent: null,
+            reactionDelay: 0.1,
+          },
+          nextDecisionAt: 10,
+          actionReadyAt: 0.5,
+        },
+      } as unknown as MatchRuntimeState['cpuDecisions'],
+    };
+
+    runtime = stepMatchRuntime(runtime, idleInput(), 1 / 60);
+    const blocker = runtime.match.players.find((player) => player.id === 'away-1')!;
+
+    expect(blocker.isAirborne).toBe(true);
+    expect(runtime.match.ball.lastTouchedBy).toBe('home-1');
+    expect(runtime.match.ball.lastContact).toBe('SET');
+    expect(runtime.lastEvent).toMatchObject({ type: 'JUMP', actorId: 'away-1' });
+  });
+
+  it('lets an already-airborne cpu blocker contact the following opponent spike once', () => {
+    let runtime = withRally(createMatchRuntime(187, 'MASTER', 'MANUAL'));
+    runtime = {
+      ...runtime,
+      match: {
+        ...runtime.match,
+        time: 1,
+        players: runtime.match.players.map((player) => {
+          if (player.id === 'away-1') {
+            return {
+              ...player,
+              isAirborne: true,
+              position: { x: 0, y: 0.72, z: 1.05 },
+              velocity: { ...player.velocity, y: 4.2 },
+            };
+          }
+          if (player.id === 'away-0') {
+            return { ...player, position: { x: 3.4, y: 0, z: 1.2 } };
+          }
+          return player;
+        }),
+        ball: {
+          ...runtime.match.ball,
+          inPlay: true,
+          lastTouchedBy: 'home-0',
+          lastContact: 'SPIKE',
+          position: { x: 0.05, y: 2.85, z: -0.35 },
+          velocity: { x: 0, y: -4, z: 26 },
+        },
+      },
+      cpuDecisions: {
+        'away-1': {
+          intent: {
+            state: 'APPROACH',
+            target: { x: 0, y: 0, z: 0.55 },
+            attackIntent: null,
+            reactionDelay: 0.1,
+          },
+          nextDecisionAt: 10,
+          actionReadyAt: 0.9,
+        },
+      } as unknown as MatchRuntimeState['cpuDecisions'],
+    };
+
+    runtime = stepMatchRuntime(runtime, idleInput(), 1 / 60);
+
+    expect(runtime.match.ball.lastTouchedBy).toBe('away-1');
+    expect(runtime.match.ball.lastContact).toBe('BLOCK');
+    expect(runtime.lastEvent).toMatchObject({ type: 'BLOCK', actorId: 'away-1' });
+
+    const actionReadyAt = runtime.cpuDecisions['away-1']?.actionReadyAt ?? 0;
+    const next = stepMatchRuntime(runtime, idleInput(), 1 / 60);
+    expect(next.cpuDecisions['away-1']?.actionReadyAt ?? 0).toBeGreaterThanOrEqual(actionReadyAt);
+  });
+
   it('makes a front cpu blocker leave the floor before attempting a spike block', () => {
     let runtime = withRally(createMatchRuntime(181, 'MASTER', 'MANUAL'));
     runtime = {
