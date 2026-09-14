@@ -7,6 +7,7 @@ import {
 import {
   getToonProxyScale,
   REWORK_PLAYER_PRESENTATION,
+  TOON_TEXTURE_SIZE,
 } from '../../../../src/game/rework/render/ToonPlayerProxy';
 import { STARTER_ROSTER } from '../../../../src/game/characters/roster';
 
@@ -43,5 +44,9 @@ describe('2.5d presentation contract', () => {
     const hina = getToonProxyScale(STARTER_ROSTER.hina);
     expect(kai.height).toBeGreaterThan(hina.height);
     expect(kai.width).toBeGreaterThan(hina.width);
+  });
+
+  it('keeps procedural character textures lightweight for mobile', () => {
+    expect(TOON_TEXTURE_SIZE).toBeLessThanOrEqual(320);
   });
 });
