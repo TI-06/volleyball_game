@@ -250,7 +250,7 @@ function servePower(holdSeconds: number): number {
 
 function serveTarget(swipe: ReworkSwipe | null): Vec3 {
   const lane = clamp((swipe?.x ?? 0) / 80, -1, 1);
-  return { x: lane * 3.4, y: 0, z: 6.7 };
+  return { x: -lane * 3.4, y: 0, z: 6.7 };
 }
 
 function opponentAttackSequence(match: MatchState): boolean {
