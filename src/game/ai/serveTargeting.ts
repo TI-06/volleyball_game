@@ -8,6 +8,8 @@ export interface ServeTargetReceiver {
   receive: number;
 }
 
+const TUTORIAL_SEED = 1;
+
 const DIFFICULTY_SALT: Record<CpuDifficulty, number> = {
   BEGINNER: 0x101,
   NORMAL: 0x202,
@@ -75,6 +77,10 @@ function weakestReceiver(receivers: readonly ServeTargetReceiver[]): ServeTarget
   return [...receivers].sort((a, b) => a.receive - b.receive)[0]!;
 }
 
+function strongestReceiver(receivers: readonly ServeTargetReceiver[]): ServeTargetReceiver {
+  return [...receivers].sort((a, b) => b.receive - a.receive)[0]!;
+}
+
 function clampTarget(target: Vec3): Vec3 {
   return {
     x: clamp(target.x, -4.2, 4.2),
@@ -91,6 +97,15 @@ export function chooseCpuServeTarget(
 ): Vec3 {
   if (receivers.length === 0) {
     return { x: 0, y: 0, z: -5.6 };
+  }
+
+  if (matchSeed === TUTORIAL_SEED && rallyIndex === 0) {
+    const tutorialReceiver = strongestReceiver(receivers);
+    return clampTarget({
+      x: tutorialReceiver.x,
+      y: 0,
+      z: tutorialReceiver.z - 0.3,
+    });
   }
 
   const seeded = (matchSeed >>> 0) ^ DIFFICULTY_SALT[difficulty];
