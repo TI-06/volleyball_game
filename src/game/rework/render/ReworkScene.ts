@@ -6,6 +6,7 @@ import { BallView } from '../../render/BallView';
 import type { ReworkEvent } from '../types';
 import { getReworkCameraFrame, type ReworkCameraFrame } from './ReworkCamera';
 import { ReworkCourtView } from './ReworkCourtView';
+import { ReworkImpactEffects } from './ReworkImpactEffects';
 import { ReworkMarkers } from './ReworkMarkers';
 import { getReworkMarkerState } from './markerState';
 import { ToonPlayerProxy } from './ToonPlayerProxy';
@@ -55,6 +56,7 @@ export class ReworkScene {
   private readonly camera = new THREE.PerspectiveCamera(36, 16 / 9, 0.1, 90);
   private readonly court = new ReworkCourtView();
   private readonly markers = new ReworkMarkers();
+  private readonly impacts = new ReworkImpactEffects();
   private readonly ball = new BallView();
   private readonly players = new Map<string, ToonPlayerProxy>();
   private readonly resizeObserver: ResizeObserver;
@@ -78,6 +80,7 @@ export class ReworkScene {
     this.scene.fog = new THREE.Fog(0x050c14, 24, 48);
     this.scene.add(this.court.group);
     this.scene.add(this.markers.group);
+    this.scene.add(this.impacts.group);
     this.scene.add(this.ball.mesh);
 
     const hemi = new THREE.HemisphereLight(0xd9f6ff, 0x111018, 2.15);
@@ -110,7 +113,11 @@ export class ReworkScene {
   }
 
   playEvent(event: ReworkEvent): void {
-    if (event.actorId) this.players.get(event.actorId)?.playEvent(event);
+    if (event.actorId) {
+      const proxy = this.players.get(event.actorId);
+      proxy?.playEvent(event);
+      if (proxy) this.impacts.play(event, proxy.group.position.clone());
+    }
     const impact = eventImpact(event);
     if (impact > 0) {
       this.impactPeak = impact;
@@ -177,6 +184,7 @@ export class ReworkScene {
     }
 
     this.markers.update(getReworkMarkerState(state, this.focusPlayerId), state.time);
+    this.impacts.update(now);
     applyCameraFrame(this.camera, getReworkCameraFrame(state, impact));
     this.renderer.render(this.scene, this.camera);
     void dt;
@@ -196,6 +204,7 @@ export class ReworkScene {
     this.players.clear();
     this.court.dispose();
     this.markers.dispose();
+    this.impacts.dispose();
     this.ball.mesh.geometry.dispose();
     const ballMaterial = this.ball.mesh.material;
     if (Array.isArray(ballMaterial)) ballMaterial.forEach((material) => material.dispose());
