@@ -12,12 +12,9 @@ import { ReworkMarkers } from './ReworkMarkers';
 import { ArticulatedPlayerView } from './character/ArticulatedPlayerView';
 import { getReworkMarkerState } from './markerState';
 import { getReworkServeStagePosition } from './serveStaging';
-import { ToonPlayerProxy } from './ToonPlayerProxy';
 
 const SERVE_RETURN_MS = 420;
 const MAX_RENDER_PIXEL_RATIO = 1.5;
-
-type ReworkPlayerView = ToonPlayerProxy | ArticulatedPlayerView;
 
 interface ServeFollowThrough {
   playerId: string;
@@ -65,7 +62,7 @@ export class ReworkScene {
   private readonly impacts = new ReworkImpactEffects();
   private readonly ballTrail = new ReworkBallTrail();
   private readonly ball = new BallView();
-  private readonly players = new Map<string, ReworkPlayerView>();
+  private readonly players = new Map<string, ArticulatedPlayerView>();
   private readonly resizeObserver: ResizeObserver;
   private impactPeak = 0;
   private impactStartedAt = 0;
@@ -106,15 +103,11 @@ export class ReworkScene {
     for (const player of initialState.players) {
       const character = STARTER_ROSTER[player.characterId as CharacterId];
       if (!character) continue;
-      const proxy: ReworkPlayerView =
-        player.id === 'home-0'
-          ? new ArticulatedPlayerView(character.id, player.side)
-          : new ToonPlayerProxy(character, player.side);
-      proxy.setFocused(player.id === this.focusPlayerId);
-      if (proxy instanceof ArticulatedPlayerView) proxy.update(player, initialState, now);
-      else proxy.update(player);
-      this.players.set(player.id, proxy);
-      this.scene.add(proxy.group);
+      const view = new ArticulatedPlayerView(character.id, player.side);
+      view.setFocused(player.id === this.focusPlayerId);
+      view.update(player, initialState, now);
+      this.players.set(player.id, view);
+      this.scene.add(view.group);
     }
 
     this.ball.update(initialState.ball);
@@ -127,20 +120,19 @@ export class ReworkScene {
   }
 
   playEvent(event: ReworkEvent): void {
-    for (const proxy of this.players.values()) {
-      if (proxy instanceof ArticulatedPlayerView) proxy.observeEvent(event);
-    }
+    for (const view of this.players.values()) view.observeEvent(event);
 
     if (event.actorId) {
-      const proxy = this.players.get(event.actorId);
-      if (proxy && !(proxy instanceof ArticulatedPlayerView)) proxy.playEvent(event);
-      if (proxy) this.impacts.play(event, proxy.group.position.clone());
+      const view = this.players.get(event.actorId);
+      if (view) this.impacts.play(event, view.group.position.clone());
     }
+
     const impact = eventImpact(event);
     if (impact > 0) {
       this.impactPeak = impact;
       this.impactStartedAt = performance.now();
     }
+
     if (event.type === 'SERVE' && event.actorId) {
       const side = event.actorId.startsWith('home-') ? 'home' : 'away';
       this.serveFollowThrough = {
@@ -148,12 +140,6 @@ export class ReworkScene {
         serviceZ: (side === 'home' ? -1 : 1) * (COURT.length / 2 + 0.35),
         startedAt: performance.now(),
       };
-    }
-    if (event.type === 'POINT' && event.value && event.value > 0) {
-      const focus = this.players.get(this.focusPlayerId);
-      if (focus && !(focus instanceof ArticulatedPlayerView)) {
-        focus.playEvent({ type: 'POINT', actorId: this.focusPlayerId });
-      }
     }
   }
 
@@ -170,9 +156,9 @@ export class ReworkScene {
     const followActive = Boolean(follow && followElapsed < SERVE_RETURN_MS);
 
     for (const player of state.players) {
-      const proxy = this.players.get(player.id);
-      if (!proxy) continue;
-      proxy.setFocused(player.id === this.focusPlayerId);
+      const view = this.players.get(player.id);
+      if (!view) continue;
+      view.setFocused(player.id === this.focusPlayerId);
 
       let displayPlayer = player;
       if (server?.id === player.id) {
@@ -191,8 +177,7 @@ export class ReworkScene {
         };
       }
 
-      if (proxy instanceof ArticulatedPlayerView) proxy.update(displayPlayer, state, now);
-      else proxy.update(displayPlayer);
+      view.update(displayPlayer, state, now);
     }
 
     if (follow && !followActive) this.serveFollowThrough = null;
@@ -224,7 +209,7 @@ export class ReworkScene {
 
   dispose(): void {
     this.resizeObserver.disconnect();
-    for (const proxy of this.players.values()) proxy.dispose();
+    for (const view of this.players.values()) view.dispose();
     this.players.clear();
     this.court.dispose();
     this.markers.dispose();
