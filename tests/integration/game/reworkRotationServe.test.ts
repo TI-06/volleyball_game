@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createReworkRuntime,
   stepReworkRuntime,
-} from '../../../src/game/rework/runtime';
+} from '../../../src/game/rework/playableRuntime';
 import type { ReworkInput } from '../../../src/game/rework/types';
 
 function idle(): ReworkInput {
