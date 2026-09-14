@@ -2,7 +2,9 @@ import type { AttackIntent } from '../actions/spike';
 import { decideCpuIntent } from '../ai/cpuAI';
 import { DIFFICULTY_PROFILES, type CpuDifficulty } from '../ai/difficulty';
 import { createTendencyHistory } from '../ai/tendencyTracker';
+import { predictLanding } from '../ball/ballPhysics';
 import type { MatchState, Vec3 } from '../core/types';
+import { isLandingInsideSide } from './courtLanding';
 import type { ReworkCpuRole } from './types';
 
 export interface ReworkCpuDecision {
@@ -74,6 +76,29 @@ function requireNetApproachBeforeBlock(
   };
 }
 
+function leavePredictedOutBall(
+  state: MatchState,
+  decision: ReworkCpuDecision,
+): ReworkCpuDecision {
+  if (decision.role !== 'RECEIVE') return decision;
+  const incomingHomeBall =
+    (state.ball.lastTouchedBy?.startsWith('home-') ?? false) &&
+    (state.ball.lastContact === 'SERVE' || state.ball.lastContact === 'SPIKE');
+  if (!incomingHomeBall) return decision;
+
+  const landing = predictLanding(state.ball);
+  if (isLandingInsideSide(landing.x, landing.z, 'away')) return decision;
+
+  const player = state.players.find((candidate) => candidate.id === decision.playerId);
+  return {
+    ...decision,
+    role: 'COVER',
+    target: player
+      ? { x: player.position.x, y: 0, z: player.position.z }
+      : decision.target,
+  };
+}
+
 export function decideCpuRoles(
   state: MatchState,
   difficulty: CpuDifficulty,
@@ -83,13 +108,14 @@ export function decideCpuRoles(
     .filter((player) => player.side === 'away')
     .map((player) => {
       const intent = decideCpuIntent(state, player.id, profile, EMPTY_HISTORY);
-      return requireNetApproachBeforeBlock(state, {
+      const decision = requireNetApproachBeforeBlock(state, {
         playerId: player.id,
         role: mapRole(intent.state),
         target: intent.target,
         attackIntent: intent.attackIntent,
         reactionDelay: intent.reactionDelay,
       });
+      return leavePredictedOutBall(state, decision);
     });
 
   return keepSetTargetAttacker(state, decisions);
