@@ -12,6 +12,7 @@ describe('ally AI', () => {
         ...base.ball,
         inPlay: true,
         lastTouchedBy: 'away-0',
+        lastContact: 'SPIKE' as const,
         position: { x: 2.5, y: 3, z: -5 },
         velocity: { x: 0, y: -2, z: -0.2 },
       },
@@ -20,7 +21,7 @@ describe('ally AI', () => {
     expect(decideAllyIntent(state, 'home-2').state).toBe('RECEIVE');
   });
 
-  it('moves the setter to the set zone after a teammate touch', () => {
+  it('moves the setter to the set zone after a teammate first touch', () => {
     const base = createMatch(11);
     const state = {
       ...base,
@@ -29,6 +30,7 @@ describe('ally AI', () => {
         ...base.ball,
         inPlay: true,
         lastTouchedBy: 'home-2',
+        lastContact: 'RECEIVE' as const,
         position: { x: 1.5, y: 1.8, z: -3 },
         velocity: { x: -0.4, y: 4, z: 1 },
       },
@@ -39,7 +41,7 @@ describe('ally AI', () => {
     expect(intent.target.z).toBeGreaterThan(-1.5);
   });
 
-  it('sends an ace into approach instead of chasing a rising pass', () => {
+  it('sends an ace into approach instead of chasing a rising first pass', () => {
     const base = createMatch(12);
     const state = {
       ...base,
@@ -48,11 +50,31 @@ describe('ally AI', () => {
         ...base.ball,
         inPlay: true,
         lastTouchedBy: 'home-2',
+        lastContact: 'RECEIVE' as const,
         position: { x: 0, y: 2, z: -3 },
         velocity: { x: 0, y: 4, z: 1 },
       },
     };
 
+    expect(decideAllyIntent(state, 'home-0').state).toBe('APPROACH');
+  });
+
+  it('uses HINA as the emergency setter when REN made the first touch', () => {
+    const base = createMatch(15);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-1',
+        lastContact: 'RECEIVE' as const,
+        position: { x: 0.3, y: 2, z: -2.2 },
+        velocity: { x: 0.1, y: 2.4, z: 0.4 },
+      },
+    };
+
+    expect(decideAllyIntent(state, 'home-2').state).toBe('SET');
     expect(decideAllyIntent(state, 'home-0').state).toBe('APPROACH');
   });
 
@@ -65,6 +87,7 @@ describe('ally AI', () => {
         ...base.ball,
         inPlay: true,
         lastTouchedBy: 'home-1',
+        lastContact: 'SET' as const,
         position: { x: -2.2, y: 2.9, z: -0.9 },
         velocity: { x: -1.1, y: -1.2, z: 0.2 },
       },
@@ -83,6 +106,7 @@ describe('ally AI', () => {
         ...base.ball,
         inPlay: true,
         lastTouchedBy: 'home-1',
+        lastContact: 'SET' as const,
         position: { x: 0.4, y: 2.1, z: -1.1 },
         velocity: { x: 4.2, y: 3.6, z: 0.35 },
       },
