@@ -6,10 +6,11 @@ import {
   CHARACTER_SKINS,
   type CharacterPartName,
   type CharacterSkin,
+  type CharacterVisualProfile,
 } from './characterSkin';
 import { MOTION_CLIPS, type MotionClipId } from './motionClips';
 import { MotionPlayer, type MotionSample } from './motionPlayer';
-import type { JointName } from './motionTypes';
+import type { JointName, JointTransform } from './motionTypes';
 import { resolveVisualIntent, type VisualIntent, type VisualIntentState } from './visualIntent';
 import { DEFAULT_VISUAL_RIG, JOINT_NAMES } from './visualRig';
 
@@ -52,6 +53,10 @@ const REPEATABLE_INTENTS = new Set<VisualIntent>([
   'MOVE_FORWARD',
   'MOVE_BACK',
 ]);
+
+export function isArticulatedCharacter(characterId: CharacterId): boolean {
+  return CHARACTER_SKINS[characterId]?.id === characterId;
+}
 
 export class ArticulatedMotionController {
   private readonly motion = new MotionPlayer();
@@ -219,6 +224,69 @@ function partTexture(skin: CharacterSkin, part: CharacterPartName): THREE.Textur
   return texture;
 }
 
+function partScale(
+  part: CharacterPartName,
+  visual: CharacterVisualProfile,
+): { x: number; y: number } {
+  if (part === 'head' || part === 'face' || part === 'hairFront' || part === 'hairBack') {
+    return { x: visual.headScale, y: visual.headScale };
+  }
+  if (part === 'torso') return { x: visual.shoulderScale, y: 1 };
+  if (
+    part === 'upperArmL' ||
+    part === 'upperArmR' ||
+    part === 'foreArmL' ||
+    part === 'foreArmR'
+  ) {
+    return { x: visual.armScale, y: 1 };
+  }
+  if (part === 'handL' || part === 'handR') {
+    const handScale = 0.75 + visual.armScale * 0.25;
+    return { x: handScale, y: handScale };
+  }
+  if (part === 'thighL' || part === 'thighR' || part === 'shinL' || part === 'shinR') {
+    return { x: 1, y: visual.legScale };
+  }
+  if (part === 'shoeL' || part === 'shoeR') {
+    return { x: 0.8 + visual.legScale * 0.2, y: 1 };
+  }
+  return { x: 1, y: 1 };
+}
+
+function profiledTransform(
+  jointName: JointName,
+  transform: JointTransform,
+  visual: CharacterVisualProfile,
+  clipId: MotionClipId | null,
+): JointTransform {
+  let x = transform.x;
+  let y = transform.y;
+
+  if (jointName === 'shoulderL' || jointName === 'shoulderR') {
+    x *= visual.shoulderScale;
+  }
+  if (
+    jointName === 'elbowL' ||
+    jointName === 'elbowR' ||
+    jointName === 'wristL' ||
+    jointName === 'wristR'
+  ) {
+    x *= visual.armScale;
+    y *= visual.armScale;
+  }
+  if (jointName === 'kneeL' || jointName === 'kneeR' || jointName === 'ankleL' || jointName === 'ankleR') {
+    y *= visual.legScale;
+  }
+  if (jointName === 'root' && clipId?.startsWith('spike_approach_')) {
+    x *= visual.approachStride;
+  }
+  if (jointName === 'root' && clipId === 'land') {
+    y -= 0.025 * visual.landingWeight;
+  }
+
+  return { ...transform, x, y };
+}
+
 export class ArticulatedPlayerView {
   readonly group = new THREE.Group();
   private readonly bodyRoot = new THREE.Group();
@@ -228,6 +296,7 @@ export class ArticulatedPlayerView {
   private readonly selectionRing: THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial>;
   private readonly shadow: THREE.Mesh<THREE.CircleGeometry, THREE.MeshBasicMaterial>;
   private readonly controller = new ArticulatedMotionController();
+  private readonly skin: CharacterSkin;
   private pendingEvent: ReworkEvent | null = null;
 
   constructor(
@@ -236,6 +305,7 @@ export class ArticulatedPlayerView {
   ) {
     const skin = CHARACTER_SKINS[characterId];
     if (!skin) throw new Error(`Missing CharacterSkin for ${characterId}`);
+    this.skin = skin;
 
     for (const jointName of JOINT_NAMES) {
       this.joints.set(jointName, new THREE.Group());
@@ -259,6 +329,8 @@ export class ArticulatedPlayerView {
         toneMapped: false,
       });
       const mesh = new THREE.Mesh(new THREE.PlaneGeometry(layout.width, layout.height), material);
+      const scale = partScale(partName, skin.visual);
+      mesh.scale.set(scale.x, scale.y, 1);
       mesh.position.set(layout.offsetX, layout.offsetY, layout.order * 0.0015);
       mesh.renderOrder = layout.order;
       this.joints.get(layout.joint)!.add(mesh);
@@ -311,9 +383,15 @@ export class ArticulatedPlayerView {
   }
 
   private applySample(sample: MotionSample): void {
+    const clipId = this.controller.currentClipId;
     for (const jointName of JOINT_NAMES) {
       const joint = this.joints.get(jointName)!;
-      const transform = sample.pose[jointName];
+      const transform = profiledTransform(
+        jointName,
+        sample.pose[jointName],
+        this.skin.visual,
+        clipId,
+      );
       joint.position.set(transform.x, transform.y, 0);
       joint.rotation.set(0, 0, transform.rotation);
       joint.scale.set(transform.scaleX, transform.scaleY, 1);
@@ -322,14 +400,15 @@ export class ArticulatedPlayerView {
 
   update(player: PlayerState, match: MatchState, nowMs: number): void {
     const intent = resolveVisualIntent(match, player, this.pendingEvent);
-    const sample = this.controller.update(intent, nowMs);
+    const visualNowMs = nowMs * this.skin.visual.motionSpeed;
+    const sample = this.controller.update(intent, visualNowMs);
     this.pendingEvent = null;
     this.applySample(sample);
 
     this.group.position.set(player.position.x, 0, player.position.z);
-    this.bodyRoot.position.y = Math.max(0, player.position.y);
+    this.bodyRoot.position.y = Math.max(0, player.position.y * this.skin.visual.jumpVisualScale);
 
-    const airborne = Math.max(0, player.position.y);
+    const airborne = Math.max(0, player.position.y * this.skin.visual.jumpVisualScale);
     const shadowScale = Math.max(0.62, 1 - airborne * 0.16);
     this.shadow.scale.set(1.2 * shadowScale, 0.72 * shadowScale, 1);
     this.shadow.material.opacity = Math.max(0.12, 0.32 - airborne * 0.08);
