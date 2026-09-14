@@ -31,6 +31,12 @@ describe('CHARACTER_SKINS', () => {
     }
   });
 
+  it('cache-busts every character atlas when switching to the athletic limb art revision', () => {
+    for (const id of CHARACTER_IDS) {
+      expect(CHARACTER_SKINS[id].atlasUrl).toContain('?rev=athletic-v2');
+    }
+  });
+
   it('keeps all visual profile values finite, positive, and within safe presentation ranges', () => {
     for (const id of CHARACTER_IDS) {
       const visual = CHARACTER_SKINS[id].visual;
