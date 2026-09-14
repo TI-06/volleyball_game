@@ -76,7 +76,7 @@
   .menu-header { margin-bottom: 12px; }
   .difficulty-card { min-height: 104px; padding: 12px; }
   .team-preview { margin-top: 12px; padding-top: 10px; }
-  .match-hud__action { right: 26px; bottom: 20px; width: 82px; height: 82px; }
+  .match-hud__action { right: max(28px,env(safe-area-inset-right)); bottom: max(20px,env(safe-area-inset-bottom)); width: 82px; height: 82px; }
   .character-card { padding: 5px 9px; }
 }
 
