@@ -19,8 +19,12 @@ export function stepReworkRuntime(
   input: ReworkInput,
   dt: number,
 ): ReworkRuntimeState {
+  const effectiveInput = source.match.rally.phase === 'SERVE_READY'
+    ? { ...input, moveAxis: 0 }
+    : input;
+
   if (source.match.rally.phase === 'POINT') {
-    const stepped = stepCoreRuntime(source, input, dt);
+    const stepped = stepCoreRuntime(source, effectiveInput, dt);
     if (stepped.match.rally.phase !== 'SERVE_READY') {
       return stepped;
     }
@@ -36,12 +40,12 @@ export function stepReworkRuntime(
 
   const teammateServe = tryAutomaticHomeServe(source.match);
   if (!teammateServe.event) {
-    return stepCoreRuntime(source, input, dt);
+    return stepCoreRuntime(source, effectiveInput, dt);
   }
 
   const stepped = stepCoreRuntime(
     { ...source, match: teammateServe.match },
-    input,
+    effectiveInput,
     dt,
   );
   return stepped.lastEvent?.type === 'POINT'
