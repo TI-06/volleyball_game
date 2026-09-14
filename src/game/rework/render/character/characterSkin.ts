@@ -52,7 +52,7 @@ export interface CharacterSkin {
 const CELL = 128;
 const DEFAULT_CHARACTER_ATLAS_REVISION = 'athletic-v2';
 const CHARACTER_ATLAS_REVISIONS: Partial<Record<CharacterId, string>> = {
-  kai: 'kai-v4',
+  kai: 'kai-v5',
 };
 
 const ATLAS_RECTS: Record<CharacterPartName, AtlasRect> = {

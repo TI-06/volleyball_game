@@ -25,16 +25,16 @@ export function getReworkCameraFrame(
   impactStrength = 0,
 ): ReworkCameraFrame {
   const spread = maxRallySpread(state);
-  const extraFov = Math.max(0, Math.min(3.2, (spread - 7.1) * 0.92));
+  const extraFov = Math.max(0, Math.min(2.8, (spread - 7.1) * 0.72));
   const impactZoom = Math.max(0, Math.min(0.04, impactStrength));
 
   return {
     mode: REWORK_CAMERA_MODE,
-    // Low home-corner framing: the controlled side reads large in the foreground,
-    // the net stays central, and the away side remains visible for return timing.
-    position: { x: -8.8, y: 4.65, z: -12.65 },
-    lookAt: { x: 0.25, y: 1.08, z: 0.72 },
-    fov: 36 + extraFov - impactZoom * 18,
+    // Deeper home-corner framing keeps the service-line player fully visible
+    // above the touch controls while preserving a single fixed rally view.
+    position: { x: -7.8, y: 5.4, z: -16.5 },
+    lookAt: { x: 0, y: -1.5, z: 0.8 },
+    fov: 38 + extraFov - impactZoom * 16,
     impactZoom,
   };
 }
