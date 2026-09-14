@@ -26,3 +26,11 @@ jobs:
           cat verify.log
           echo "VERIFY_EXIT=$verify_code"
           exit 0
+      - name: Upload mobile visual audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-visual-audit
+          path: test-results/visual-audit
+          if-no-files-found: ignore
+          retention-days: 3
