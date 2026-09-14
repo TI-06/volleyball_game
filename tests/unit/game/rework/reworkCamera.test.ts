@@ -13,13 +13,16 @@ describe('rework camera', () => {
     expect(impact.fov).toBeLessThan(normal.fov);
   });
 
-  it('uses a closer, lower diagonal framing so articulated poses stay readable on phones', () => {
+  it('frames the match from a low home-corner angle so players read large on phones', () => {
     const frame = getReworkCameraFrame(createMatch(2), 0);
-    expect(frame.position.x).toBeGreaterThan(-19);
-    expect(frame.position.x).toBeLessThan(-15);
-    expect(frame.position.y).toBeLessThan(7);
-    expect(frame.position.z).toBeLessThan(-4);
-    expect(frame.lookAt.y).toBeLessThan(1);
-    expect(frame.fov).toBeLessThanOrEqual(35);
+    expect(frame.position.x).toBeGreaterThan(-11);
+    expect(frame.position.x).toBeLessThan(-6);
+    expect(frame.position.y).toBeGreaterThan(3.5);
+    expect(frame.position.y).toBeLessThan(5.8);
+    expect(frame.position.z).toBeLessThan(-11);
+    expect(frame.lookAt.y).toBeGreaterThanOrEqual(0.9);
+    expect(frame.lookAt.z).toBeGreaterThan(0);
+    expect(frame.fov).toBeGreaterThanOrEqual(34);
+    expect(frame.fov).toBeLessThanOrEqual(40);
   });
 });
