@@ -12,6 +12,7 @@ import { getReworkMarkerState } from './markerState';
 import { ToonPlayerProxy } from './ToonPlayerProxy';
 
 const SERVE_RETURN_MS = 420;
+const MAX_RENDER_PIXEL_RATIO = 1.5;
 
 interface ServeFollowThrough {
   playerId: string;
@@ -70,7 +71,7 @@ export class ReworkScene {
     private readonly focusPlayerId = 'home-0',
   ) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_RENDER_PIXEL_RATIO));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
