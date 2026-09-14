@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
 import './styles/app.css';
 import './styles/match.css';
+import './styles/rework-match.css';
 import './styles/feedback.css';
 import './styles/orientation.css';
 
