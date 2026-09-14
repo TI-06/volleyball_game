@@ -39,6 +39,31 @@ describe('MotionPlayer', () => {
     expect(sample.pose.wristR.rotation).toBeCloseTo(1, 5);
   });
 
+  it('drops idle shoulders into a readable athletic ready stance', () => {
+    const player = new MotionPlayer();
+    player.play(
+      clip({
+        id: 'idle_ready',
+        loop: true,
+        keyframes: [
+          {
+            at: 0,
+            joints: {
+              shoulderL: { rotation: 0.22 },
+              shoulderR: { rotation: -0.22 },
+            },
+          },
+          { at: 1, joints: {} },
+        ],
+      }),
+      0,
+    );
+
+    const sample = player.sample(0);
+    expect(sample.pose.shoulderL.rotation).toBeCloseTo(0.62, 5);
+    expect(sample.pose.shoulderR.rotation).toBeCloseTo(-0.62, 5);
+  });
+
   it('loops a looping clip deterministically', () => {
     const player = new MotionPlayer();
     player.play(clip({ id: 'idle', loop: true }), 0);
