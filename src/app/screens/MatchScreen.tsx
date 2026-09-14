@@ -6,6 +6,7 @@ import { FIXED_STEP_SECONDS } from '../../game/core/constants';
 import { getSwitchCandidate } from '../../game/input/characterSwitch';
 import { interpretActionGesture } from '../../game/input/gesture';
 import type { ActionKind, SwipeInput, SwitchMode } from '../../game/input/inputTypes';
+import { constrainServeReadyMove } from '../../game/input/serveReadyMovement';
 import { GameScene } from '../../game/render/GameScene';
 import {
   createMatchRuntime,
@@ -238,7 +239,10 @@ export function MatchScreen({
         activeCharacterId={hud.activeCharacterId}
         suggestedCharacterId={hud.suggestedCharacterId}
         onMove={(move) => {
-          inputRef.current.move = move;
+          inputRef.current.move = constrainServeReadyMove(
+            runtimeRef.current.match.rally.phase,
+            move,
+          );
         }}
         onActionPress={() => {
           inputRef.current.actionPressed = true;
