@@ -55,7 +55,7 @@ describe('rework rally AI', () => {
     expect(runtime.focusPlayerId).toBe('home-0');
   });
 
-  it('completes away RECEIVE -> SET -> SPIKE with no user input', () => {
+  it('completes SHIN RECEIVE -> YU SET -> GOU SPIKE with no user input', () => {
     let runtime = rally(createReworkRuntime(81, 'MASTER'));
     runtime = {
       ...runtime,
@@ -78,15 +78,20 @@ describe('rework rally AI', () => {
     };
 
     const events: string[] = [];
-    for (let frame = 0; frame < 360 && !events.includes('SPIKE'); frame += 1) {
+    let spikeActor: string | null = null;
+    for (let frame = 0; frame < 360 && spikeActor === null; frame += 1) {
       runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
       if (runtime.lastEvent?.actorId?.startsWith('away-')) {
         events.push(runtime.lastEvent.type);
+        if (runtime.lastEvent.type === 'SPIKE') {
+          spikeActor = runtime.lastEvent.actorId;
+        }
       }
     }
 
     expect(events).toContain('RECEIVE');
     expect(events).toContain('SET');
     expect(events).toContain('SPIKE');
+    expect(spikeActor).toBe('away-1');
   });
 });
