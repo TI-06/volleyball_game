@@ -253,6 +253,12 @@ function serveTarget(swipe: ReworkSwipe | null): Vec3 {
   return { x: lane * 3.4, y: 0, z: 6.7 };
 }
 
+function opponentAttackSequence(match: MatchState): boolean {
+  if (match.rally.phase !== 'RALLY' && match.rally.phase !== 'SERVING') return false;
+  if (!(match.ball.lastTouchedBy?.startsWith('away-') ?? false)) return false;
+  return match.ball.lastContact === 'SET' || match.ball.lastContact === 'SPIKE';
+}
+
 function tryFocusBlock(match: MatchState): { match: MatchState; event: ReworkEvent | null } {
   const focus = match.players.find((player) => player.id === FOCUS_PLAYER_ID);
   const { ball } = match;
@@ -415,20 +421,14 @@ export function stepReworkRuntime(
     }
     powerHoldStartedAt = null;
   } else if (input.powerReleased && blockHoldStartedAt !== null) {
-    const legalRead =
-      match.ball.lastContact === 'SET' &&
-      (match.ball.lastTouchedBy?.startsWith('away-') ?? false);
-    if (legalRead) {
+    if (opponentAttackSequence(match)) {
       match = startFocusJump(match);
       powerEvent = { type: 'JUMP', actorId: FOCUS_PLAYER_ID };
     }
     blockHoldStartedAt = null;
   }
 
-  if (
-    blockHoldStartedAt !== null &&
-    !(match.ball.lastContact === 'SET' && (match.ball.lastTouchedBy?.startsWith('away-') ?? false))
-  ) {
+  if (blockHoldStartedAt !== null && !opponentAttackSequence(match)) {
     blockHoldStartedAt = null;
   }
   if (powerHoldStartedAt !== null && resolveReworkActions(match).power !== 'SERVE') {
