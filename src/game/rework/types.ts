@@ -20,6 +20,14 @@ export type ReworkEventType =
   | 'BLOCK'
   | 'POINT';
 
+export type ReworkCpuRole =
+  | 'SERVE'
+  | 'RECEIVE'
+  | 'SET'
+  | 'APPROACH'
+  | 'BLOCK'
+  | 'COVER';
+
 export interface ReworkSwipe {
   x: number;
   y: number;
@@ -41,6 +49,11 @@ export interface ReworkEvent {
   value?: number;
 }
 
+export interface ReworkCpuMemory {
+  role: ReworkCpuRole;
+  readyAt: number;
+}
+
 export interface ReworkRuntimeState {
   match: MatchState;
   difficulty: CpuDifficulty;
@@ -49,5 +62,6 @@ export interface ReworkRuntimeState {
   powerLabel: ReworkActionLabel;
   blockHoldStartedAt: number | null;
   powerHoldStartedAt: number | null;
+  cpuMemory: Record<string, ReworkCpuMemory>;
   lastEvent: ReworkEvent | null;
 }
