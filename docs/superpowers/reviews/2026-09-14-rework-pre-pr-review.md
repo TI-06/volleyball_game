@@ -76,7 +76,7 @@ This branch replaces the Phase 1 match presentation and control surface while pr
 
 ### NOT performed in this environment
 
-The current execution environment still cannot reliably reach the npm registry, so these have **not** been successfully run here:
+The current execution environment still cannot reliably reach the npm registry. The latest npm reachability check timed out, so these have **not** been successfully run here:
 
 ```bash
 npm install
