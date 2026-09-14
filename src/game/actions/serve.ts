@@ -1,5 +1,6 @@
 import { COURT } from '../core/constants';
 import type { BallState, PlayerState, Vec3 } from '../core/types';
+import { solveServeTrajectory } from './serveTrajectory';
 
 export type ServeKind = 'FLOAT' | 'JUMP';
 
@@ -28,20 +29,29 @@ export function performServe(
   const deltaX = target.x - origin.x;
   const deltaZ = target.z - origin.z;
   const horizontalDistance = Math.max(0.001, Math.hypot(deltaX, deltaZ));
-  const horizontalSpeed = kind === 'JUMP'
-    ? 17.3 + normalizedPower * 3.2
-    : 12.8 + normalizedPower * 2.8;
-  const verticalSpeed = kind === 'JUMP' ? 1.8 : 3.55;
   const direction = Math.sign(deltaZ) || 1;
+
+  const velocity =
+    kind === 'FLOAT'
+      ? solveServeTrajectory({
+          origin,
+          target,
+          aggression: normalizedPower,
+          netHeight: COURT.netHeight,
+        }).velocity
+      : (() => {
+          const horizontalSpeed = 17.3 + normalizedPower * 3.2;
+          return {
+            x: (deltaX / horizontalDistance) * horizontalSpeed,
+            y: 1.8,
+            z: (deltaZ / horizontalDistance) * horizontalSpeed,
+          };
+        })();
 
   return {
     ...ball,
     position: origin,
-    velocity: {
-      x: (deltaX / horizontalDistance) * horizontalSpeed,
-      y: verticalSpeed,
-      z: (deltaZ / horizontalDistance) * horizontalSpeed,
-    },
+    velocity,
     spin:
       kind === 'JUMP'
         ? { x: 18 * direction, y: 0, z: 0 }
