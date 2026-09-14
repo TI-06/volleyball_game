@@ -15,23 +15,39 @@ function idle(): ReworkInput {
   };
 }
 
-describe('rework home serve rotation', () => {
-  it('auto serves when REN is the current home server and keeps KAI as focus', () => {
-    let runtime = createReworkRuntime(92, 'NORMAL');
-    runtime = {
-      ...runtime,
-      match: {
-        ...runtime.match,
-        rally: {
-          ...runtime.match.rally,
-          phase: 'SERVE_READY',
-          servingSide: 'home',
-          serverIndex: { ...runtime.match.rally.serverIndex, home: 1 },
-        },
+function withHomeServer(index: number) {
+  const runtime = createReworkRuntime(92 + index, 'NORMAL');
+  return {
+    ...runtime,
+    match: {
+      ...runtime.match,
+      rally: {
+        ...runtime.match.rally,
+        phase: 'SERVE_READY' as const,
+        servingSide: 'home' as const,
+        serverIndex: { ...runtime.match.rally.serverIndex, home: index },
       },
-    };
+    },
+  };
+}
+
+function stepFrames(runtime: ReturnType<typeof createReworkRuntime>, count: number) {
+  let next = runtime;
+  for (let frame = 0; frame < count; frame += 1) {
+    next = stepReworkRuntime(next, idle(), 1 / 60);
+  }
+  return next;
+}
+
+describe('rework home serve rotation', () => {
+  it('shows REN in a short service windup before auto serving', () => {
+    let runtime = withHomeServer(1);
 
     runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
+    expect(runtime.match.rally.phase).toBe('SERVE_READY');
+    expect(runtime.lastEvent).toBeNull();
+
+    runtime = stepFrames(runtime, 30);
 
     expect(runtime.lastEvent).toMatchObject({ type: 'SERVE', actorId: 'home-1' });
     expect(runtime.match.rally.phase).toBe('RALLY');
@@ -39,22 +55,14 @@ describe('rework home serve rotation', () => {
     expect(runtime.focusPlayerId).toBe('home-0');
   });
 
-  it('auto serves when HINA is the current home server', () => {
-    let runtime = createReworkRuntime(93, 'NORMAL');
-    runtime = {
-      ...runtime,
-      match: {
-        ...runtime.match,
-        rally: {
-          ...runtime.match.rally,
-          phase: 'SERVE_READY',
-          servingSide: 'home',
-          serverIndex: { ...runtime.match.rally.serverIndex, home: 2 },
-        },
-      },
-    };
+  it('shows HINA in a short service windup before auto serving', () => {
+    let runtime = withHomeServer(2);
 
     runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
+    expect(runtime.match.rally.phase).toBe('SERVE_READY');
+    expect(runtime.lastEvent).toBeNull();
+
+    runtime = stepFrames(runtime, 30);
 
     expect(runtime.lastEvent).toMatchObject({ type: 'SERVE', actorId: 'home-2' });
     expect(runtime.match.rally.phase).toBe('RALLY');
@@ -62,21 +70,9 @@ describe('rework home serve rotation', () => {
   });
 
   it('keeps KAI serve manual when rotation returns to index zero', () => {
-    let runtime = createReworkRuntime(94, 'NORMAL');
-    runtime = {
-      ...runtime,
-      match: {
-        ...runtime.match,
-        rally: {
-          ...runtime.match.rally,
-          phase: 'SERVE_READY',
-          servingSide: 'home',
-          serverIndex: { ...runtime.match.rally.serverIndex, home: 0 },
-        },
-      },
-    };
+    let runtime = withHomeServer(0);
 
-    runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
+    runtime = stepFrames(runtime, 35);
 
     expect(runtime.lastEvent).toBeNull();
     expect(runtime.match.rally.phase).toBe('SERVE_READY');
