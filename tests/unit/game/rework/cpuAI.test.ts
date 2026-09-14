@@ -29,6 +29,24 @@ describe('rework cpu roles', () => {
     expect(decisions.filter((decision) => decision.role === 'RECEIVE')).toHaveLength(1);
   });
 
+  it('does not assign a receiver to a home attack predicted to land out', () => {
+    const base = rallyState();
+    const state = {
+      ...base,
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-0',
+        lastContact: 'SPIKE' as const,
+        position: { x: 4.0, y: 2.2, z: 2.0 },
+        velocity: { x: 6.5, y: -1.3, z: 7.0 },
+      },
+    };
+
+    const decisions = decideCpuRoles(state, 'MASTER');
+    expect(decisions.some((decision) => decision.role === 'RECEIVE')).toBe(false);
+  });
+
   it('assigns YU to set after SHIN first touch', () => {
     const base = rallyState();
     const state = {
