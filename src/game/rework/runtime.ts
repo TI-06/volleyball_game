@@ -27,6 +27,7 @@ import type {
 
 const FOCUS_PLAYER_ID = 'home-0' as const;
 const PLAYER_GRAVITY = 22;
+const MIN_BLOCK_PLAYER_HEIGHT = 0.28;
 const SETTER_TARGET: Vec3 = { x: 0, y: 2.2, z: -1.6 };
 const ATTACK_CONTACT_Z = -0.72;
 const MATCH_INPUT_IDLE: MatchInput = {
@@ -264,6 +265,7 @@ function tryFocusBlock(match: MatchState): { match: MatchState; event: ReworkEve
   const { ball } = match;
   if (
     !focus?.isAirborne ||
+    focus.position.y < MIN_BLOCK_PLAYER_HEIGHT ||
     ball.lastContact !== 'SPIKE' ||
     !(ball.lastTouchedBy?.startsWith('away-') ?? false) ||
     ball.velocity.z >= -0.05 ||
