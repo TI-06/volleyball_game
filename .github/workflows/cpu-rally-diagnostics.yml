@@ -6,7 +6,7 @@ on:
       - fix/cpu-rally-and-visual-quality
 
 jobs:
-  focused:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,12 +15,22 @@ jobs:
           node-version: '22.12.0'
           cache: npm
       - run: npm ci
-      - name: Run focused match diagnostics without failing workflow
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run full verification without failing workflow
         shell: bash
         run: |
           set +e
-          npx vitest run tests/integration/game/reworkRallyAI.test.ts tests/unit/render/ballView.test.ts tests/unit/render/characterSkin.test.ts > focused.log 2>&1
+          npm run verify:full > verify.log 2>&1
           code=$?
-          cat focused.log
-          echo "FOCUSED_EXIT=$code"
+          cat verify.log
+          echo "VERIFY_EXIT=$code"
           exit 0
+      - name: Upload mobile visual audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpu-rally-visual-audit
+          path: test-results/visual-audit
+          if-no-files-found: ignore
+          retention-days: 3
