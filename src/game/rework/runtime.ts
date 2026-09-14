@@ -13,6 +13,10 @@ import type { MatchInput, MatchState, PlayerState, Vec3 } from '../core/types';
 import type { CpuDifficulty } from '../ai/difficulty';
 import { resolveReworkActions } from './actionResolver';
 import { assistFocusPosition } from './movement';
+import {
+  stepCpuRally,
+  tryAutomaticTeammateReceive,
+} from './rallyAIExecutor';
 import { decideTeammateRoles, type ReworkTeammateDecision } from './teammateAI';
 import type {
   ReworkEvent,
@@ -353,6 +357,7 @@ export function createReworkRuntime(
     powerLabel: 'NONE',
     blockHoldStartedAt: null,
     powerHoldStartedAt: null,
+    cpuMemory: {},
     lastEvent: null,
   });
 }
@@ -371,8 +376,17 @@ export function stepReworkRuntime(
   match = moveFocusPlayer(match, input, dt);
   match = moveTeammates(match, dt);
 
-  const setAssist = tryTeammateSet(match);
+  const teammateReceive = tryAutomaticTeammateReceive(match);
+  match = teammateReceive.match;
+
+  const setAssist = teammateReceive.event
+    ? { match, event: null as ReworkEvent | null }
+    : tryTeammateSet(match);
   match = setAssist.match;
+
+  const cpu = stepCpuRally(match, source.difficulty, source.cpuMemory, dt);
+  match = cpu.match;
+  let cpuMemory = cpu.cpuMemory;
 
   let blockHoldStartedAt = source.blockHoldStartedAt;
   let powerHoldStartedAt = source.powerHoldStartedAt;
@@ -429,7 +443,14 @@ export function stepReworkRuntime(
 
   match = stepMatch(match, MATCH_INPUT_IDLE, dt);
 
-  let event = block.event ?? powerEvent ?? userAction.event ?? setAssist.event;
+  let event =
+    block.event ??
+    powerEvent ??
+    userAction.event ??
+    cpu.event ??
+    teammateReceive.event ??
+    setAssist.event;
+
   if (
     match.score.home !== scoreBefore.home ||
     match.score.away !== scoreBefore.away
@@ -440,11 +461,18 @@ export function stepReworkRuntime(
     };
   }
 
+  if (match.rally.phase === 'POINT' || match.rally.phase === 'MATCH_OVER') {
+    blockHoldStartedAt = null;
+    powerHoldStartedAt = null;
+    cpuMemory = {};
+  }
+
   return withResolvedActions({
     ...source,
     match,
     blockHoldStartedAt,
     powerHoldStartedAt,
+    cpuMemory,
     lastEvent: event,
   });
 }
