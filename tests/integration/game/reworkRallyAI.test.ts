@@ -44,10 +44,25 @@ describe('rework rally AI', () => {
 
     const awayEvents = new Set<string>();
     let returnedAcrossNet = false;
+    let spikeContact: {
+      actorId: string | null;
+      quality: string | null;
+      position: { x: number; y: number; z: number };
+      velocity: { x: number; y: number; z: number };
+    } | null = null;
+
     for (let frame = 0; frame < 600 && !runtime.match.winner; frame += 1) {
       runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
       if (runtime.lastEvent?.actorId?.startsWith('away-')) {
         awayEvents.add(runtime.lastEvent.type);
+        if (runtime.lastEvent.type === 'SPIKE' && spikeContact === null) {
+          spikeContact = {
+            actorId: runtime.lastEvent.actorId ?? null,
+            quality: runtime.lastEvent.quality ?? null,
+            position: { ...runtime.match.ball.position },
+            velocity: { ...runtime.match.ball.velocity },
+          };
+        }
       }
       if (
         runtime.match.ball.inPlay &&
@@ -69,6 +84,7 @@ describe('rework rally AI', () => {
     if (!returnedAcrossNet) {
       console.info('CPU_RETURN_DIAGNOSTIC', JSON.stringify({
         awayEvents: [...awayEvents],
+        spikeContact,
         score: runtime.match.score,
         phase: runtime.match.rally.phase,
         ball: runtime.match.ball,
