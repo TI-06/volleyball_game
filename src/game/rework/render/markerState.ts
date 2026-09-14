@@ -8,6 +8,8 @@ export interface ReworkMarkerState {
   blockTarget: Vec3 | null;
 }
 
+const ATTACK_ZONE_Z = -2.2;
+
 function teammateSet(state: MatchState): boolean {
   return (
     state.ball.lastContact === 'SET' &&
@@ -68,14 +70,17 @@ export function getReworkMarkerState(
 
   if (teammateSet(state)) {
     const targetX = Math.max(-3.1, Math.min(3.1, state.ball.position.x));
+    const inAttackZone = focus.position.z >= ATTACK_ZONE_Z;
     return {
       receiveLanding: null,
-      approach: { x: targetX, y: 0.025, z: -1.05 },
-      attackLanes: [
-        { x: -3.35, y: 0.025, z: 6.7 },
-        { x: 0, y: 0.025, z: 6.9 },
-        { x: 3.35, y: 0.025, z: 6.7 },
-      ],
+      approach: inAttackZone ? null : { x: targetX, y: 0.025, z: -1.05 },
+      attackLanes: inAttackZone
+        ? [
+            { x: -3.35, y: 0.025, z: 6.7 },
+            { x: 0, y: 0.025, z: 6.9 },
+            { x: 3.35, y: 0.025, z: 6.7 },
+          ]
+        : [],
       blockTarget: null,
     };
   }
