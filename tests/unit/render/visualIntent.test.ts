@@ -72,6 +72,27 @@ describe('resolveVisualIntent', () => {
     expect(intent(state, 'home-0', setEvent).intent).toBe('SPIKE_APPROACH');
   });
 
+  it('prepares the home ace to block after an opponent set near the net', () => {
+    const state = createMatch(7031);
+    state.rally.phase = 'RALLY';
+    player(state, 'home-0').position.z = -1.4;
+    const setEvent: ReworkEvent = { type: 'SET', actorId: 'away-2', quality: 'GOOD' };
+    expect(intent(state, 'home-0', setEvent).intent).toBe('BLOCK');
+  });
+
+  it('drops the selected home receiver into receive-ready before contact', () => {
+    const state = createMatch(7032);
+    state.rally.phase = 'RALLY';
+    state.ball.inPlay = true;
+    state.ball.position = { x: 0, y: 3.1, z: 1.5 };
+    state.ball.velocity = { x: 0, y: 1.2, z: -8 };
+    state.ball.lastTouchPlayerId = 'away-0';
+    player(state, 'home-0').position = { x: 0, y: 0, z: -4 };
+    player(state, 'home-1').position = { x: 4, y: 0, z: -8 };
+    player(state, 'home-2').position = { x: -4, y: 0, z: -8 };
+    expect(intent(state, 'home-0').intent).toBe('RECEIVE');
+  });
+
   it('uses spike jump for an airborne ace during a rally', () => {
     const state = createMatch(7040);
     state.rally.phase = 'RALLY';
