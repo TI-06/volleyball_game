@@ -17,6 +17,8 @@ export interface CpuIntent {
 
 const BLOCK_READY_Z = 1.65;
 const BLOCK_TARGET_Z = 0.55;
+const SETTER_ROLE_BONUS = 16;
+const SECOND_TOUCH_DISTANCE_WEIGHT = 8;
 
 function hash01(seed: number, salt: string): number {
   let hash = seed >>> 0;
@@ -41,6 +43,14 @@ function characterFor(player: PlayerState) {
 
 function setAbility(player: PlayerState): number {
   return characterFor(player).abilities.set;
+}
+
+function secondTouchScore(player: PlayerState, target: Vec3): number {
+  return (
+    setAbility(player) +
+    (player.role === 'SETTER' ? SETTER_ROLE_BONUS : 0) -
+    distanceXZ(player, target) * SECOND_TOUCH_DISTANCE_WEIGHT
+  );
 }
 
 function reactionDelay(
@@ -68,13 +78,7 @@ function secondTouchAway(state: MatchState, firstToucherId: string): PlayerState
   return (
     [...state.players]
       .filter((player) => player.side === 'away' && player.id !== firstToucherId)
-      .sort((a, b) => {
-        const aSetterBonus = a.role === 'SETTER' ? 1000 : 0;
-        const bSetterBonus = b.role === 'SETTER' ? 1000 : 0;
-        const setOrder = (bSetterBonus + setAbility(b)) - (aSetterBonus + setAbility(a));
-        if (setOrder !== 0) return setOrder;
-        return distanceXZ(a, target) - distanceXZ(b, target);
-      })[0] ?? null
+      .sort((a, b) => secondTouchScore(b, target) - secondTouchScore(a, target))[0] ?? null
   );
 }
 
