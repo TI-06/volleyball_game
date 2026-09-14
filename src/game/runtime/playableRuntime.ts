@@ -40,6 +40,10 @@ function characterFor(player: PlayerState) {
   return STARTER_ROSTER[player.characterId as CharacterId] ?? STARTER_ROSTER.shin;
 }
 
+function setAbility(player: PlayerState): number {
+  return characterFor(player).abilities.set;
+}
+
 function cpuMemories(runtime: MatchRuntimeState): Record<string, CpuMemoryShape> {
   return runtime.cpuDecisions as Record<string, CpuMemoryShape>;
 }
@@ -112,13 +116,17 @@ function cpuTimingError(runtime: MatchRuntimeState): number {
   return (profile.predictionError + profile.decisionNoise) * 0.055;
 }
 
-function chooseSetAttacker(runtime: MatchRuntimeState): PlayerState | null {
+function chooseSetAttacker(
+  runtime: MatchRuntimeState,
+  setterId: string,
+): PlayerState | null {
   const { ball } = runtime.match;
   return (
     [...runtime.match.players]
       .filter(
         (player) =>
           player.side === 'away' &&
+          player.id !== setterId &&
           (player.role === 'ACE' || player.role === 'MIDDLE'),
       )
       .sort(
@@ -134,7 +142,32 @@ function settableCpuContact(runtime: MatchRuntimeState): boolean {
   return contact === 'RECEIVE' || contact === 'DIVE' || contact === 'BLOCK';
 }
 
-function performLateCpuSet(runtime: MatchRuntimeState): {
+function chooseCpuSetter(runtime: MatchRuntimeState): PlayerState | null {
+  const { match } = runtime;
+  const memories = cpuMemories(runtime);
+  const firstToucherId = match.ball.lastTouchedBy;
+
+  return (
+    [...match.players]
+      .filter((player) => {
+        const memory = memories[player.id];
+        return (
+          player.side === 'away' &&
+          player.id !== firstToucherId &&
+          memory?.intent.state === 'SET' &&
+          match.time >= memory.actionReadyAt &&
+          horizontalDistance(player, match.ball.position.x, match.ball.position.z) <= 2.55
+        );
+      })
+      .sort((a, b) => {
+        const aSetterBonus = a.role === 'SETTER' ? 1000 : 0;
+        const bSetterBonus = b.role === 'SETTER' ? 1000 : 0;
+        return (bSetterBonus + setAbility(b)) - (aSetterBonus + setAbility(a));
+      })[0] ?? null
+  );
+}
+
+function performCpuSetAssist(runtime: MatchRuntimeState): {
   runtime: MatchRuntimeState;
   event: RuntimeEvent | null;
 } {
@@ -145,30 +178,26 @@ function performLateCpuSet(runtime: MatchRuntimeState): {
     ball.position.z < 0 ||
     ball.position.y < 0.8 ||
     ball.position.y > 3 ||
-    ball.velocity.y > 0.15 ||
     !(ball.lastTouchedBy?.startsWith('away-') ?? false) ||
     !settableCpuContact(runtime)
   ) {
     return { runtime, event: null };
   }
 
-  const setter = match.players.find(
-    (player) => player.side === 'away' && player.role === 'SETTER',
-  );
+  const setter = chooseCpuSetter(runtime);
   if (!setter) return { runtime, event: null };
 
-  const memories = cpuMemories(runtime);
-  const setterMemory = memories[setter.id];
-  if (
-    setterMemory?.intent.state !== 'SET' ||
-    match.time < setterMemory.actionReadyAt ||
-    horizontalDistance(setter, ball.position.x, ball.position.z) > 2.55
-  ) {
+  // Let the original runtime handle the ordinary YU rising-set path.
+  if (setter.role === 'SETTER' && ball.velocity.y > 0.15) {
     return { runtime, event: null };
   }
 
-  const attacker = chooseSetAttacker(runtime);
+  const attacker = chooseSetAttacker(runtime, setter.id);
   if (!attacker) return { runtime, event: null };
+
+  const memories = cpuMemories(runtime);
+  const setterMemory = memories[setter.id];
+  if (!setterMemory) return { runtime, event: null };
 
   const tempo = runtime.difficulty === 'BEGINNER'
     ? 'HIGH'
@@ -185,13 +214,18 @@ function performLateCpuSet(runtime: MatchRuntimeState): {
   );
 
   const nextMemories: Record<string, CpuMemoryShape> = { ...memories };
-  nextMemories[setter.id] = {
-    ...setterMemory,
-    actionReadyAt: match.time + setterMemory.intent.reactionDelay,
-  };
+  if (setter.role === 'SETTER') {
+    nextMemories[setter.id] = {
+      ...setterMemory,
+      actionReadyAt: match.time + setterMemory.intent.reactionDelay,
+    };
+  } else {
+    delete nextMemories[setter.id];
+  }
   for (const player of match.players) {
     if (
       player.side === 'away' &&
+      player.id !== setter.id &&
       (player.role === 'ACE' || player.role === 'MIDDLE')
     ) {
       delete nextMemories[player.id];
@@ -339,8 +373,8 @@ export function stepMatchRuntime(
   dt: number,
 ): MatchRuntimeState {
   const guarded = clearStaleBlockIntent(source, input);
-  const lateSet = performLateCpuSet(guarded);
-  const prepared = prepareCpuJump(lateSet.runtime);
+  const setAssist = performCpuSetAssist(guarded);
+  const prepared = prepareCpuJump(setAssist.runtime);
   const stepped = stepBaseRuntime(prepared.runtime, input, dt);
 
   if (stepped.lastEvent === null) {
@@ -350,8 +384,8 @@ export function stepMatchRuntime(
         lastEvent: { type: 'JUMP', actorId: prepared.jumperId },
       };
     }
-    if (lateSet.event) {
-      return { ...stepped, lastEvent: lateSet.event };
+    if (setAssist.event) {
+      return { ...stepped, lastEvent: setAssist.event };
     }
   }
 
