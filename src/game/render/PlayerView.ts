@@ -1,6 +1,12 @@
 import * as THREE from 'three';
 import type { CharacterDefinition, CharacterId } from '../characters/roster';
 import type { PlayerState } from '../core/types';
+import type { RuntimeEventType } from '../runtime/matchRuntime';
+import {
+  getPlayerMotionPose,
+  motionFromRuntimeEvent,
+  type PlayerMotion,
+} from './playerMotion';
 
 const HEIGHT_SCALE: Record<CharacterDefinition['heightClass'], number> = {
   SHORT: 0.9,
@@ -136,6 +142,10 @@ function addHair(
   }
 }
 
+function blend(base: number, target: number, amount: number): number {
+  return THREE.MathUtils.lerp(base, target, amount);
+}
+
 export class PlayerView {
   readonly group = new THREE.Group();
   private readonly heightScale: number;
@@ -147,6 +157,8 @@ export class PlayerView {
   private readonly selectionRing: THREE.Mesh;
   private readonly numberTexture: THREE.CanvasTexture | null;
   private readonly phaseOffset: number;
+  private activeMotion: PlayerMotion | null = null;
+  private motionStartedAt = 0;
 
   constructor(
     readonly playerId: string,
@@ -264,25 +276,67 @@ export class PlayerView {
     this.selectionRing.visible = selected;
   }
 
+  playAction(eventType: RuntimeEventType): void {
+    const motion = motionFromRuntimeEvent(eventType);
+    if (!motion) return;
+    this.activeMotion = motion;
+    this.motionStartedAt = performance.now();
+  }
+
   update(player: PlayerState): void {
     this.group.position.set(player.position.x, player.position.y, player.position.z);
 
     const groundSpeed = Math.hypot(player.velocity.x, player.velocity.z);
     const runAmount = Math.min(1, groundSpeed / 7.5);
-    const phase = performance.now() * 0.009 + this.phaseOffset;
+    const now = performance.now();
+    const phase = now * 0.009 + this.phaseOffset;
     const swing = Math.sin(phase) * 0.55 * runAmount;
 
-    if (player.isAirborne) {
-      this.leftArm.rotation.x = -1.05;
-      this.rightArm.rotation.x = -1.05;
-      this.leftLeg.rotation.x = 0.16;
-      this.rightLeg.rotation.x = -0.16;
-    } else {
-      this.leftArm.rotation.x = swing;
-      this.rightArm.rotation.x = -swing;
-      this.leftLeg.rotation.x = -swing * 0.65;
-      this.rightLeg.rotation.x = swing * 0.65;
+    const baseLeftArmX = player.isAirborne ? -1.05 : swing;
+    const baseRightArmX = player.isAirborne ? -1.05 : -swing;
+    const baseLeftLegX = player.isAirborne ? 0.16 : -swing * 0.65;
+    const baseRightLegX = player.isAirborne ? -0.16 : swing * 0.65;
+    const baseArmY = 1.28;
+    const baseArmSpread = 0.39;
+
+    let motionAmount = 0;
+    let pose = this.activeMotion ? getPlayerMotionPose(this.activeMotion) : null;
+    if (pose) {
+      const elapsed = Math.max(0, now - this.motionStartedAt);
+      if (elapsed >= pose.durationMs) {
+        this.activeMotion = null;
+        pose = null;
+      } else {
+        motionAmount = 1 - elapsed / pose.durationMs;
+      }
     }
+
+    const leftArmY = pose ? blend(baseArmY, pose.leftArmY, motionAmount) : baseArmY;
+    const rightArmY = pose ? blend(baseArmY, pose.rightArmY, motionAmount) : baseArmY;
+    const armSpread = pose ? blend(baseArmSpread, pose.armSpread, motionAmount) : baseArmSpread;
+
+    this.leftArm.position.x = -armSpread * this.bodyScale;
+    this.rightArm.position.x = armSpread * this.bodyScale;
+    this.leftArm.position.y = leftArmY * this.heightScale;
+    this.rightArm.position.y = rightArmY * this.heightScale;
+    this.leftArm.rotation.x = pose
+      ? blend(baseLeftArmX, pose.leftArmRotationX, motionAmount)
+      : baseLeftArmX;
+    this.rightArm.rotation.x = pose
+      ? blend(baseRightArmX, pose.rightArmRotationX, motionAmount)
+      : baseRightArmX;
+    this.leftArm.rotation.z = pose
+      ? blend(-0.12, pose.leftArmRotationZ, motionAmount)
+      : -0.12;
+    this.rightArm.rotation.z = pose
+      ? blend(0.12, pose.rightArmRotationZ, motionAmount)
+      : 0.12;
+    this.leftLeg.rotation.x = pose
+      ? blend(baseLeftLegX, pose.leftLegRotationX, motionAmount)
+      : baseLeftLegX;
+    this.rightLeg.rotation.x = pose
+      ? blend(baseRightLegX, pose.rightLegRotationX, motionAmount)
+      : baseRightLegX;
 
     const lateralLean = THREE.MathUtils.clamp(player.velocity.x * -0.018, -0.13, 0.13);
     this.group.rotation.z = lateralLean;
