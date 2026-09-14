@@ -1,7 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { App } from '../../../src/app/App';
-import { STORAGE_KEY } from '../../../src/persistence/gameStorage';
 
 describe('App', () => {
   beforeEach(() => {
@@ -15,21 +14,14 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: 'CPU MATCH' })).toBeInTheDocument();
   });
 
-  it('persists switch and camera settings from the title screen', () => {
+  it('opens the fixed-control rework match from difficulty select', () => {
     render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'CPU MATCH' }));
+    fireEvent.click(screen.getByRole('button', { name: /NORMAL/ }));
 
-    const manual = screen.getByRole('button', { name: 'MANUAL', hidden: true });
-    const cameraOff = screen.getByRole('button', { name: 'OFF', hidden: true });
-    fireEvent.click(manual);
-    fireEvent.click(cameraOff);
-
-    expect(manual).toHaveAttribute('aria-pressed', 'true');
-    expect(cameraOff).toHaveAttribute('aria-pressed', 'true');
-
-    const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '{}') as {
-      settings?: { switchMode?: string; cameraMode?: string };
-    };
-    expect(saved.settings?.switchMode).toBe('MANUAL');
-    expect(saved.settings?.cameraMode).toBe('OFF');
+    expect(screen.getByTestId('rework-match-screen')).toBeInTheDocument();
+    expect(screen.getByText('KAI')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /PLAY/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /POWER/i })).toBeInTheDocument();
   });
 });
