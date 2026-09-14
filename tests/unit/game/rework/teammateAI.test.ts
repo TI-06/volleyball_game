@@ -99,4 +99,24 @@ describe('rework teammate roles', () => {
     expect(decisions.every((item) => item.role === 'COVER')).toBe(true);
     expect(decisions.some((item) => item.role === 'RECEIVE')).toBe(false);
   });
+
+  it('keeps both teammates off a ball predicted to land out', () => {
+    const base = createMatch(25);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'away-0',
+        lastContact: 'SPIKE' as const,
+        position: { x: -2.4, y: 1.1, z: -5.0 },
+        velocity: { x: -8, y: -1.1, z: -1.0 },
+      },
+    };
+
+    const decisions = decideTeammateRoles(state);
+    expect(decisions.every((item) => item.role === 'COVER')).toBe(true);
+    expect(decisions.some((item) => item.role === 'RECEIVE')).toBe(false);
+  });
 });
