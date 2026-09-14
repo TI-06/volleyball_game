@@ -44,6 +44,7 @@ function createInput(): ReworkInput {
     powerPressed: false,
     powerReleased: false,
     powerSwipe: null,
+    powerCancelled: false,
   };
 }
 
@@ -107,6 +108,7 @@ export function ReworkMatchScreen({
         inputRef.current.powerPressed = false;
         inputRef.current.powerReleased = false;
         inputRef.current.powerSwipe = null;
+        inputRef.current.powerCancelled = true;
         animationFrame = window.requestAnimationFrame(frame);
         return;
       }
@@ -139,6 +141,7 @@ export function ReworkMatchScreen({
         inputRef.current.powerPressed = false;
         inputRef.current.powerReleased = false;
         inputRef.current.powerSwipe = null;
+        inputRef.current.powerCancelled = false;
         accumulator -= FIXED_STEP_SECONDS;
       }
 
@@ -205,6 +208,11 @@ export function ReworkMatchScreen({
           inputRef.current.powerPressed = true;
         }}
         onPowerRelease={releasePower}
+        onPowerCancel={() => {
+          inputRef.current.powerCancelled = true;
+          inputRef.current.powerReleased = false;
+          inputRef.current.powerSwipe = null;
+        }}
       />
       {tutorialActive ? (
         <ReworkTutorialScreen
