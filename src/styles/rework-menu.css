@@ -1,0 +1,22 @@
+.title-screen__control-note {
+  margin: 14px 0 0;
+  color: rgba(235, 248, 251, .42);
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+.team-preview__players .mini-player-card:first-child {
+  border: 1px solid rgba(89, 244, 223, .5);
+  background: linear-gradient(150deg, rgba(89, 244, 223, .16), rgba(255, 255, 255, .06));
+  box-shadow: 0 0 22px rgba(89, 244, 223, .08);
+}
+
+.team-preview__players .mini-player-card:first-child span {
+  color: #59f4df;
+  font-weight: 900;
+}
+
+@media (max-height: 430px) and (orientation: landscape) {
+  .title-screen__control-note { margin-top: 7px; font-size: .5rem; }
+}
