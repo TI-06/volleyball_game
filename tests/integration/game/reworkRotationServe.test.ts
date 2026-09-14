@@ -38,4 +38,49 @@ describe('rework home serve rotation', () => {
     expect(runtime.match.ball.lastTouchedBy).toBe('home-1');
     expect(runtime.focusPlayerId).toBe('home-0');
   });
+
+  it('auto serves when HINA is the current home server', () => {
+    let runtime = createReworkRuntime(93, 'NORMAL');
+    runtime = {
+      ...runtime,
+      match: {
+        ...runtime.match,
+        rally: {
+          ...runtime.match.rally,
+          phase: 'SERVE_READY',
+          servingSide: 'home',
+          serverIndex: { ...runtime.match.rally.serverIndex, home: 2 },
+        },
+      },
+    };
+
+    runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
+
+    expect(runtime.lastEvent).toMatchObject({ type: 'SERVE', actorId: 'home-2' });
+    expect(runtime.match.rally.phase).toBe('RALLY');
+    expect(runtime.match.ball.lastTouchedBy).toBe('home-2');
+  });
+
+  it('keeps KAI serve manual when rotation returns to index zero', () => {
+    let runtime = createReworkRuntime(94, 'NORMAL');
+    runtime = {
+      ...runtime,
+      match: {
+        ...runtime.match,
+        rally: {
+          ...runtime.match.rally,
+          phase: 'SERVE_READY',
+          servingSide: 'home',
+          serverIndex: { ...runtime.match.rally.serverIndex, home: 0 },
+        },
+      },
+    };
+
+    runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
+
+    expect(runtime.lastEvent).toBeNull();
+    expect(runtime.match.rally.phase).toBe('SERVE_READY');
+    expect(runtime.powerLabel).toBe('SERVE');
+    expect(runtime.focusPlayerId).toBe('home-0');
+  });
 });
