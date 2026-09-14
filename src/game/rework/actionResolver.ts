@@ -3,6 +3,8 @@ import type { ReworkActionLabel } from './types';
 
 const FOCUS_PLAYER_ID = 'home-0';
 const MIN_SPIKE_PLAYER_HEIGHT = 0.28;
+const MIN_ATTACK_PLAYER_Z = -2.2;
+const MIN_ATTACK_BALL_Z = -2.4;
 
 export interface ReworkActionSlots {
   play: ReworkActionLabel;
@@ -82,6 +84,8 @@ export function resolveReworkActions(state: MatchState): ReworkActionSlots {
     otherTeammateTouched &&
     ownSide &&
     ball.position.y >= 2.0 &&
+    ball.position.z >= MIN_ATTACK_BALL_Z &&
+    focus.position.z >= MIN_ATTACK_PLAYER_Z &&
     distance <= 3.4
   ) {
     if (!focus.isAirborne) {
