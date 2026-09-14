@@ -13,9 +13,9 @@ describe('rework camera', () => {
     expect(impact.fov).toBeLessThan(normal.fov);
   });
 
-  it('uses enough diagonal offset to keep attack lanes readable', () => {
+  it('uses a mirrored diagonal view so positive depth movement reads screen-right toward NET', () => {
     const frame = getReworkCameraFrame(createMatch(2), 0);
-    expect(frame.position.x).toBeGreaterThan(15);
-    expect(Math.abs(frame.position.z)).toBeGreaterThan(4);
+    expect(frame.position.x).toBeLessThan(-15);
+    expect(frame.position.z).toBeLessThan(-4);
   });
 });
