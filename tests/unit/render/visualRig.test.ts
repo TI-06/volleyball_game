@@ -24,6 +24,16 @@ describe('DEFAULT_VISUAL_RIG', () => {
     }
   });
 
+  it('starts from a relaxed athletic arm shape instead of a T pose', () => {
+    const pose = DEFAULT_VISUAL_RIG.bindPose;
+    expect(pose.elbowL.y).toBeLessThan(-0.2);
+    expect(pose.elbowR.y).toBeLessThan(-0.2);
+    expect(pose.wristL.y).toBeLessThan(-0.2);
+    expect(pose.wristR.y).toBeLessThan(-0.2);
+    expect(Math.abs(pose.elbowL.x)).toBeLessThan(0.25);
+    expect(Math.abs(pose.elbowR.x)).toBeLessThan(0.25);
+  });
+
   it('clones poses deeply so one character cannot mutate another', () => {
     const first = cloneRigPose();
     const second = cloneRigPose();
