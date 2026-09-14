@@ -28,6 +28,23 @@ describe('rework fixed action mapping', () => {
     expect(resolveReworkActions(state)).toEqual({ play: 'RECEIVE', power: 'NONE' });
   });
 
+  it('does not light PLAY when a nearby ball is predicted to land out', () => {
+    const base = rallyState();
+    const state = {
+      ...base,
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'away-0',
+        lastContact: 'SPIKE' as const,
+        position: { x: -2.5, y: 1.2, z: -5.0 },
+        velocity: { x: -8, y: -1.0, z: -1.0 },
+      },
+    };
+
+    expect(resolveReworkActions(state)).toEqual({ play: 'NONE', power: 'NONE' });
+  });
+
   it('keeps approach jump on POWER after a teammate set', () => {
     const base = rallyState();
     const state = {
