@@ -135,4 +135,29 @@ describe('block context', () => {
       decideCpuIntent(state, 'away-1', DIFFICULTY_PROFILES.HARD, createTendencyHistory()).state,
     ).toBe('BLOCK');
   });
+
+  it('does not let the cpu prepare a block against its own spike', () => {
+    const base = createMatch(175);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      players: base.players.map((player) =>
+        player.id === 'away-1'
+          ? { ...player, position: { x: 0.2, y: 0, z: 1.1 } }
+          : player,
+      ),
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'away-0',
+        lastContact: 'SPIKE' as const,
+        position: { x: 0.2, y: 2.8, z: -0.5 },
+        velocity: { x: 0, y: -1.3, z: -8 },
+      },
+    };
+
+    expect(
+      decideCpuIntent(state, 'away-1', DIFFICULTY_PROFILES.HARD, createTendencyHistory()).state,
+    ).toBe('COVER');
+  });
 });
