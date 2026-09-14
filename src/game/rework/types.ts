@@ -63,6 +63,7 @@ export interface ReworkRuntimeState {
   powerLabel: ReworkActionLabel;
   blockHoldStartedAt: number | null;
   powerHoldStartedAt: number | null;
+  homeAutoServeReadyAt?: number | null;
   cpuMemory: Record<string, ReworkCpuMemory>;
   lastEvent: ReworkEvent | null;
 }
