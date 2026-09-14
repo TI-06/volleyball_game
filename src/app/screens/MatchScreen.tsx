@@ -130,6 +130,7 @@ export function MatchScreen({
 
     const scene = new GameScene(host, runtime.match);
     let animationFrame = 0;
+    let finishTimer: number | null = null;
     let lastTime = performance.now();
     let accumulator = 0;
     let hudAccumulator = 0;
@@ -194,7 +195,7 @@ export function MatchScreen({
       if (runtime.match.winner && !finishSentRef.current) {
         finishSentRef.current = true;
         updateHud(runtime, latestEvent);
-        window.setTimeout(() => {
+        finishTimer = window.setTimeout(() => {
           onFinished({
             difficulty,
             homeScore: runtime.match.score.home,
@@ -212,6 +213,9 @@ export function MatchScreen({
     animationFrame = window.requestAnimationFrame(frame);
     return () => {
       window.cancelAnimationFrame(animationFrame);
+      if (finishTimer !== null) {
+        window.clearTimeout(finishTimer);
+      }
       scene.dispose();
     };
   }, [cameraMode, difficulty, onFinished, seed, switchMode, updateHud]);
