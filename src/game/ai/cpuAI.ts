@@ -39,6 +39,10 @@ function characterFor(player: PlayerState) {
   return STARTER_ROSTER[player.characterId as CharacterId] ?? STARTER_ROSTER.shin;
 }
 
+function setAbility(player: PlayerState): number {
+  return characterFor(player).abilities.set;
+}
+
 function reactionDelay(
   state: MatchState,
   player: PlayerState | null,
@@ -57,6 +61,29 @@ function closestAwayPlayer(state: MatchState, target: Vec3): PlayerState | null 
   return [...state.players]
     .filter((player) => player.side === 'away')
     .sort((a, b) => distanceXZ(a, target) - distanceXZ(b, target))[0] ?? null;
+}
+
+function secondTouchAway(state: MatchState, firstToucherId: string): PlayerState | null {
+  const target = state.ball.position;
+  return (
+    [...state.players]
+      .filter((player) => player.side === 'away' && player.id !== firstToucherId)
+      .sort((a, b) => {
+        const aSetterBonus = a.role === 'SETTER' ? 1000 : 0;
+        const bSetterBonus = b.role === 'SETTER' ? 1000 : 0;
+        const setOrder = (bSetterBonus + setAbility(b)) - (aSetterBonus + setAbility(a));
+        if (setOrder !== 0) return setOrder;
+        return distanceXZ(a, target) - distanceXZ(b, target);
+      })[0] ?? null
+  );
+}
+
+function isFirstTouchContact(state: MatchState): boolean {
+  return (
+    state.ball.lastContact === 'RECEIVE' ||
+    state.ball.lastContact === 'DIVE' ||
+    state.ball.lastContact === 'BLOCK'
+  );
 }
 
 function chooseAttackIntent(
@@ -149,35 +176,65 @@ export function decideCpuIntent(
         reactionDelay: delay,
       };
     }
-    if (player.role === 'SETTER') {
-      return {
-        state: 'SET',
-        target: { x: 0, y: 0, z: 1.2 },
-        attackIntent: null,
-        reactionDelay: delay,
-      };
+
+    if (receiver) {
+      const secondTouch = secondTouchAway(state, receiver.id);
+      if (secondTouch?.id === player.id) {
+        return {
+          state: 'SET',
+          target: { x: 0, y: 0, z: 1.2 },
+          attackIntent: null,
+          reactionDelay: delay,
+        };
+      }
     }
+
     return { state: 'COVER', target: basePosition(player), attackIntent: null, reactionDelay: delay };
   }
 
   if (ballOnAwaySide && teammateTouched) {
-    const lastToucher = state.players.find((candidate) => candidate.id === state.ball.lastTouchedBy);
-    if (lastToucher?.role !== 'SETTER' && player.role === 'SETTER' && state.ball.lastTouchedBy !== player.id) {
-      return {
-        state: 'SET',
-        target: { x: 0, y: 0, z: 1.05 },
-        attackIntent: null,
-        reactionDelay: delay,
-      };
+    const lastToucherId = state.ball.lastTouchedBy!;
+
+    if (isFirstTouchContact(state)) {
+      const setter = secondTouchAway(state, lastToucherId);
+      if (setter?.id === player.id) {
+        return {
+          state: 'SET',
+          target: { x: 0, y: 0, z: 1.05 },
+          attackIntent: null,
+          reactionDelay: delay,
+        };
+      }
+      if (
+        player.id !== lastToucherId &&
+        player.id !== setter?.id &&
+        (player.role === 'ACE' || player.role === 'MIDDLE')
+      ) {
+        return {
+          state: 'APPROACH',
+          target: { x: player.position.x, y: 0, z: 0.85 },
+          attackIntent: chooseAttackIntent(state, player, profile, history),
+          reactionDelay: delay,
+        };
+      }
+      return { state: 'COVER', target: basePosition(player), attackIntent: null, reactionDelay: delay };
     }
-    if (lastToucher?.role === 'SETTER' && (player.role === 'ACE' || player.role === 'MIDDLE')) {
-      return {
-        state: 'APPROACH',
-        target: { x: player.position.x, y: 0, z: 0.85 },
-        attackIntent: chooseAttackIntent(state, player, profile, history),
-        reactionDelay: delay,
-      };
+
+    if (state.ball.lastContact === 'SET') {
+      if (
+        player.id !== lastToucherId &&
+        (player.role === 'ACE' || player.role === 'MIDDLE')
+      ) {
+        return {
+          state: 'APPROACH',
+          target: { x: player.position.x, y: 0, z: 0.85 },
+          attackIntent: chooseAttackIntent(state, player, profile, history),
+          reactionDelay: delay,
+        };
+      }
+      return { state: 'COVER', target: basePosition(player), attackIntent: null, reactionDelay: delay };
     }
+
     return { state: 'COVER', target: basePosition(player), attackIntent: null, reactionDelay: delay };
   }
 
