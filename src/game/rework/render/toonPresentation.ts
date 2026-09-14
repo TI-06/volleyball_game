@@ -19,6 +19,7 @@ export function poseForEvent(event: ReworkEvent): ToonPose | null {
   if (event.type === 'SPIKE') return 'SPIKE';
   if (event.type === 'BLOCK') return 'BLOCK';
   if (event.type === 'SERVE') return 'SERVE';
+  if (event.type === 'POINT') return 'CELEBRATE';
   return null;
 }
 
