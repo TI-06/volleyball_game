@@ -79,6 +79,7 @@ describe('character switching', () => {
         ...base.ball,
         inPlay: true,
         lastTouchedBy: 'home-1',
+        lastContact: 'SET' as const,
         position: { x: 0.4, y: 2.1, z: -1.1 },
         velocity: { x: 4.2, y: 3.6, z: 0.35 },
       },
@@ -91,5 +92,29 @@ describe('character switching', () => {
 
     expect(decision.playerId).toBe('home-2');
     expect(decision.warningLead).toBeCloseTo(0.08);
+  });
+
+  it('switches to HINA as the emergency setter when REN took the first touch', () => {
+    const base = createMatch(6);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-1',
+        lastContact: 'RECEIVE' as const,
+        position: { x: 0.1, y: 2, z: -2.2 },
+        velocity: { x: 0.2, y: 2.6, z: 0.6 },
+      },
+    };
+
+    const decision = getSwitchCandidate(state, {
+      mode: 'STANDARD',
+      currentPlayerId: 'home-1',
+    });
+
+    expect(decision.playerId).toBe('home-2');
+    expect(decision.warningLead).toBeCloseTo(0.35);
   });
 });
