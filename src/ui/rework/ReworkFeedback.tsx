@@ -25,13 +25,14 @@ export function ReworkFeedback({ event }: { event: ReworkEvent | null }) {
       setVisible(null);
       timer.current = null;
     }, event.type === 'POINT' ? 820 : 620);
-    return () => {
-      if (timer.current !== null) {
-        window.clearTimeout(timer.current);
-        timer.current = null;
-      }
-    };
   }, [event]);
+
+  useEffect(
+    () => () => {
+      if (timer.current !== null) window.clearTimeout(timer.current);
+    },
+    [],
+  );
 
   const text = visible ? label(visible) : null;
   return text ? <div className="rework-feedback">{text}</div> : null;
