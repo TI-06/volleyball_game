@@ -21,6 +21,7 @@ const IDLE_SHOULDER_DROP = 0.9;
 const IDLE_ELBOW_BEND = 0.24;
 const SERVE_READY_MIN_SHOULDER_ROTATION = 0.9;
 const SERVE_READY_MIN_ELBOW_BEND = 0.55;
+const POINT_REACTION_MIN_SHOULDER_ROTATION = 0.9;
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
@@ -65,8 +66,18 @@ function blendPoses(
 function applyPresentationPose(
   clip: MotionClip,
   pose: Record<JointName, JointTransform>,
+  keyframeAt = 0,
 ): Record<JointName, JointTransform> {
-  if (clip.id !== 'idle_ready' && clip.id !== 'serve_ready') return pose;
+  const isPointReaction =
+    clip.id === 'celebrate_short' || clip.id === 'frustrated_short';
+  if (
+    clip.id !== 'idle_ready' &&
+    clip.id !== 'serve_ready' &&
+    !(isPointReaction && keyframeAt >= 1)
+  ) {
+    return pose;
+  }
+
   const styled = clonePose(pose);
 
   if (clip.id === 'idle_ready') {
@@ -77,21 +88,33 @@ function applyPresentationPose(
     return styled;
   }
 
+  if (clip.id === 'serve_ready') {
+    styled.shoulderL.rotation = Math.max(
+      styled.shoulderL.rotation,
+      SERVE_READY_MIN_SHOULDER_ROTATION,
+    );
+    styled.shoulderR.rotation = Math.min(
+      styled.shoulderR.rotation,
+      -SERVE_READY_MIN_SHOULDER_ROTATION,
+    );
+    styled.elbowL.rotation = Math.min(
+      styled.elbowL.rotation,
+      -SERVE_READY_MIN_ELBOW_BEND,
+    );
+    styled.elbowR.rotation = Math.max(
+      styled.elbowR.rotation,
+      SERVE_READY_MIN_ELBOW_BEND,
+    );
+    return styled;
+  }
+
   styled.shoulderL.rotation = Math.max(
     styled.shoulderL.rotation,
-    SERVE_READY_MIN_SHOULDER_ROTATION,
+    POINT_REACTION_MIN_SHOULDER_ROTATION,
   );
   styled.shoulderR.rotation = Math.min(
     styled.shoulderR.rotation,
-    -SERVE_READY_MIN_SHOULDER_ROTATION,
-  );
-  styled.elbowL.rotation = Math.min(
-    styled.elbowL.rotation,
-    -SERVE_READY_MIN_ELBOW_BEND,
-  );
-  styled.elbowR.rotation = Math.max(
-    styled.elbowR.rotation,
-    SERVE_READY_MIN_ELBOW_BEND,
+    -POINT_REACTION_MIN_SHOULDER_ROTATION,
   );
   return styled;
 }
@@ -113,7 +136,7 @@ function resolveKeyframes(clip: MotionClip): ResolvedKeyframe[] {
     }
     return {
       at: clamp01(keyframe.at),
-      pose: applyPresentationPose(clip, clonePose(working)),
+      pose: applyPresentationPose(clip, clonePose(working), keyframe.at),
     };
   });
 }
