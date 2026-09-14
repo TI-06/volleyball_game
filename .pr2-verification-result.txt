@@ -1,0 +1,4 @@
+head_before=9faf632edd91fc565dcaa07729c698add2b0adbe
+install_exit=0
+playwright_install_exit=0
+verify_full_exit=2
