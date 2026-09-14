@@ -41,12 +41,6 @@ function distanceXZ(player: PlayerState, target: Vec3): number {
   return Math.hypot(player.position.x - target.x, player.position.z - target.z);
 }
 
-function moveToward(current: number, target: number, maxDelta: number): number {
-  const delta = target - current;
-  if (Math.abs(delta) <= maxDelta) return target;
-  return current + Math.sign(delta) * maxDelta;
-}
-
 function movePlayerToward(player: PlayerState, target: Vec3, dt: number): PlayerState {
   const profile = getMovementProfile(characterFor(player));
   const maxDelta = profile.maxSpeed * Math.max(0, dt);
@@ -228,15 +222,15 @@ function spikeTimingOffset(match: MatchState, focus: PlayerState): number {
 function attackFromSwipe(swipe: ReworkSwipe): { intent: AttackIntent; target: Vec3 } {
   const distance = Math.hypot(swipe.x, swipe.y);
   if (distance < 42) {
-    return { intent: 'TIP', target: { x: 0, y: 0.15, z: 4.7 } };
+    return { intent: 'TIP', target: { x: 0, y: 2.0, z: 4.7 } };
   }
   if (swipe.x > 62) {
-    return { intent: 'LINE', target: { x: 3.2, y: 0.1, z: 6.7 } };
+    return { intent: 'LINE', target: { x: 3.2, y: 0.75, z: 6.7 } };
   }
   if (swipe.x < -62) {
-    return { intent: 'CROSS', target: { x: -3.2, y: 0.1, z: 6.7 } };
+    return { intent: 'CROSS', target: { x: -3.2, y: 0.75, z: 6.7 } };
   }
-  return { intent: 'POWER', target: { x: 0, y: 0.1, z: 6.8 } };
+  return { intent: 'POWER', target: { x: 0, y: 0.75, z: 6.8 } };
 }
 
 function applyUserAction(
