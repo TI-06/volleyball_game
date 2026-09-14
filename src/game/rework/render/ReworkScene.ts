@@ -3,7 +3,7 @@ import { STARTER_ROSTER, type CharacterId } from '../../characters/roster';
 import { COURT } from '../../core/constants';
 import type { MatchState, PlayerState } from '../../core/types';
 import { BallView } from '../../render/BallView';
-import type { ReworkEvent } from '../types';
+import type { ReworkEvent, ReworkSwipe } from '../types';
 import { ReworkBallTrail } from './ReworkBallTrail';
 import { getReworkCameraFrame, type ReworkCameraFrame } from './ReworkCamera';
 import { ReworkCourtView } from './ReworkCourtView';
@@ -143,7 +143,7 @@ export class ReworkScene {
     }
   }
 
-  update(state: MatchState, dt: number): void {
+  update(state: MatchState, dt: number, serveAim: ReworkSwipe | null = null): void {
     const now = performance.now();
     const elapsed = Math.max(0, now - this.impactStartedAt);
     const decay = this.impactPeak > 0 ? Math.max(0, 1 - elapsed / 170) : 0;
@@ -192,7 +192,10 @@ export class ReworkScene {
     }
     this.ballTrail.update(state.ball);
 
-    this.markers.update(getReworkMarkerState(state, this.focusPlayerId), state.time);
+    this.markers.update(
+      getReworkMarkerState(state, this.focusPlayerId, serveAim),
+      state.time,
+    );
     this.impacts.update(now);
     applyCameraFrame(this.camera, getReworkCameraFrame(state, impact));
     this.renderer.render(this.scene, this.camera);
