@@ -39,6 +39,13 @@ function decision(
   return { playerId, role, target };
 }
 
+function coverBoth(): ReworkTeammateDecision[] {
+  return [
+    decision('home-1', 'COVER', COVER_TARGET),
+    decision('home-2', 'COVER', COVER_TARGET),
+  ];
+}
+
 export function decideTeammateRoles(state: MatchState): ReworkTeammateDecision[] {
   if (firstTouchByHome(state)) {
     if (state.ball.lastTouchedBy === 'home-0') {
@@ -70,11 +77,8 @@ export function decideTeammateRoles(state: MatchState): ReworkTeammateDecision[]
   if (opponentAttack) {
     const landing = predictLanding(state.ball);
     const owner = chooseHomeReceiveOwner(state);
-    if (owner === 'home-0') {
-      return [
-        decision('home-1', 'COVER', COVER_TARGET),
-        decision('home-2', 'COVER', COVER_TARGET),
-      ];
+    if (owner === null || owner === 'home-0') {
+      return coverBoth();
     }
 
     const receiverId = owner;
