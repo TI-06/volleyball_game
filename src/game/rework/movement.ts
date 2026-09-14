@@ -4,7 +4,6 @@ export interface ReworkPositionXZ {
 }
 
 const DEFAULT_DEPTH_SPEED = 6.2;
-const DEFAULT_WIDTH_ASSIST_SPEED = 4.4;
 
 function moveToward(current: number, target: number, maxDelta: number): number {
   const delta = target - current;
@@ -23,7 +22,7 @@ export function assistFocusPosition(
   moveAxis: number,
   dt: number,
   depthSpeed = DEFAULT_DEPTH_SPEED,
-  widthAssistSpeed = DEFAULT_WIDTH_ASSIST_SPEED,
+  widthAssistSpeed = depthSpeed * 0.75,
 ): ReworkPositionXZ {
   const safeDt = Number.isFinite(dt) && dt > 0 ? dt : 0;
   const axis = clampFocusAxis(moveAxis);
