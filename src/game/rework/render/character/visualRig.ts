@@ -58,10 +58,13 @@ export const DEFAULT_VISUAL_RIG: VisualRigDefinition = {
     root: transform(0, 0),
     hips: transform(0, 0.93),
     chest: transform(0, 0.56),
-    neck: transform(0, 0.39),
-    head: transform(0, 0.24),
-    shoulderL: transform(-0.22, 0.27),
-    shoulderR: transform(0.22, 0.27),
+    // Keep the head seated into the jersey silhouette instead of floating
+    // above it. The layered head artwork slightly overlaps the torso top so
+    // the neck reads naturally at phone landscape scale.
+    neck: transform(0, 0.3),
+    head: transform(0, 0.22),
+    shoulderL: transform(-0.23, 0.2),
+    shoulderR: transform(0.23, 0.2),
     // Limb sprites are authored along the local X axis. Keep the articulated
     // chain aligned with that geometry; athletic arm drop comes from shoulder
     // rotation in the motion clips rather than disconnecting child joints.
