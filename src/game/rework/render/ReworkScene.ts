@@ -10,6 +10,7 @@ import { ReworkCourtView } from './ReworkCourtView';
 import { ReworkImpactEffects } from './ReworkImpactEffects';
 import { ReworkMarkers } from './ReworkMarkers';
 import { ArticulatedPlayerView } from './character/ArticulatedPlayerView';
+import { getArticulatedFacingYaw } from './character/articulatedFacing';
 import { getReworkMarkerState } from './markerState';
 import { getReworkServeStagePosition } from './serveStaging';
 
@@ -100,19 +101,25 @@ export class ReworkScene {
     this.scene.add(rim);
 
     const now = performance.now();
+    const initialCameraFrame = getReworkCameraFrame(initialState);
     for (const player of initialState.players) {
       const character = STARTER_ROSTER[player.characterId as CharacterId];
       if (!character) continue;
       const view = new ArticulatedPlayerView(character.id, player.side);
       view.setFocused(player.id === this.focusPlayerId);
       view.update(player, initialState, now);
+      view.group.rotation.y = getArticulatedFacingYaw(
+        initialCameraFrame.position,
+        player.position,
+        player.side,
+      );
       this.players.set(player.id, view);
       this.scene.add(view.group);
     }
 
     this.ball.update(initialState.ball);
     this.ballTrail.update(initialState.ball);
-    applyCameraFrame(this.camera, getReworkCameraFrame(initialState));
+    applyCameraFrame(this.camera, initialCameraFrame);
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.host);
@@ -150,6 +157,7 @@ export class ReworkScene {
     const impact = this.impactPeak * decay;
     if (decay === 0) this.impactPeak = 0;
 
+    const cameraFrame = getReworkCameraFrame(state, impact);
     const server = currentServer(state);
     const follow = this.serveFollowThrough;
     const followElapsed = follow ? Math.max(0, now - follow.startedAt) : 0;
@@ -178,6 +186,11 @@ export class ReworkScene {
       }
 
       view.update(displayPlayer, state, now);
+      view.group.rotation.y = getArticulatedFacingYaw(
+        cameraFrame.position,
+        displayPlayer.position,
+        displayPlayer.side,
+      );
     }
 
     if (follow && !followActive) this.serveFollowThrough = null;
@@ -197,7 +210,7 @@ export class ReworkScene {
       state.time,
     );
     this.impacts.update(now);
-    applyCameraFrame(this.camera, getReworkCameraFrame(state, impact));
+    applyCameraFrame(this.camera, cameraFrame);
     this.renderer.render(this.scene, this.camera);
     void dt;
   }
