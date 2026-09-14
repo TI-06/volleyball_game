@@ -50,7 +50,10 @@ export interface CharacterSkin {
 }
 
 const CELL = 128;
-const CHARACTER_ATLAS_REVISION = 'athletic-v2';
+const DEFAULT_CHARACTER_ATLAS_REVISION = 'athletic-v2';
+const CHARACTER_ATLAS_REVISIONS: Partial<Record<CharacterId, string>> = {
+  kai: 'kai-v3',
+};
 
 const ATLAS_RECTS: Record<CharacterPartName, AtlasRect> = {
   head: { x: 0, y: 0, width: CELL, height: CELL },
@@ -73,7 +76,8 @@ const ATLAS_RECTS: Record<CharacterPartName, AtlasRect> = {
 };
 
 function atlasUrlFor(id: CharacterId): string {
-  return `/assets/characters/${id}/parts.svg?rev=${CHARACTER_ATLAS_REVISION}`;
+  const revision = CHARACTER_ATLAS_REVISIONS[id] ?? DEFAULT_CHARACTER_ATLAS_REVISION;
+  return `/assets/characters/${id}/parts.svg?rev=${revision}`;
 }
 
 function partsFor(id: CharacterId): Record<CharacterPartName, string> {
