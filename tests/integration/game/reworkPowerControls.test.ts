@@ -42,11 +42,7 @@ describe('rework POWER controls', () => {
   it('charges and releases a FLOAT serve from the same POWER zone', () => {
     let runtime = createReworkRuntime(60, 'NORMAL');
 
-    runtime = stepReworkRuntime(
-      runtime,
-      { ...idle(), powerPressed: true },
-      1 / 60,
-    );
+    runtime = stepReworkRuntime(runtime, { ...idle(), powerPressed: true }, 1 / 60);
     expect(runtime.powerHoldStartedAt).not.toBeNull();
     expect(runtime.match.rally.phase).toBe('SERVE_READY');
 
@@ -73,22 +69,13 @@ describe('rework POWER controls', () => {
     expect(runtime.powerHoldStartedAt).toBeNull();
   });
 
-  it('uses one hold/release to jump for a block and auto-contacts the spike', () => {
+  it('uses one hold/release to jump for a block and contacts only after real takeoff', () => {
     let runtime = opponentSet(createReworkRuntime(61, 'NORMAL'));
 
-    runtime = stepReworkRuntime(
-      runtime,
-      { ...idle(), powerPressed: true },
-      1 / 60,
-    );
+    runtime = stepReworkRuntime(runtime, { ...idle(), powerPressed: true }, 1 / 60);
     expect(runtime.blockHoldStartedAt).not.toBeNull();
-    expect(runtime.match.players.find((player) => player.id === 'home-0')?.isAirborne).toBe(false);
 
-    runtime = stepReworkRuntime(
-      runtime,
-      { ...idle(), powerReleased: true },
-      1 / 60,
-    );
+    runtime = stepReworkRuntime(runtime, { ...idle(), powerReleased: true }, 1 / 60);
     expect(runtime.blockHoldStartedAt).toBeNull();
     expect(runtime.match.players.find((player) => player.id === 'home-0')?.isAirborne).toBe(true);
 
@@ -102,26 +89,29 @@ describe('rework POWER controls', () => {
           inPlay: true,
           lastTouchedBy: 'away-0',
           lastContact: 'SPIKE',
-          position: { x: 0, y: 2.65, z: 0.45 },
-          velocity: { x: 0, y: -2.5, z: -12 },
+          position: { x: 0, y: 2.65, z: 0.9 },
+          velocity: { x: 0, y: -1.0, z: -7 },
         },
       },
     };
 
     runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
+    expect(runtime.lastEvent?.type).not.toBe('BLOCK');
+
+    for (let frame = 0; frame < 12 && runtime.match.ball.lastContact === 'SPIKE'; frame += 1) {
+      runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
+    }
+
     expect(runtime.lastEvent?.type).toBe('BLOCK');
     expect(runtime.lastEvent?.actorId).toBe('home-0');
     expect(runtime.match.ball.lastContact).toBe('BLOCK');
+    expect(runtime.match.players.find((player) => player.id === 'home-0')?.position.y).toBeGreaterThanOrEqual(0.28);
   });
 
   it('keeps a block reservation through SET -> SPIKE and jumps on release', () => {
     let runtime = opponentSet(createReworkRuntime(62, 'NORMAL'));
 
-    runtime = stepReworkRuntime(
-      runtime,
-      { ...idle(), powerPressed: true },
-      1 / 60,
-    );
+    runtime = stepReworkRuntime(runtime, { ...idle(), powerPressed: true }, 1 / 60);
     expect(runtime.blockHoldStartedAt).not.toBeNull();
 
     runtime = {
@@ -142,11 +132,7 @@ describe('rework POWER controls', () => {
     runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
     expect(runtime.blockHoldStartedAt).not.toBeNull();
 
-    runtime = stepReworkRuntime(
-      runtime,
-      { ...idle(), powerReleased: true },
-      1 / 60,
-    );
+    runtime = stepReworkRuntime(runtime, { ...idle(), powerReleased: true }, 1 / 60);
 
     expect(runtime.blockHoldStartedAt).toBeNull();
     expect(runtime.lastEvent).toMatchObject({ type: 'JUMP', actorId: 'home-0' });
