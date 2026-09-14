@@ -1,0 +1,26 @@
+name: focused-serve-diagnostics
+
+on:
+  push:
+    branches:
+      - feat/match-animation-system-design
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.12.0'
+          cache: npm
+      - run: npm ci
+      - name: Run focused serve trajectory test without failing workflow
+        shell: bash
+        run: |
+          set +e
+          npm test -- tests/unit/game/serveTrajectory.test.ts > focused.log 2>&1
+          code=$?
+          cat focused.log
+          echo "FOCUSED_TEST_EXIT=$code"
+          exit 0
