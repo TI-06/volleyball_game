@@ -12,6 +12,7 @@
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e:install": "playwright install chromium",
     "test:e2e": "playwright test",
     "preview": "npm run build && vite preview",
     "verify": "npm run typecheck && npm test && npm run build",
