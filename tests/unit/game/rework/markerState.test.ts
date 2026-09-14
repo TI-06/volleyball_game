@@ -3,7 +3,7 @@ import { createMatch } from '../../../../src/game/core/createMatch';
 import { getReworkMarkerState } from '../../../../src/game/rework/render/markerState';
 
 describe('rework marker state', () => {
-  it('shows receive landing guidance for an incoming opponent ball', () => {
+  it('shows receive landing guidance for a KAI-owned incoming ball', () => {
     const state = createMatch(10);
     state.rally.phase = 'RALLY';
     state.ball = {
@@ -11,12 +11,42 @@ describe('rework marker state', () => {
       inPlay: true,
       lastTouchedBy: 'away-0',
       lastContact: 'SPIKE',
-      position: { x: -1, y: 3.2, z: -2.5 },
-      velocity: { x: 0.2, y: -1.2, z: -4.5 },
+      position: { x: -2.5, y: 1.4, z: -4.9 },
+      velocity: { x: 0, y: -1.2, z: -1.0 },
     };
     const markers = getReworkMarkerState(state, 'home-0');
     expect(markers.receiveLanding).not.toBeNull();
     expect(markers.approach).toBeNull();
+  });
+
+  it('does not show KAI receive guidance for a teammate-owned ball', () => {
+    const state = createMatch(10);
+    state.rally.phase = 'RALLY';
+    state.ball = {
+      ...state.ball,
+      inPlay: true,
+      lastTouchedBy: 'away-0',
+      lastContact: 'SPIKE',
+      position: { x: 2.5, y: 1.1, z: -5.0 },
+      velocity: { x: 0, y: -1.2, z: -0.8 },
+    };
+    const markers = getReworkMarkerState(state, 'home-0');
+    expect(markers.receiveLanding).toBeNull();
+  });
+
+  it('does not show receive guidance for a ball predicted to land out', () => {
+    const state = createMatch(10);
+    state.rally.phase = 'RALLY';
+    state.ball = {
+      ...state.ball,
+      inPlay: true,
+      lastTouchedBy: 'away-0',
+      lastContact: 'SPIKE',
+      position: { x: -2.5, y: 1.2, z: -5.0 },
+      velocity: { x: -8, y: -1.0, z: -1.0 },
+    };
+    const markers = getReworkMarkerState(state, 'home-0');
+    expect(markers.receiveLanding).toBeNull();
   });
 
   it('shows only the approach marker while KAI is still in the back court', () => {
