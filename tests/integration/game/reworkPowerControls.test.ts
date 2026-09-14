@@ -89,7 +89,7 @@ describe('rework POWER controls', () => {
           inPlay: true,
           lastTouchedBy: 'away-0',
           lastContact: 'SPIKE',
-          position: { x: 0, y: 2.65, z: 0.9 },
+          position: { x: 0, y: 2.65, z: 0.25 },
           velocity: { x: 0, y: -1.0, z: -7 },
         },
       },
@@ -106,6 +106,39 @@ describe('rework POWER controls', () => {
     expect(runtime.lastEvent?.actorId).toBe('home-0');
     expect(runtime.match.ball.lastContact).toBe('BLOCK');
     expect(runtime.match.players.find((player) => player.id === 'home-0')?.position.y).toBeGreaterThanOrEqual(0.28);
+  });
+
+  it('does not block while the spike is still too far across the net', () => {
+    let runtime = opponentSet(createReworkRuntime(65, 'NORMAL'));
+    runtime = {
+      ...runtime,
+      match: {
+        ...runtime.match,
+        players: runtime.match.players.map((player) =>
+          player.id === 'home-0'
+            ? {
+                ...player,
+                isAirborne: true,
+                position: { x: 0, y: 0.72, z: -1.0 },
+                velocity: { ...player.velocity, y: 0 },
+              }
+            : player,
+        ),
+        ball: {
+          ...runtime.match.ball,
+          inPlay: true,
+          lastTouchedBy: 'away-0',
+          lastContact: 'SPIKE',
+          position: { x: 0, y: 2.6, z: 1.6 },
+          velocity: { x: 0, y: -1.0, z: -7 },
+        },
+      },
+    };
+
+    runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
+
+    expect(runtime.lastEvent?.type).not.toBe('BLOCK');
+    expect(runtime.match.ball.lastContact).toBe('SPIKE');
   });
 
   it('keeps a block reservation through SET -> SPIKE and jumps on release', () => {
