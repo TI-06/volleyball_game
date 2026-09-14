@@ -20,6 +20,7 @@ import type {
   ReworkSwipe,
 } from '../../game/rework/types';
 import { ReworkHud } from '../../ui/rework/ReworkHud';
+import { getMatchFinishFramePlan } from '../matchFinishPresentation';
 import { shouldPauseMatchForViewport } from '../matchViewport';
 import type { MatchResultView } from './ResultScreen';
 import { ReworkTutorialScreen } from './ReworkTutorialScreen';
@@ -151,7 +152,8 @@ export function ReworkMatchScreen({
         hudAccumulator = 0;
       }
 
-      if (runtime.match.winner && !finishSentRef.current) {
+      const finishPlan = getMatchFinishFramePlan(Boolean(runtime.match.winner), finishSentRef.current);
+      if (finishPlan.startResultTimer) {
         finishSentRef.current = true;
         updateHud(runtime, latestEvent);
         finishTimer = window.setTimeout(() => {
@@ -168,10 +170,11 @@ export function ReworkMatchScreen({
             longestRally: stats.longestRally,
           });
         }, MATCH_FINISH_DELAY_MS);
-        return;
       }
 
-      animationFrame = window.requestAnimationFrame(frame);
+      if (finishPlan.keepRendering) {
+        animationFrame = window.requestAnimationFrame(frame);
+      }
     };
 
     animationFrame = window.requestAnimationFrame(frame);
