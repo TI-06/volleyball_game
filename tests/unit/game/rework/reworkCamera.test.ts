@@ -12,4 +12,10 @@ describe('rework camera', () => {
     expect(impact.lookAt).toEqual(normal.lookAt);
     expect(impact.fov).toBeLessThan(normal.fov);
   });
+
+  it('uses enough diagonal offset to keep attack lanes readable', () => {
+    const frame = getReworkCameraFrame(createMatch(2), 0);
+    expect(frame.position.x).toBeGreaterThan(15);
+    expect(Math.abs(frame.position.z)).toBeGreaterThan(4);
+  });
 });
