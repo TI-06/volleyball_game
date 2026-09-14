@@ -5,6 +5,8 @@ const FOCUS_PLAYER_ID = 'home-0';
 const MIN_SPIKE_PLAYER_HEIGHT = 0.28;
 const MIN_ATTACK_PLAYER_Z = -2.2;
 const MIN_ATTACK_BALL_Z = -2.4;
+const MAX_ATTACK_JUMP_DISTANCE = 1.8;
+const MAX_SPIKE_CONTACT_DISTANCE = 1.15;
 
 export interface ReworkActionSlots {
   play: ReworkActionLabel;
@@ -85,13 +87,14 @@ export function resolveReworkActions(state: MatchState): ReworkActionSlots {
     ownSide &&
     ball.position.y >= 2.0 &&
     ball.position.z >= MIN_ATTACK_BALL_Z &&
-    focus.position.z >= MIN_ATTACK_PLAYER_Z &&
-    distance <= 3.4
+    focus.position.z >= MIN_ATTACK_PLAYER_Z
   ) {
     if (!focus.isAirborne) {
-      return { play: 'NONE', power: 'JUMP' };
+      return distance <= MAX_ATTACK_JUMP_DISTANCE
+        ? { play: 'NONE', power: 'JUMP' }
+        : none;
     }
-    return focus.position.y >= MIN_SPIKE_PLAYER_HEIGHT
+    return focus.position.y >= MIN_SPIKE_PLAYER_HEIGHT && distance <= MAX_SPIKE_CONTACT_DISTANCE
       ? { play: 'NONE', power: 'SPIKE' }
       : none;
   }
