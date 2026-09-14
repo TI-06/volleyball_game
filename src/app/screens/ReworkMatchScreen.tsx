@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CpuDifficulty } from '../../game/ai/difficulty';
 import { FIXED_STEP_SECONDS } from '../../game/core/constants';
+import { playReworkHaptic } from '../../game/rework/haptics';
 import {
   createReworkMatchStats,
   recordReworkEvent,
@@ -129,6 +130,7 @@ export function ReworkMatchScreen({
         if (event) {
           statsRef.current = recordReworkEvent(statsRef.current, event);
           scene.playEvent(event);
+          playReworkHaptic(event);
           const userEvent = event.actorId === runtime.focusPlayerId;
           if (userEvent || latestEvent === null) latestEvent = event;
         }
