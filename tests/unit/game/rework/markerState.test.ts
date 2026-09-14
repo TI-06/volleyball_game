@@ -19,7 +19,7 @@ describe('rework marker state', () => {
     expect(markers.approach).toBeNull();
   });
 
-  it('shows approach and attack lanes after a teammate set to KAI', () => {
+  it('shows only the approach marker while KAI is still in the back court', () => {
     const state = createMatch(11);
     state.rally.phase = 'RALLY';
     state.ball = {
@@ -32,7 +32,28 @@ describe('rework marker state', () => {
     };
     const markers = getReworkMarkerState(state, 'home-0');
     expect(markers.approach).not.toBeNull();
-    expect(markers.attackLanes).toHaveLength(3);
+    expect(markers.attackLanes).toHaveLength(0);
     expect(markers.receiveLanding).toBeNull();
+  });
+
+  it('switches to attack lanes once KAI enters the attack zone', () => {
+    const state = createMatch(12);
+    state.rally.phase = 'RALLY';
+    state.players = state.players.map((player) =>
+      player.id === 'home-0'
+        ? { ...player, position: { ...player.position, z: -1.8 } }
+        : player,
+    );
+    state.ball = {
+      ...state.ball,
+      inPlay: true,
+      lastTouchedBy: 'home-1',
+      lastContact: 'SET',
+      position: { x: 0, y: 2.9, z: -1.2 },
+      velocity: { x: 0, y: 1.1, z: 0.7 },
+    };
+    const markers = getReworkMarkerState(state, 'home-0');
+    expect(markers.approach).toBeNull();
+    expect(markers.attackLanes).toHaveLength(3);
   });
 });
