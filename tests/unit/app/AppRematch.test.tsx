@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { App } from '../../../src/app/App';
 import { STORAGE_KEY } from '../../../src/persistence/gameStorage';
 
 vi.mock('../../../src/app/screens/ReworkMatchScreen', () => ({
@@ -43,8 +44,6 @@ vi.mock('../../../src/app/screens/ReworkMatchScreen', () => ({
     </div>
   ),
 }));
-
-import { App } from '../../../src/app/App';
 
 describe('App rematch lifecycle', () => {
   beforeEach(() => {
