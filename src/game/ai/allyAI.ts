@@ -9,12 +9,23 @@ export interface AllyIntent {
   target: Vec3;
 }
 
+const SETTER_ROLE_BONUS = 16;
+const SECOND_TOUCH_DISTANCE_WEIGHT = 8;
+
 function distanceXZ(player: PlayerState, target: Vec3): number {
   return Math.hypot(player.position.x - target.x, player.position.z - target.z);
 }
 
 function setAbility(player: PlayerState): number {
   return STARTER_ROSTER[player.characterId as CharacterId]?.abilities.set ?? 0;
+}
+
+function secondTouchScore(player: PlayerState, target: Vec3): number {
+  return (
+    setAbility(player) +
+    (player.role === 'SETTER' ? SETTER_ROLE_BONUS : 0) -
+    distanceXZ(player, target) * SECOND_TOUCH_DISTANCE_WEIGHT
+  );
 }
 
 function basePosition(player: PlayerState): Vec3 {
@@ -44,13 +55,9 @@ function secondTouchPlayer(state: MatchState, lastToucherId: string): PlayerStat
   return (
     [...state.players]
       .filter((player) => player.side === 'home' && player.id !== lastToucherId)
-      .sort((a, b) => {
-        const aSetterBonus = a.role === 'SETTER' ? 1000 : 0;
-        const bSetterBonus = b.role === 'SETTER' ? 1000 : 0;
-        const setOrder = (bSetterBonus + setAbility(b)) - (aSetterBonus + setAbility(a));
-        if (setOrder !== 0) return setOrder;
-        return distanceXZ(a, target) - distanceXZ(b, target);
-      })[0] ?? null
+      .sort(
+        (a, b) => secondTouchScore(b, target) - secondTouchScore(a, target),
+      )[0] ?? null
   );
 }
 
