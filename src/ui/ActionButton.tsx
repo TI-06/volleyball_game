@@ -1,4 +1,4 @@
-import { useRef, type PointerEvent } from 'react';
+import { useEffect, useRef, type PointerEvent } from 'react';
 import { isGestureAction } from '../game/input/gesture';
 import type { ActionKind, SwipeInput } from '../game/input/inputTypes';
 
@@ -19,38 +19,44 @@ interface ActionButtonProps {
   onGesture?: (action: ActionKind, swipe: SwipeInput) => void;
 }
 
+interface PointerStart {
+  x: number;
+  y: number;
+  at: number;
+  action: ActionKind;
+  gesture: boolean;
+}
+
 export function ActionButton({ action, onPress, onRelease, onGesture }: ActionButtonProps) {
   const activePointerId = useRef<number | null>(null);
-  const pointerStart = useRef<{
-    x: number;
-    y: number;
-    at: number;
-    action: ActionKind;
-  } | null>(null);
+  const pointerStart = useRef<PointerStart | null>(null);
+
+  useEffect(() => {
+    const start = pointerStart.current;
+    if (!start || start.action === action) return;
+
+    // Context ACTION can change while a finger is still down (JUMP -> SPIKE).
+    // Drop the old pointer state so the newly rendered action cannot inherit a stale lock.
+    activePointerId.current = null;
+    pointerStart.current = null;
+  }, [action]);
 
   if (!action) return null;
   const gestureAction = isGestureAction(action);
 
-  const finishGesture = (event: PointerEvent<HTMLButtonElement>) => {
-    if (activePointerId.current !== event.pointerId || !pointerStart.current) return;
-    const start = pointerStart.current;
-    pointerStart.current = null;
-    activePointerId.current = null;
-    onGesture?.(start.action, {
-      x: event.clientX - start.x,
-      y: event.clientY - start.y,
-      durationMs: Math.max(0, performance.now() - start.at),
-    });
-  };
-
-  const releasePointer = (event: PointerEvent<HTMLButtonElement>) => {
-    if (activePointerId.current !== event.pointerId) return false;
-    activePointerId.current = null;
-    pointerStart.current = null;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+  const releaseCapture = (event: PointerEvent<HTMLButtonElement>) => {
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
-    return true;
+  };
+
+  const clearPointer = (event: PointerEvent<HTMLButtonElement>) => {
+    if (activePointerId.current !== event.pointerId) return null;
+    const start = pointerStart.current;
+    activePointerId.current = null;
+    pointerStart.current = null;
+    releaseCapture(event);
+    return start;
   };
 
   return (
@@ -60,29 +66,40 @@ export function ActionButton({ action, onPress, onRelease, onGesture }: ActionBu
       onPointerDown={(event) => {
         if (activePointerId.current !== null) return;
         activePointerId.current = event.pointerId;
-        event.currentTarget.setPointerCapture(event.pointerId);
-        if (gestureAction) {
-          pointerStart.current = {
-            x: event.clientX,
-            y: event.clientY,
-            at: performance.now(),
-            action,
-          };
-        } else {
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+        pointerStart.current = {
+          x: event.clientX,
+          y: event.clientY,
+          at: performance.now(),
+          action,
+          gesture: gestureAction,
+        };
+        if (!gestureAction) {
           onPress(action);
         }
       }}
       onPointerUp={(event) => {
-        if (gestureAction) {
-          finishGesture(event);
-        } else if (releasePointer(event)) {
-          onRelease?.(action);
+        const start = pointerStart.current;
+        if (!start || activePointerId.current !== event.pointerId) return;
+
+        if (start.gesture) {
+          const swipe: SwipeInput = {
+            x: event.clientX - start.x,
+            y: event.clientY - start.y,
+            durationMs: Math.max(0, performance.now() - start.at),
+          };
+          clearPointer(event);
+          onGesture?.(start.action, swipe);
+          return;
         }
+
+        clearPointer(event);
+        onRelease?.(start.action);
       }}
       onPointerCancel={(event) => {
-        if (!releasePointer(event)) return;
-        if (!gestureAction) {
-          onRelease?.(action);
+        const start = clearPointer(event);
+        if (start && !start.gesture) {
+          onRelease?.(start.action);
         }
       }}
     >
