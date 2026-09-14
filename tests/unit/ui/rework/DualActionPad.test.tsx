@@ -57,4 +57,40 @@ describe('DualActionPad', () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect(onRelease).not.toHaveBeenCalled();
   });
+
+  it('shows hold aim release guidance while charging a serve', () => {
+    render(
+      <DualActionPad
+        playLabel="NONE"
+        powerLabel="SERVE"
+        onPlayPress={() => undefined}
+        onPowerPress={() => undefined}
+        onPowerRelease={() => undefined}
+        onPowerCancel={() => undefined}
+      />,
+    );
+    const power = screen.getByRole('button', { name: /POWER SERVE/i });
+    fireEvent.pointerDown(power, { pointerId: 8, clientX: 300, clientY: 220 });
+    expect(screen.getByText('HOLD · AIM · RELEASE')).toBeInTheDocument();
+  });
+
+  it('reports live serve aim while dragging POWER', () => {
+    const onAim = vi.fn();
+    render(
+      <DualActionPad
+        playLabel="NONE"
+        powerLabel="SERVE"
+        onPlayPress={() => undefined}
+        onPowerPress={() => undefined}
+        onPowerAim={onAim}
+        onPowerRelease={() => undefined}
+        onPowerCancel={() => undefined}
+      />,
+    );
+    const power = screen.getByRole('button', { name: /POWER SERVE/i });
+    fireEvent.pointerDown(power, { pointerId: 9, clientX: 300, clientY: 220 });
+    fireEvent.pointerMove(power, { pointerId: 9, clientX: 350, clientY: 215 });
+
+    expect(onAim).toHaveBeenLastCalledWith(expect.objectContaining({ x: 50, y: -5 }));
+  });
 });
