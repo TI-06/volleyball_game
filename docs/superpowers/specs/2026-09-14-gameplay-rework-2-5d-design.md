@@ -58,7 +58,30 @@ Target: Smartphone landscape Web app
 
 画面上のラベルは状況に応じて変えてよいが、指の位置と役割は変えない。
 
-## 3. Scope
+## 3. Alternatives considered
+
+### A. Existing 3D architectureを改善する
+
+現在の3人切替、360度スティック、動的カメラを残し、UIとキャラ品質だけ上げる案。
+
+**不採用理由:** 根本の認知負荷が残る。見た目を改善しても「誰を操作中か」「今どのACTIONか」を追う必要があり、バレーのリズム改善にならない。
+
+### B. 完全2Dサイドビューへ作り直す
+
+最も操作を単純化しやすく、アニメーション制作も管理しやすい。
+
+**不採用理由:** 既存の3Dボール物理、コート、位置関係、将来のカメラ/VFX拡張を活かしにくい。完全2Dへ振り切るほど既存資産を捨てる必要はない。
+
+### C. 3D simulation + fixed 2.5D presentation
+
+**採用案。** 内部は3D座標と既存物理を維持し、見せ方と操作を2.5Dへ制約する。
+
+- ボール物理と得点ロジックを再利用できる。
+- スマホでは2Dスポーツゲームのように読める。
+- 将来、高品質toon 3Dや2.5D spriteへ差し替え可能。
+- 360度操作やカメラ切替を捨てられる。
+
+## 4. Scope
 
 ### In scope
 
@@ -91,9 +114,9 @@ Target: Smartphone landscape Web app
 - ガチャ/装備/ストーリー
 - 最終版の高品質キャラアセット
 
-## 4. Camera and court presentation
+## 5. Camera and court presentation
 
-### 4.1 Camera
+### 5.1 Camera
 
 固定2.5Dのサイド寄りカメラ。
 
@@ -102,7 +125,7 @@ Target: Smartphone landscape Web app
 - 完全な真横ではなく、少しだけ上と奥行きを見せる。
 - 3D空間は維持するが、プレイヤーは2Dスポーツゲームのように状況を読める。
 
-### 4.2 Movement axis
+### 5.2 Movement axis
 
 画面上の左右移動は、ゲーム座標上では「ネットへ近づく / 離れる」方向を主軸にする。
 
@@ -114,7 +137,7 @@ Target: Smartphone landscape Web app
 
 これにより360度スティック操作を廃止しつつ、位置取りの上達余地を残す。
 
-### 4.3 Framing rules
+### 5.3 Framing rules
 
 ラリー中に必ず優先して画面へ入れるもの:
 
@@ -126,7 +149,7 @@ Target: Smartphone landscape Web app
 
 大きなカメラ移動は禁止。画面外へ出そうな場合は軽いズームアウトだけ許可する。
 
-## 5. Touch control layout
+## 6. Touch control layout
 
 ### Left side: movement strip
 
@@ -158,9 +181,9 @@ Target: Smartphone landscape Web app
 
 A/Bとも最低88px相当のタッチ領域を確保する。
 
-## 6. Rally mechanics
+## 7. Rally mechanics
 
-### 6.1 Receive
+### 7.1 Receive
 
 ユーザーの守備対象になった場合、ゲーム側が落下地点へ70〜80%寄せる。
 
@@ -184,7 +207,7 @@ A/Bとも最低88px相当のタッチ領域を確保する。
 
 Receive能力は予測表示開始時間、予測半径、Perfect幅に作用する。
 
-### 6.2 AI Set
+### 7.2 AI Set
 
 KAI操作中は原則RENがSETする。
 
@@ -198,7 +221,7 @@ SET時はKAIのアプローチ位置を画面へ表示する。
 - 良いRECEIVEほど速い攻撃を選びやすい。
 - Perfect SetはKAIのSpike timing windowを広げる。
 
-### 6.3 Approach and jump
+### 7.3 Approach and jump
 
 味方SET後、KAIにアプローチゾーンを表示する。
 
@@ -210,7 +233,7 @@ SET時はKAIのアプローチ位置を画面へ表示する。
 
 早すぎ・遅すぎのジャンプでは最高打点に合わない。
 
-### 6.4 Spike
+### 7.4 Spike
 
 空中ではBゾーンをスワイプ入力へ変える。
 
@@ -230,7 +253,7 @@ Spike結果は以下から決める。
 - Set quality
 - opponent block position
 
-### 6.5 Block
+### 7.5 Block
 
 相手SET中、ブロック対象アタッカーへ予測マーカーを出す。
 
@@ -250,7 +273,7 @@ Spike結果は以下から決める。
 
 Block abilityはjump timing toleranceとhand reachへ作用する。
 
-### 6.6 Serve
+### 7.6 Serve
 
 最初のRework sliceはFLOAT SERVEだけ。
 
@@ -260,7 +283,7 @@ Block abilityはjump timing toleranceとhand reachへ作用する。
 
 JUMP SERVEは新しいラリー操作が成立した後に追加する。
 
-## 7. Teammate AI
+## 8. Teammate AI
 
 味方AIは「ユーザーの代わりに勝手に全部決める」のではなく、ユーザーが次の見せ場へ入れるように動く。
 
@@ -279,7 +302,7 @@ JUMP SERVEは新しいラリー操作が成立した後に追加する。
 
 AIはユーザー入力そのものを読まず、MatchStateだけを見る。
 
-## 8. CPU AI
+## 9. CPU AI
 
 既存のBEGINNER / NORMAL / HARD / EXPERT / MASTERを維持する。
 
@@ -295,11 +318,11 @@ CPUの能力値そのものを難易度で水増ししない。
 
 新カメラ/新入力に合わせて、CPUも同じ2.5D空間のルールで動かす。
 
-## 9. Character presentation
+## 10. Character presentation
 
-現在のprimitive 3D humanoidは最終表現として使わない。
+現在のprimitive 3D humanoidはReworkでは使用しない。
 
-### 9.1 Visual direction
+### 10.1 Visual direction
 
 - 2.5D toon / anime sports style
 - 6.5〜7頭身
@@ -308,9 +331,14 @@ CPUの能力値そのものを難易度で水増ししない。
 - 顔はスマホ画面でも読める大きさ
 - 完全オリジナルデザイン
 
-### 9.2 First implementation asset strategy
+### 10.2 First implementation asset strategy
 
-最初のReworkでは「球体・カプセル人形」ではなく、2.5D billboard/spriteまたは平面toon proxyを使う。
+最初のRework milestoneから、可視キャラ本体に `SphereGeometry` / `CapsuleGeometry` を組み合わせた旧primitive bodyは使用禁止。
+
+代わりに以下のどちらかを使用する。
+
+1. 2.5D illustrated billboard/sprite proxy
+2. 平面toon meshを複数パーツで構成したproxy
 
 KAIだけでも最低以下のポーズを持つ。
 
@@ -325,7 +353,7 @@ KAIだけでも最低以下のポーズを持つ。
 
 REN/HINA/CPUは最低限 idle / move / contact / jump の区別を持つ。
 
-### 9.3 Character identity
+### 10.3 Character identity
 
 KAI:
 - 大きい踏み込み
@@ -343,7 +371,7 @@ HINA:
 - 細かいステップ
 - 高速スライド
 
-## 10. Feedback and game feel
+## 11. Feedback and game feel
 
 通常ラリーではカメラを切らない。
 
@@ -371,7 +399,7 @@ HINA:
 
 演出は操作入力をブロックしない。
 
-## 11. Architecture
+## 12. Architecture
 
 既存Runtimeへさらに条件分岐を追加しない。
 
@@ -423,7 +451,7 @@ src/ui/rework/
 
 新Reworkのunit/integration/E2Eが通った後に、production importを完全にReworkへ切り替え、旧character switching / camera director / contextual one-button系を削除する。
 
-## 12. State flow
+## 13. State flow
 
 新Runtimeは以下の高レベル状態を持つ。
 
@@ -446,7 +474,7 @@ MATCH_OVER
 
 これにより現在の「同じACTIONボタンがフレームごとに別の意味へ変わる」構造を廃止する。
 
-## 13. First implementation milestone
+## 14. First implementation milestone
 
 最初のPlayable Sliceは以下だけを完成条件にする。
 
@@ -460,6 +488,7 @@ MATCH_OVER
 8. CPUが返球
 9. 1ラリーが往復可能
 10. 844x390 / 932x430で操作可能
+11. primitive capsule/sphere player bodyを画面に出さない
 
 このMilestoneでは以下を後回しにしてよい。
 
@@ -471,7 +500,7 @@ MATCH_OVER
 
 まず「RECEIVE -> SET -> JUMP -> SPIKE」が気持ちいいことを優先する。
 
-## 14. Success criteria
+## 15. Success criteria
 
 Rework playable sliceは以下を満たすまで旧UIを置き換えない。
 
@@ -486,8 +515,9 @@ Rework playable sliceは以下を満たすまで旧UIを置き換えない。
 - CPU入力はユーザーのraw touchを参照しない
 - 旧得点ルール・保存・難易度解放が壊れない
 - KAI/REN/HINAを一目で見分けられる
+- ReworkScene内のvisible player bodyに旧primitive capsule/sphere構成を使わない
 
-## 15. Testing strategy
+## 16. Testing strategy
 
 ### Unit
 
@@ -518,7 +548,7 @@ Rework playable sliceは以下を満たすまで旧UIを置き換えない。
 - A/B buttons remain fixed
 - first tutorial rally succeeds
 
-## 16. Migration plan
+## 17. Migration plan
 
 ### PR1: Rework foundation
 
@@ -527,7 +557,7 @@ Rework playable sliceは以下を満たすまで旧UIを置き換えない。
 - movement strip
 - 2-button HUD
 - KAI focus controller
-- basic render proxies
+- non-primitive 2.5D render proxies
 
 ### PR2: Core rally
 
@@ -553,7 +583,7 @@ Rework playable sliceは以下を満たすまで旧UIを置き換えない。
 - switch production MatchScreen to Rework
 - delete obsolete character switching and dynamic camera code
 
-## 17. Non-goals
+## 18. Non-goals
 
 このReworkで既存の全機能を同時に再実装しない。
 
