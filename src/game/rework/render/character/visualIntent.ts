@@ -1,4 +1,5 @@
 import type { MatchState, PlayerState, TeamSide } from '../../../core/types';
+import { chooseHomeReceiveOwner } from '../../receiveOwnership';
 import type { ReworkEvent } from '../../types';
 
 export type VisualIntent =
@@ -23,8 +24,9 @@ export interface VisualIntentState {
 }
 
 const MOVE_THRESHOLD = 0.25;
+const BLOCK_PREP_MAX_NET_DISTANCE = 3.2;
 
-function playerSideFromId(match: MatchState, actorId?: string): TeamSide | null {
+function playerSideFromId(match: MatchState, actorId?: string | null): TeamSide | null {
   if (!actorId) return null;
   return match.players.find((player) => player.id === actorId)?.side ?? null;
 }
@@ -59,6 +61,18 @@ function movementIntent(player: PlayerState): VisualIntent {
   return 'READY';
 }
 
+function shouldPrepareHomeReceive(match: MatchState, player: PlayerState): boolean {
+  if (player.side !== 'home' || match.rally.phase !== 'RALLY' || !match.ball.inPlay) return false;
+  if (playerSideFromId(match, match.ball.lastTouchedBy) !== 'away') return false;
+  return chooseHomeReceiveOwner(match) === player.id;
+}
+
+function isOpponentSet(match: MatchState, player: PlayerState, event: ReworkEvent | null): boolean {
+  if (event?.type !== 'SET' || !event.actorId) return false;
+  const actorSide = playerSideFromId(match, event.actorId);
+  return actorSide !== null && actorSide !== player.side;
+}
+
 export function resolveVisualIntent(
   match: MatchState,
   player: PlayerState,
@@ -81,10 +95,6 @@ export function resolveVisualIntent(
     }
   }
 
-  if (player.isAirborne) {
-    return { intent: 'SPIKE_JUMP', contactEvent: null };
-  }
-
   if (
     latestEvent?.type === 'SET' &&
     latestEvent.actorId !== player.id &&
@@ -92,6 +102,21 @@ export function resolveVisualIntent(
     playerSideFromId(match, latestEvent.actorId) === player.side
   ) {
     return { intent: 'SPIKE_APPROACH', contactEvent: null };
+  }
+
+  if (
+    isOpponentSet(match, player, latestEvent) &&
+    Math.abs(player.position.z) <= BLOCK_PREP_MAX_NET_DISTANCE
+  ) {
+    return { intent: 'BLOCK', contactEvent: null };
+  }
+
+  if (shouldPrepareHomeReceive(match, player)) {
+    return { intent: 'RECEIVE', contactEvent: null };
+  }
+
+  if (player.isAirborne) {
+    return { intent: 'SPIKE_JUMP', contactEvent: null };
   }
 
   if (currentServer(match)?.id === player.id) {
