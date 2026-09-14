@@ -165,8 +165,15 @@ export function decideCpuIntent(
   const landing = predictLanding(state.ball);
   const teammateTouched = state.ball.lastTouchedBy?.startsWith('away-') ?? false;
   const opponentTouched = state.ball.lastTouchedBy?.startsWith('home-') ?? false;
+  const incomingHomeServe =
+    opponentTouched &&
+    state.ball.lastContact === 'SERVE' &&
+    state.ball.velocity.z > 0;
+  const incomingOpponentBall =
+    !teammateTouched &&
+    (incomingHomeServe || (ballOnAwaySide && state.ball.velocity.y < 0));
 
-  if (ballOnAwaySide && state.ball.velocity.y < 0 && !teammateTouched) {
+  if (incomingOpponentBall) {
     const receiver = closestAwayPlayer(state, landing);
     if (receiver?.id === player.id) {
       const read = getReadAssist(characterFor(player));
