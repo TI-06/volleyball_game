@@ -31,8 +31,9 @@ describe('CHARACTER_SKINS', () => {
     }
   });
 
-  it('cache-busts every character atlas when switching to the athletic limb art revision', () => {
-    for (const id of CHARACTER_IDS) {
+  it('uses an isolated KAI quality revision without pretending the other five are finished', () => {
+    expect(CHARACTER_SKINS.kai.atlasUrl).toContain('?rev=kai-v3');
+    for (const id of CHARACTER_IDS.filter((candidate) => candidate !== 'kai')) {
       expect(CHARACTER_SKINS[id].atlasUrl).toContain('?rev=athletic-v2');
     }
   });
