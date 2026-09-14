@@ -2,6 +2,7 @@ import type { MatchState, PlayerState } from '../core/types';
 import type { ReworkActionLabel } from './types';
 
 const FOCUS_PLAYER_ID = 'home-0';
+const MIN_SPIKE_PLAYER_HEIGHT = 0.28;
 
 export interface ReworkActionSlots {
   play: ReworkActionLabel;
@@ -83,9 +84,12 @@ export function resolveReworkActions(state: MatchState): ReworkActionSlots {
     ball.position.y >= 2.0 &&
     distance <= 3.4
   ) {
-    return focus.isAirborne
+    if (!focus.isAirborne) {
+      return { play: 'NONE', power: 'JUMP' };
+    }
+    return focus.position.y >= MIN_SPIKE_PLAYER_HEIGHT
       ? { play: 'NONE', power: 'SPIKE' }
-      : { play: 'NONE', power: 'JUMP' };
+      : none;
   }
 
   if (
