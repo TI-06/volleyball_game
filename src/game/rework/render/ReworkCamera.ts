@@ -22,7 +22,7 @@ export function getReworkCameraFrame(
 ): ReworkCameraFrame {
   const spread = maxRallySpread(state);
   const extraFov = Math.max(0, Math.min(5, (spread - 6.5) * 1.15));
-  const impactZoom = Math.max(0, Math.min(0.05, impactStrength));
+  const impactZoom = Math.max(0, Math.min(0.04, impactStrength));
 
   return {
     mode: REWORK_CAMERA_MODE,
@@ -30,7 +30,7 @@ export function getReworkCameraFrame(
     // That keeps the MovementStrip contract intuitive: BACK <- -> NET.
     position: { x: -20.5, y: 8.0, z: -6.2 },
     lookAt: { x: 0, y: 1.55, z: 0 },
-    fov: 37 + extraFov - impactZoom * 35,
+    fov: 37 + extraFov - impactZoom * 30,
     impactZoom,
   };
 }

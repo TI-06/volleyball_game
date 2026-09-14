@@ -7,10 +7,7 @@ import {
   type CharacterPartName,
   type CharacterSkin,
 } from './characterSkin';
-import {
-  MOTION_CLIPS,
-  type MotionClipId,
-} from './motionClips';
+import { MOTION_CLIPS, type MotionClipId } from './motionClips';
 import { MotionPlayer, type MotionSample } from './motionPlayer';
 import type { JointName } from './motionTypes';
 import { resolveVisualIntent, type VisualIntent, type VisualIntentState } from './visualIntent';
@@ -37,13 +34,13 @@ const DIRECT_CLIP_BY_INTENT: Partial<Record<VisualIntent, MotionClipId>> = {
   MOVE_BACK: 'run_back',
   RECEIVE: 'receive_ready',
   SET: 'set_enter',
-  SERVE: 'serve_ready',
-  BLOCK: 'block_takeoff',
   CELEBRATE: 'celebrate_short',
   FRUSTRATED: 'frustrated_short',
 };
 
 const INTENT_SEQUENCES: Partial<Record<VisualIntent, readonly MotionClipId[]>> = {
+  SERVE: ['serve_ready', 'serve_toss'],
+  BLOCK: ['block_takeoff'],
   SPIKE_APPROACH: ['spike_approach_1', 'spike_approach_2', 'spike_plant'],
   SPIKE_JUMP: ['spike_takeoff', 'spike_airborne_cock'],
   SPIKE_CONTACT: ['spike_contact', 'spike_followthrough', 'land'],
@@ -305,8 +302,12 @@ export class ArticulatedPlayerView {
     this.selectionRing.visible = focused;
   }
 
-  playEvent(event: ReworkEvent): void {
+  observeEvent(event: ReworkEvent): void {
     this.pendingEvent = event;
+  }
+
+  playEvent(event: ReworkEvent): void {
+    this.observeEvent(event);
   }
 
   private applySample(sample: MotionSample): void {

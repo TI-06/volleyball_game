@@ -41,9 +41,9 @@ function easeOutCubic(value: number): number {
 }
 
 function eventImpact(event: ReworkEvent): number {
-  if (event.type === 'SPIKE' && event.quality === 'PERFECT') return 0.05;
-  if (event.type === 'BLOCK' && event.quality === 'PERFECT') return 0.045;
-  if (event.type === 'RECEIVE' && event.quality === 'PERFECT') return 0.018;
+  if (event.type === 'SPIKE' && event.quality === 'PERFECT') return 0.04;
+  if (event.type === 'BLOCK' && event.quality === 'PERFECT') return 0.035;
+  if (event.type === 'RECEIVE' && event.quality === 'PERFECT') return 0.014;
   return 0;
 }
 
@@ -127,9 +127,13 @@ export class ReworkScene {
   }
 
   playEvent(event: ReworkEvent): void {
+    for (const proxy of this.players.values()) {
+      if (proxy instanceof ArticulatedPlayerView) proxy.observeEvent(event);
+    }
+
     if (event.actorId) {
       const proxy = this.players.get(event.actorId);
-      proxy?.playEvent(event);
+      if (proxy && !(proxy instanceof ArticulatedPlayerView)) proxy.playEvent(event);
       if (proxy) this.impacts.play(event, proxy.group.position.clone());
     }
     const impact = eventImpact(event);
@@ -146,14 +150,17 @@ export class ReworkScene {
       };
     }
     if (event.type === 'POINT' && event.value && event.value > 0) {
-      this.players.get(this.focusPlayerId)?.playEvent({ type: 'POINT', actorId: this.focusPlayerId });
+      const focus = this.players.get(this.focusPlayerId);
+      if (focus && !(focus instanceof ArticulatedPlayerView)) {
+        focus.playEvent({ type: 'POINT', actorId: this.focusPlayerId });
+      }
     }
   }
 
   update(state: MatchState, dt: number): void {
     const now = performance.now();
     const elapsed = Math.max(0, now - this.impactStartedAt);
-    const decay = this.impactPeak > 0 ? Math.max(0, 1 - elapsed / 180) : 0;
+    const decay = this.impactPeak > 0 ? Math.max(0, 1 - elapsed / 170) : 0;
     const impact = this.impactPeak * decay;
     if (decay === 0) this.impactPeak = 0;
 
