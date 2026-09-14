@@ -79,9 +79,15 @@ test('smartphone landscape enters the 2.5d match with fixed PLAY and POWER contr
 });
 
 test('mobile match serves, receives a real CPU return, reaches result, and rematches', async ({ page }, testInfo) => {
+  const startedAt = Date.now();
+  const mark = (label: string) => {
+    console.info(`[E2E_TIMING] ${testInfo.project.name} ${label} ${Date.now() - startedAt}ms`);
+  };
+
   await seedTutorialComplete(page);
   await page.goto('/?e2e=1');
   await enterNormalMatch(page);
+  mark('entered-match');
 
   await expect(page.getByText(/QUICK START/)).toHaveCount(0);
   const matchScreen = page.getByTestId('rework-match-screen');
@@ -93,6 +99,7 @@ test('mobile match serves, receives a real CPU return, reaches result, and remat
     path: `test-results/visual-audit/${testInfo.project.name}-serve-ready.png`,
     fullPage: true,
   });
+  mark('serve-ready-shot');
 
   const servePower = page.getByRole('button', { name: /POWER SERVE/i });
   await expect(servePower).toBeVisible();
@@ -103,14 +110,17 @@ test('mobile match serves, receives a real CPU return, reaches result, and remat
     path: `test-results/visual-audit/${testInfo.project.name}-serve-flight.png`,
     fullPage: true,
   });
+  mark('serve-flight-shot');
 
   await expect(matchScreen).toHaveAttribute('data-cpu-return-seen', 'true', { timeout: 12_000 });
+  mark('cpu-return-seen');
   await expect(matchScreen).toBeVisible();
 
   await page.screenshot({
     path: `test-results/visual-audit/${testInfo.project.name}-cpu-return.png`,
     fullPage: true,
   });
+  mark('cpu-return-shot');
 
   await page.evaluate(() => {
     const bridge = (window as typeof window & {
@@ -119,12 +129,15 @@ test('mobile match serves, receives a real CPU return, reaches result, and remat
     if (!bridge) throw new Error('missing local E2E bridge');
     bridge.finishMatch(15, 8);
   });
+  mark('finish-bridge');
 
   await expect(page.getByRole('heading', { name: 'WIN' })).toBeVisible();
+  mark('result-visible');
   await expect(page.getByLabel('試合結果')).toContainText('15');
   await page.getByRole('button', { name: 'REMATCH' }).click();
 
   await expect(page.getByTestId('rework-match-screen')).toBeVisible();
   await expect(page.getByText(/QUICK START/)).toHaveCount(0);
   await expect(page.locator('.rework-score')).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
+  mark('rematch-ready');
 });
