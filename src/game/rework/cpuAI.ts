@@ -3,8 +3,7 @@ import { decideCpuIntent } from '../ai/cpuAI';
 import { DIFFICULTY_PROFILES, type CpuDifficulty } from '../ai/difficulty';
 import { createTendencyHistory } from '../ai/tendencyTracker';
 import type { MatchState, Vec3 } from '../core/types';
-
-export type ReworkCpuRole = 'SERVE' | 'RECEIVE' | 'SET' | 'APPROACH' | 'BLOCK' | 'COVER';
+import type { ReworkCpuRole } from './types';
 
 export interface ReworkCpuDecision {
   playerId: string;
