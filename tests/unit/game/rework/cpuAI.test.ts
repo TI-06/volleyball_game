@@ -64,4 +64,27 @@ describe('rework cpu roles', () => {
     const decisions = decideCpuRoles(state, 'EXPERT');
     expect(decisions.some((decision) => decision.role === 'APPROACH')).toBe(true);
   });
+
+  it('does not assign BLOCK to a defender still deep in the backcourt', () => {
+    const base = rallyState();
+    const state = {
+      ...base,
+      players: base.players.map((player) =>
+        player.id === 'away-1'
+          ? { ...player, position: { ...player.position, x: 0, z: 5.0 } }
+          : player,
+      ),
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-0',
+        lastContact: 'SPIKE' as const,
+        position: { x: 0, y: 2.6, z: 0.7 },
+        velocity: { x: 0, y: -1.1, z: 12.5 },
+      },
+    };
+
+    const gou = decideCpuRoles(state, 'MASTER').find((decision) => decision.playerId === 'away-1');
+    expect(gou?.role).not.toBe('BLOCK');
+  });
 });
