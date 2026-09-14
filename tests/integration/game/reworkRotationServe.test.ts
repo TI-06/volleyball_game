@@ -15,7 +15,7 @@ function idle(): ReworkInput {
   };
 }
 
-function withHomeServer(index: number) {
+function withHomeServer(index: number): ReturnType<typeof createReworkRuntime> {
   const runtime = createReworkRuntime(92 + index, 'NORMAL');
   return {
     ...runtime,
@@ -23,8 +23,8 @@ function withHomeServer(index: number) {
       ...runtime.match,
       rally: {
         ...runtime.match.rally,
-        phase: 'SERVE_READY' as const,
-        servingSide: 'home' as const,
+        phase: 'SERVE_READY',
+        servingSide: 'home',
         serverIndex: { ...runtime.match.rally.serverIndex, home: index },
       },
     },
