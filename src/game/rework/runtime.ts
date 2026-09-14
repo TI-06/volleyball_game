@@ -236,10 +236,10 @@ function attackFromSwipe(swipe: ReworkSwipe): { intent: AttackIntent; target: Ve
     return { intent: 'TIP', target: { x: 0, y: 2.0, z: 4.7 } };
   }
   if (swipe.x > 62) {
-    return { intent: 'LINE', target: { x: 3.2, y: 0.75, z: 6.7 } };
+    return { intent: 'LINE', target: { x: -3.2, y: 0.75, z: 6.7 } };
   }
   if (swipe.x < -62) {
-    return { intent: 'CROSS', target: { x: -3.2, y: 0.75, z: 6.7 } };
+    return { intent: 'CROSS', target: { x: 3.2, y: 0.75, z: 6.7 } };
   }
   return { intent: 'POWER', target: { x: 0, y: 0.75, z: 6.8 } };
 }
