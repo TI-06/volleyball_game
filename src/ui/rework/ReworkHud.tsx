@@ -12,6 +12,7 @@ interface ReworkHudProps {
   onMove: (axis: number) => void;
   onPlayPress: () => void;
   onPowerPress: () => void;
+  onPowerAim?: (swipe: ReworkSwipe | null) => void;
   onPowerRelease: (swipe: ReworkSwipe | null) => void;
   onPowerCancel: () => void;
 }
@@ -25,6 +26,7 @@ export function ReworkHud({
   onMove,
   onPlayPress,
   onPowerPress,
+  onPowerAim,
   onPowerRelease,
   onPowerCancel,
 }: ReworkHudProps) {
@@ -51,6 +53,7 @@ export function ReworkHud({
           powerLabel={powerLabel}
           onPlayPress={onPlayPress}
           onPowerPress={onPowerPress}
+          onPowerAim={onPowerAim}
           onPowerRelease={onPowerRelease}
           onPowerCancel={onPowerCancel}
         />

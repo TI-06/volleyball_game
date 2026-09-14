@@ -18,7 +18,7 @@ export class ReworkImpactEffects {
     const style = getReworkImpactStyle(event);
     if (!style) return;
 
-    const geometry = new THREE.RingGeometry(0.34, 0.46, 40);
+    const geometry = new THREE.RingGeometry(0.3, 0.41, 40);
     const material = new THREE.MeshBasicMaterial({
       color: style.color,
       transparent: true,

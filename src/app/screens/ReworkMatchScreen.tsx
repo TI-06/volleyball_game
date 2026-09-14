@@ -65,6 +65,7 @@ export function ReworkMatchScreen({
   const initialTutorialRef = useRef(tutorial);
   const runtimeRef = useRef<ReworkRuntimeState>(createReworkRuntime(seed, difficulty));
   const inputRef = useRef<ReworkInput>(createInput());
+  const serveAimRef = useRef<ReworkSwipe | null>(null);
   const finishSentRef = useRef(false);
   const statsRef = useRef(createReworkMatchStats());
   const [tutorialActive, setTutorialActive] = useState(tutorial);
@@ -91,6 +92,7 @@ export function ReworkMatchScreen({
     if (initialTutorialRef.current) runtime = prepareReworkTutorial(runtime);
     runtimeRef.current = runtime;
     inputRef.current = createInput();
+    serveAimRef.current = null;
     finishSentRef.current = false;
     statsRef.current = createReworkMatchStats();
     updateHud(runtime, null);
@@ -109,6 +111,7 @@ export function ReworkMatchScreen({
       if (shouldPauseMatchForViewport(window.innerWidth, window.innerHeight)) {
         lastTime = now;
         accumulator = 0;
+        serveAimRef.current = null;
         inputRef.current.moveAxis = 0;
         inputRef.current.playPressed = false;
         inputRef.current.powerPressed = false;
@@ -145,7 +148,13 @@ export function ReworkMatchScreen({
       }
 
       runtimeRef.current = runtime;
-      scene.update(runtime.match, delta);
+      scene.update(
+        runtime.match,
+        delta,
+        runtime.powerLabel === 'SERVE' ? serveAimRef.current : null,
+      );
+
+      if (runtime.powerLabel !== 'SERVE') serveAimRef.current = null;
 
       if (latestEvent || hudAccumulator >= 0.1) {
         updateHud(runtime, latestEvent);
@@ -191,6 +200,7 @@ export function ReworkMatchScreen({
   }, [onTutorialComplete]);
 
   const releasePower = useCallback((swipe: ReworkSwipe | null) => {
+    serveAimRef.current = swipe;
     inputRef.current.powerReleased = true;
     inputRef.current.powerSwipe = swipe;
   }, []);
@@ -211,10 +221,15 @@ export function ReworkMatchScreen({
           inputRef.current.playPressed = true;
         }}
         onPowerPress={() => {
+          serveAimRef.current = null;
           inputRef.current.powerPressed = true;
+        }}
+        onPowerAim={(swipe) => {
+          serveAimRef.current = swipe;
         }}
         onPowerRelease={releasePower}
         onPowerCancel={() => {
+          serveAimRef.current = null;
           inputRef.current.powerCancelled = true;
           inputRef.current.powerReleased = false;
           inputRef.current.powerSwipe = null;

@@ -3,15 +3,16 @@ import { STARTER_ROSTER, type CharacterId } from '../../characters/roster';
 import { COURT } from '../../core/constants';
 import type { MatchState, PlayerState } from '../../core/types';
 import { BallView } from '../../render/BallView';
-import type { ReworkEvent } from '../types';
+import type { ReworkEvent, ReworkSwipe } from '../types';
 import { ReworkBallTrail } from './ReworkBallTrail';
 import { getReworkCameraFrame, type ReworkCameraFrame } from './ReworkCamera';
 import { ReworkCourtView } from './ReworkCourtView';
 import { ReworkImpactEffects } from './ReworkImpactEffects';
 import { ReworkMarkers } from './ReworkMarkers';
+import { ArticulatedPlayerView } from './character/ArticulatedPlayerView';
+import { getArticulatedFacingYaw } from './character/articulatedFacing';
 import { getReworkMarkerState } from './markerState';
 import { getReworkServeStagePosition } from './serveStaging';
-import { ToonPlayerProxy } from './ToonPlayerProxy';
 
 const SERVE_RETURN_MS = 420;
 const MAX_RENDER_PIXEL_RATIO = 1.5;
@@ -38,9 +39,9 @@ function easeOutCubic(value: number): number {
 }
 
 function eventImpact(event: ReworkEvent): number {
-  if (event.type === 'SPIKE' && event.quality === 'PERFECT') return 0.05;
-  if (event.type === 'BLOCK' && event.quality === 'PERFECT') return 0.045;
-  if (event.type === 'RECEIVE' && event.quality === 'PERFECT') return 0.018;
+  if (event.type === 'SPIKE' && event.quality === 'PERFECT') return 0.04;
+  if (event.type === 'BLOCK' && event.quality === 'PERFECT') return 0.035;
+  if (event.type === 'RECEIVE' && event.quality === 'PERFECT') return 0.014;
   return 0;
 }
 
@@ -62,7 +63,7 @@ export class ReworkScene {
   private readonly impacts = new ReworkImpactEffects();
   private readonly ballTrail = new ReworkBallTrail();
   private readonly ball = new BallView();
-  private readonly players = new Map<string, ToonPlayerProxy>();
+  private readonly players = new Map<string, ArticulatedPlayerView>();
   private readonly resizeObserver: ResizeObserver;
   private impactPeak = 0;
   private impactStartedAt = 0;
@@ -99,19 +100,26 @@ export class ReworkScene {
     rim.position.set(-8, 7, 4);
     this.scene.add(rim);
 
+    const now = performance.now();
+    const initialCameraFrame = getReworkCameraFrame(initialState);
     for (const player of initialState.players) {
       const character = STARTER_ROSTER[player.characterId as CharacterId];
       if (!character) continue;
-      const proxy = new ToonPlayerProxy(character, player.side);
-      proxy.setFocused(player.id === this.focusPlayerId);
-      proxy.update(player);
-      this.players.set(player.id, proxy);
-      this.scene.add(proxy.group);
+      const view = new ArticulatedPlayerView(character.id, player.side);
+      view.setFocused(player.id === this.focusPlayerId);
+      view.update(player, initialState, now);
+      view.group.rotation.y = getArticulatedFacingYaw(
+        initialCameraFrame.position,
+        player.position,
+        player.side,
+      );
+      this.players.set(player.id, view);
+      this.scene.add(view.group);
     }
 
     this.ball.update(initialState.ball);
     this.ballTrail.update(initialState.ball);
-    applyCameraFrame(this.camera, getReworkCameraFrame(initialState));
+    applyCameraFrame(this.camera, initialCameraFrame);
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.host);
@@ -119,16 +127,19 @@ export class ReworkScene {
   }
 
   playEvent(event: ReworkEvent): void {
+    for (const view of this.players.values()) view.observeEvent(event);
+
     if (event.actorId) {
-      const proxy = this.players.get(event.actorId);
-      proxy?.playEvent(event);
-      if (proxy) this.impacts.play(event, proxy.group.position.clone());
+      const view = this.players.get(event.actorId);
+      if (view) this.impacts.play(event, view.group.position.clone());
     }
+
     const impact = eventImpact(event);
     if (impact > 0) {
       this.impactPeak = impact;
       this.impactStartedAt = performance.now();
     }
+
     if (event.type === 'SERVE' && event.actorId) {
       const side = event.actorId.startsWith('home-') ? 'home' : 'away';
       this.serveFollowThrough = {
@@ -137,27 +148,25 @@ export class ReworkScene {
         startedAt: performance.now(),
       };
     }
-    if (event.type === 'POINT' && event.value && event.value > 0) {
-      this.players.get(this.focusPlayerId)?.playEvent({ type: 'POINT', actorId: this.focusPlayerId });
-    }
   }
 
-  update(state: MatchState, dt: number): void {
+  update(state: MatchState, dt: number, serveAim: ReworkSwipe | null = null): void {
     const now = performance.now();
     const elapsed = Math.max(0, now - this.impactStartedAt);
-    const decay = this.impactPeak > 0 ? Math.max(0, 1 - elapsed / 180) : 0;
+    const decay = this.impactPeak > 0 ? Math.max(0, 1 - elapsed / 170) : 0;
     const impact = this.impactPeak * decay;
     if (decay === 0) this.impactPeak = 0;
 
+    const cameraFrame = getReworkCameraFrame(state, impact);
     const server = currentServer(state);
     const follow = this.serveFollowThrough;
     const followElapsed = follow ? Math.max(0, now - follow.startedAt) : 0;
     const followActive = Boolean(follow && followElapsed < SERVE_RETURN_MS);
 
     for (const player of state.players) {
-      const proxy = this.players.get(player.id);
-      if (!proxy) continue;
-      proxy.setFocused(player.id === this.focusPlayerId);
+      const view = this.players.get(player.id);
+      if (!view) continue;
+      view.setFocused(player.id === this.focusPlayerId);
 
       let displayPlayer = player;
       if (server?.id === player.id) {
@@ -175,7 +184,13 @@ export class ReworkScene {
           },
         };
       }
-      proxy.update(displayPlayer);
+
+      view.update(displayPlayer, state, now);
+      view.group.rotation.y = getArticulatedFacingYaw(
+        cameraFrame.position,
+        displayPlayer.position,
+        displayPlayer.side,
+      );
     }
 
     if (follow && !followActive) this.serveFollowThrough = null;
@@ -190,9 +205,12 @@ export class ReworkScene {
     }
     this.ballTrail.update(state.ball);
 
-    this.markers.update(getReworkMarkerState(state, this.focusPlayerId), state.time);
+    this.markers.update(
+      getReworkMarkerState(state, this.focusPlayerId, serveAim),
+      state.time,
+    );
     this.impacts.update(now);
-    applyCameraFrame(this.camera, getReworkCameraFrame(state, impact));
+    applyCameraFrame(this.camera, cameraFrame);
     this.renderer.render(this.scene, this.camera);
     void dt;
   }
@@ -207,7 +225,7 @@ export class ReworkScene {
 
   dispose(): void {
     this.resizeObserver.disconnect();
-    for (const proxy of this.players.values()) proxy.dispose();
+    for (const view of this.players.values()) view.dispose();
     this.players.clear();
     this.court.dispose();
     this.markers.dispose();

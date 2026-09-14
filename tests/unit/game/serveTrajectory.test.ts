@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { performServe, type ServeKind } from '../../../src/game/actions/serve';
+import {
+  predictServePosition,
+  solveServeTrajectory,
+} from '../../../src/game/actions/serveTrajectory';
 import { integrateBall } from '../../../src/game/ball/ballPhysics';
 import { COURT } from '../../../src/game/core/constants';
 import { createMatch } from '../../../src/game/core/createMatch';
@@ -24,6 +28,31 @@ function simulateServe(kind: ServeKind, power: number) {
 
   return { crossedNet, landingZ: ball.position.z };
 }
+
+describe('solveServeTrajectory', () => {
+  it.each([0.58, 0.74, 0.9])(
+    'clears the net and reaches a central target at aggression %s',
+    (aggression) => {
+      const origin = { x: 0, y: 2.35, z: -(COURT.length / 2 + 0.35) };
+      const target = { x: 0, y: 0, z: 6.7 };
+      const result = solveServeTrajectory({
+        origin,
+        target,
+        aggression,
+        netHeight: COURT.netHeight,
+      });
+
+      const netT = result.flightSeconds * ((0 - origin.z) / (target.z - origin.z));
+      const atNet = predictServePosition(origin, result.velocity, netT);
+      const atLanding = predictServePosition(origin, result.velocity, result.flightSeconds);
+
+      expect(atNet.y).toBeGreaterThan(COURT.netHeight + 0.2);
+      expect(atLanding.x).toBeCloseTo(target.x, 2);
+      expect(atLanding.z).toBeCloseTo(target.z, 2);
+      expect(atLanding.y).toBeCloseTo(0, 2);
+    },
+  );
+});
 
 describe('serve trajectory', () => {
   it('lets a standard float serve clear the net', () => {

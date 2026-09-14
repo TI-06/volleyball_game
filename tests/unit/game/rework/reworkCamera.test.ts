@@ -13,9 +13,13 @@ describe('rework camera', () => {
     expect(impact.fov).toBeLessThan(normal.fov);
   });
 
-  it('uses a mirrored diagonal view so positive depth movement reads screen-right toward NET', () => {
+  it('uses a closer, lower diagonal framing so articulated poses stay readable on phones', () => {
     const frame = getReworkCameraFrame(createMatch(2), 0);
+    expect(frame.position.x).toBeGreaterThan(-19);
     expect(frame.position.x).toBeLessThan(-15);
+    expect(frame.position.y).toBeLessThan(7);
     expect(frame.position.z).toBeLessThan(-4);
+    expect(frame.lookAt.y).toBeLessThan(1);
+    expect(frame.fov).toBeLessThanOrEqual(35);
   });
 });
