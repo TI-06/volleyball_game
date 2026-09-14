@@ -23,6 +23,7 @@ import type { MatchResultView } from './ResultScreen';
 const MATCH_FINISH_DELAY_MS = 900;
 
 interface MatchScreenProps {
+  seed: number;
   difficulty: CpuDifficulty;
   switchMode: SwitchMode;
   cameraMode: CameraSetting;
@@ -59,6 +60,7 @@ function createInput(): RuntimeInput {
 }
 
 export function MatchScreen({
+  seed,
   difficulty,
   switchMode,
   cameraMode,
@@ -67,7 +69,7 @@ export function MatchScreen({
   onFinished,
 }: MatchScreenProps) {
   const sceneHostRef = useRef<HTMLDivElement | null>(null);
-  const runtimeRef = useRef<MatchRuntimeState>(createMatchRuntime(1, difficulty, switchMode));
+  const runtimeRef = useRef<MatchRuntimeState>(createMatchRuntime(seed, difficulty, switchMode));
   const inputRef = useRef<RuntimeInput>(createInput());
   const finishSentRef = useRef(false);
   const statsRef = useRef({ highestSpikeKmh: 0, perfectCount: 0 });
@@ -100,7 +102,7 @@ export function MatchScreen({
   }, []);
 
   useEffect(() => {
-    let runtime = createMatchRuntime(1, difficulty, switchMode);
+    let runtime = createMatchRuntime(seed, difficulty, switchMode);
     if (initialTutorialRef.current) {
       runtime = {
         ...runtime,
@@ -195,7 +197,7 @@ export function MatchScreen({
       window.cancelAnimationFrame(animationFrame);
       scene.dispose();
     };
-  }, [cameraMode, difficulty, onFinished, switchMode, updateHud]);
+  }, [cameraMode, difficulty, onFinished, seed, switchMode, updateHud]);
 
   const completeTutorial = useCallback(() => {
     setTutorialActive(false);
