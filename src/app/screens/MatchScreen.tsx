@@ -17,6 +17,7 @@ import {
   type RuntimeInput,
 } from '../../game/runtime/playableRuntime';
 import { MatchHud } from '../../ui/MatchHud';
+import { shouldPauseMatchForViewport } from '../matchViewport';
 import { TutorialScreen } from './TutorialScreen';
 import type { MatchResultView } from './ResultScreen';
 
@@ -133,6 +134,16 @@ export function MatchScreen({
     let hudAccumulator = 0;
 
     const frame = (now: number) => {
+      if (shouldPauseMatchForViewport(window.innerWidth, window.innerHeight)) {
+        lastTime = now;
+        accumulator = 0;
+        inputRef.current.move = { x: 0, z: 0 };
+        inputRef.current.actionPressed = false;
+        inputRef.current.actionReleased = false;
+        animationFrame = window.requestAnimationFrame(frame);
+        return;
+      }
+
       const delta = Math.min(0.05, Math.max(0, (now - lastTime) / 1000));
       lastTime = now;
       accumulator += delta;
