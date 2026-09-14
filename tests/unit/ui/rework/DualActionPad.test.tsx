@@ -11,6 +11,7 @@ describe('DualActionPad', () => {
         onPlayPress={() => undefined}
         onPowerPress={() => undefined}
         onPowerRelease={() => undefined}
+        onPowerCancel={() => undefined}
       />,
     );
     expect(screen.getByRole('button', { name: /PLAY RECEIVE/i })).toBeInTheDocument();
@@ -26,6 +27,7 @@ describe('DualActionPad', () => {
         onPlayPress={() => undefined}
         onPowerPress={() => undefined}
         onPowerRelease={onRelease}
+        onPowerCancel={() => undefined}
       />,
     );
     const power = screen.getByRole('button', { name: /POWER SPIKE/i });
@@ -33,5 +35,26 @@ describe('DualActionPad', () => {
     fireEvent.pointerMove(power, { pointerId: 3, clientX: 360, clientY: 170 });
     fireEvent.pointerUp(power, { pointerId: 3, clientX: 360, clientY: 170 });
     expect(onRelease).toHaveBeenCalledWith(expect.objectContaining({ x: 60, y: -50 }));
+  });
+
+  it('cancels POWER without converting pointercancel into an action release', () => {
+    const onRelease = vi.fn();
+    const onCancel = vi.fn();
+    render(
+      <DualActionPad
+        playLabel="NONE"
+        powerLabel="SERVE"
+        onPlayPress={() => undefined}
+        onPowerPress={() => undefined}
+        onPowerRelease={onRelease}
+        onPowerCancel={onCancel}
+      />,
+    );
+    const power = screen.getByRole('button', { name: /POWER SERVE/i });
+    fireEvent.pointerDown(power, { pointerId: 4, clientX: 300, clientY: 220 });
+    fireEvent.pointerCancel(power, { pointerId: 4, clientX: 320, clientY: 200 });
+
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(onRelease).not.toHaveBeenCalled();
   });
 });
