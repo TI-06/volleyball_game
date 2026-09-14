@@ -151,4 +151,23 @@ describe('rework POWER controls', () => {
     expect(runtime.lastEvent).toMatchObject({ type: 'JUMP', actorId: 'home-0' });
     expect(runtime.match.players.find((player) => player.id === 'home-0')?.isAirborne).toBe(true);
   });
+
+  it('cancels a charged POWER action without serving or jumping', () => {
+    let serve = createReworkRuntime(63, 'NORMAL');
+    serve = stepReworkRuntime(serve, { ...idle(), powerPressed: true }, 1 / 60);
+    expect(serve.powerHoldStartedAt).not.toBeNull();
+
+    serve = stepReworkRuntime(serve, { ...idle(), powerCancelled: true }, 1 / 60);
+    expect(serve.powerHoldStartedAt).toBeNull();
+    expect(serve.match.rally.phase).toBe('SERVE_READY');
+    expect(serve.lastEvent?.type).not.toBe('SERVE');
+
+    let block = opponentSet(createReworkRuntime(64, 'NORMAL'));
+    block = stepReworkRuntime(block, { ...idle(), powerPressed: true }, 1 / 60);
+    expect(block.blockHoldStartedAt).not.toBeNull();
+
+    block = stepReworkRuntime(block, { ...idle(), powerCancelled: true }, 1 / 60);
+    expect(block.blockHoldStartedAt).toBeNull();
+    expect(block.match.players.find((player) => player.id === 'home-0')?.isAirborne).toBe(false);
+  });
 });
