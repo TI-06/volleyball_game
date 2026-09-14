@@ -11,6 +11,7 @@ export interface AllyIntent {
 
 const SETTER_ROLE_BONUS = 16;
 const SECOND_TOUCH_DISTANCE_WEIGHT = 8;
+const HOME_SET_ZONE: Vec3 = { x: 0, y: 0, z: -1.1 };
 
 function distanceXZ(player: PlayerState, target: Vec3): number {
   return Math.hypot(player.position.x - target.x, player.position.z - target.z);
@@ -50,8 +51,11 @@ function isFirstTouchContact(state: MatchState): boolean {
   );
 }
 
-function secondTouchPlayer(state: MatchState, lastToucherId: string): PlayerState | null {
-  const target = state.ball.position;
+function secondTouchPlayer(
+  state: MatchState,
+  lastToucherId: string,
+  target: Vec3 = state.ball.position,
+): PlayerState | null {
   return (
     [...state.players]
       .filter((player) => player.side === 'home' && player.id !== lastToucherId)
@@ -90,6 +94,12 @@ export function decideAllyIntent(state: MatchState, playerId: string): AllyInten
     if (receiver?.id === player.id) {
       return { state: 'RECEIVE', target: { ...landing, y: 0 } };
     }
+    if (receiver) {
+      const secondTouch = secondTouchPlayer(state, receiver.id, HOME_SET_ZONE);
+      if (secondTouch?.id === player.id) {
+        return { state: 'SET', target: HOME_SET_ZONE };
+      }
+    }
     return { state: 'COVER', target: basePosition(player) };
   }
 
@@ -99,7 +109,7 @@ export function decideAllyIntent(state: MatchState, playerId: string): AllyInten
     if (isFirstTouchContact(state)) {
       const setter = secondTouchPlayer(state, lastToucherId);
       if (setter?.id === player.id) {
-        return { state: 'SET', target: { x: 0, y: 0, z: -1.1 } };
+        return { state: 'SET', target: HOME_SET_ZONE };
       }
       if (player.id !== lastToucherId && player.role === 'ACE') {
         return {
