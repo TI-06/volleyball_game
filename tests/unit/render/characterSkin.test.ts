@@ -31,8 +31,8 @@ describe('CHARACTER_SKINS', () => {
     }
   });
 
-  it('uses an isolated KAI quality revision without pretending the other five are finished', () => {
-    expect(CHARACTER_SKINS.kai.atlasUrl).toContain('?rev=kai-v3');
+  it('uses an isolated KAI v4 quality revision without pretending the other five are finished', () => {
+    expect(CHARACTER_SKINS.kai.atlasUrl).toContain('?rev=kai-v4');
     for (const id of CHARACTER_IDS.filter((candidate) => candidate !== 'kai')) {
       expect(CHARACTER_SKINS[id].atlasUrl).toContain('?rev=athletic-v2');
     }
@@ -58,6 +58,11 @@ describe('CHARACTER_SKINS', () => {
       expect(visual.headScale).toBeLessThan(1);
       expect(visual.legScale).toBeGreaterThan(1);
     }
+
+    const kai = CHARACTER_SKINS.kai.visual;
+    expect(kai.headScale).toBeLessThanOrEqual(0.84);
+    expect(kai.armScale).toBeGreaterThanOrEqual(1.14);
+    expect(kai.legScale).toBeGreaterThanOrEqual(1.14);
 
     expect(CHARACTER_SKINS.hina.visual.heightScale).toBeLessThan(CHARACTER_SKINS.kai.visual.heightScale);
     expect(CHARACTER_SKINS.hina.visual.motionSpeed).toBeGreaterThan(CHARACTER_SKINS.kai.visual.motionSpeed);

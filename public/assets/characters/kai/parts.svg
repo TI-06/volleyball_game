@@ -1,122 +1,123 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="640" height="512" viewBox="0 0 640 512">
   <defs>
-    <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd9ba"/><stop offset="0.58" stop-color="#efb98f"/><stop offset="1" stop-color="#d99a74"/></linearGradient>
-    <linearGradient id="skinShade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#efb98f"/><stop offset="1" stop-color="#ffd9ba"/></linearGradient>
-    <linearGradient id="hair" x1="0" y1="0" x2="0.8" y2="1"><stop offset="0" stop-color="#27415f"/><stop offset="0.55" stop-color="#162b45"/><stop offset="1" stop-color="#0d1c31"/></linearGradient>
-    <linearGradient id="jersey" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="0.65" stop-color="#edf8f7"/><stop offset="1" stop-color="#cfe8e6"/></linearGradient>
-    <linearGradient id="shorts" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d3550"/><stop offset="1" stop-color="#0d1e32"/></linearGradient>
-    <linearGradient id="shoe" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#cfdce5"/></linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe0c6"/><stop offset="0.58" stop-color="#efb68c"/><stop offset="1" stop-color="#d78e67"/></linearGradient>
+    <linearGradient id="skinShade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#dfa078"/><stop offset="1" stop-color="#ffd9bc"/></linearGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="0.75" y2="1"><stop offset="0" stop-color="#b94d39"/><stop offset="0.52" stop-color="#7e2e2b"/><stop offset="1" stop-color="#3c2030"/></linearGradient>
+    <linearGradient id="jersey" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="0.72" stop-color="#eef8f7"/><stop offset="1" stop-color="#d8ecea"/></linearGradient>
+    <linearGradient id="navy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#18344e"/><stop offset="1" stop-color="#091a2b"/></linearGradient>
+    <linearGradient id="shoe" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d5e0e7"/></linearGradient>
   </defs>
-  <g stroke="#0b1728" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+  <g stroke="#091827" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round">
     <!-- head -->
     <g>
-      <path d="M29 48C30 27 44 17 64 17s34 10 35 31v24c0 18-14 36-35 39-21-3-35-21-35-39Z" fill="url(#skin)"/>
-      <path d="M30 58c-9-3-12 5-9 13 2 6 6 10 12 9M98 58c9-3 12 5 9 13-2 6-6 10-12 9" fill="url(#skinShade)"/>
-      <path d="M43 96c7 8 15 12 21 13 7-1 15-5 22-13" fill="none" stroke="#c98767" stroke-width="2" opacity=".55"/>
+      <path d="M34 45C36 27 47 18 64 18s28 9 30 27v24c0 17-12 32-30 35-18-3-30-18-30-35Z" fill="url(#skin)"/>
+      <path d="M35 62c-7-3-10 4-8 11 2 5 5 8 10 8M93 62c7-3 10 4 8 11-2 5-5 8-10 8" fill="url(#skinShade)"/>
+      <path d="M48 93q16 12 32 0" fill="none" stroke="#bd775d" stroke-width="2" opacity=".55"/>
     </g>
     <!-- face -->
     <g transform="translate(128 0)" fill="none">
-      <path d="M37 55q10-8 20-1M71 54q11-7 20 2" stroke="#162236" stroke-width="3"/>
-      <path d="M43 61q7 5 14 0M75 61q7 5 14 0" stroke="#162236" stroke-width="4"/>
-      <path d="M63 64l-3 12 6 1" stroke="#c48869" stroke-width="2.5"/>
-      <path d="M51 86q13 9 27 0" stroke="#913f45" stroke-width="3"/>
-      <path d="M45 72l-8 3M91 72l8 3" stroke="#e8a388" stroke-width="2" opacity=".6"/>
+      <path d="M42 54q8-6 17-1M70 53q9-5 17 1" stroke="#17253a" stroke-width="3"/>
+      <path d="M44 60q7 4 14-1M72 60q7 4 14-1" stroke="#17253a" stroke-width="4"/>
+      <path d="M64 61l-2 10 5 1" stroke="#b9785e" stroke-width="2"/>
+      <path d="M52 82q12 7 24 0" stroke="#7d3940" stroke-width="2.8"/>
+      <path d="M39 70l8 2M89 70l-8 2" stroke="#ea9c86" stroke-width="2" opacity=".5"/>
     </g>
     <!-- hair back -->
     <g transform="translate(256 0)">
-      <path d="M25 63C19 39 28 18 48 10l7 11 10-16 8 15 13-12 3 18 17-7-5 19 14 2-15 18 5 24-15-5-7 21-15-13-10 14-11-18-15 6-1-22Z" fill="url(#hair)"/>
-      <path d="M35 29c17-13 42-17 61-5" fill="none" stroke="#36587b" stroke-width="3" opacity=".75"/>
+      <path d="M27 56C20 37 28 20 45 12l6 9 8-16 8 13 12-12 4 17 16-7-4 17 15 1-11 14 10 13-12 4-2 18-12-9-9 14-9-12-15 8-1-17Z" fill="url(#hair)"/>
+      <path d="M36 28q25-17 55-5" fill="none" stroke="#dd7251" stroke-width="3" opacity=".6"/>
     </g>
-    <!-- hair front -->
+    <!-- hair front: high fringe so eyes remain visible -->
     <g transform="translate(384 0)">
-      <path d="M27 49 36 22l12 9 7-20 12 17 12-19 4 22 20-13-7 24 17-2-18 24-14-14-10 17-12-20-14 14-8-18Z" fill="url(#hair)"/>
-      <path d="M41 31 51 22M68 27 78 16M91 34l10-7" fill="none" stroke="#3d6288" stroke-width="3" opacity=".8"/>
+      <path d="M30 49 38 20l11 8 8-19 10 16 12-18 3 20 18-12-6 21 16-2-14 18-12-8-7 12-11-14-12 12-7-14Z" fill="url(#hair)"/>
+      <path d="M42 28 52 19M68 25 78 15M89 31l9-7" fill="none" stroke="#df7657" stroke-width="2.6" opacity=".68"/>
     </g>
-    <!-- torso -->
+    <!-- athletic tapered torso -->
     <g transform="translate(512 0)">
-      <path d="M24 34Q31 19 47 17h34q16 2 23 17l9 66-18 12-8-17-3 20H44l-3-20-8 17-18-12Z" fill="url(#jersey)"/>
-      <path d="M47 18 64 39 81 18" fill="#17314a" stroke="none"/>
-      <path d="M50 18 64 34 78 18" fill="#25cfbd" stroke="none"/>
-      <path d="M28 41 19 99 35 106 46 53M100 41l9 58-16 7-11-53" fill="#25cfbd" stroke="none" opacity=".95"/>
-      <path d="M43 84h42" stroke="#b5d9d6" stroke-width="3"/>
-      <path d="M58 52h12l5 22H55Z" fill="#17314a" stroke="none"/>
-      <path d="M62 56v15M58 62h13" stroke="#f4fffe" stroke-width="2"/>
+      <path d="M28 31Q34 18 47 16h34q13 2 19 15l7 21-10 57H31L21 52Z" fill="url(#jersey)"/>
+      <path d="M47 17 64 37 81 17" fill="#153149" stroke="none"/>
+      <path d="M52 17 64 31 76 17" fill="#2cd4c1" stroke="none"/>
+      <path d="M22 46 34 54l7 44-10 11ZM106 46 94 54l-7 44 10 11Z" fill="#13334c" stroke="none"/>
+      <path d="M31 55 44 50h40l13 5-7 12H38Z" fill="#2bd4c1" stroke="none" opacity=".92"/>
+      <path d="M55 72h18v24H55Z" fill="#14314a" stroke="none"/>
+      <path d="M60 76v16M56 82h17" stroke="#f7ffff" stroke-width="2.2"/>
+      <path d="M39 103h50" stroke="#b3d8d5" stroke-width="2.4"/>
     </g>
-    <!-- upper arm L -->
+    <!-- upper arm L with sleeve -->
     <g transform="translate(0 128)">
-      <path d="M16 55Q16 43 30 39h72q13 3 14 15v18q-2 13-15 15H29Q16 83 16 71Z" fill="url(#skinShade)"/>
-      <path d="M84 39h19q12 4 13 15v18q-2 12-14 15H84Z" fill="url(#jersey)"/>
-      <path d="M89 41h10q9 3 11 10" stroke="#25cfbd" stroke-width="5" fill="none"/>
-      <path d="M28 47h42" stroke="#ffe4cf" stroke-width="3" opacity=".45"/>
+      <path d="M15 53q2-13 15-16h24l9 8-3 35-8 7H29q-13-2-14-15Z" fill="url(#jersey)"/>
+      <path d="M55 44h49q12 3 12 14v11q-1 12-13 14H57Z" fill="url(#skinShade)"/>
+      <path d="M22 48h32v9H19" fill="#2bd4c1" stroke="none"/>
+      <path d="M69 51h31" stroke="#ffe7d2" stroke-width="3" opacity=".48"/>
     </g>
     <!-- upper arm R -->
     <g transform="translate(128 128)">
-      <path d="M12 55q1-12 14-16h72q14 4 14 16v17q-2 12-15 15H26Q13 84 12 72Z" fill="url(#skin)"/>
-      <path d="M12 55q1-11 13-16h20v48H25Q13 83 12 72Z" fill="url(#jersey)"/>
-      <path d="M18 51q3-8 12-10h10" stroke="#25cfbd" stroke-width="5" fill="none"/>
-      <path d="M57 47h41" stroke="#ffe4cf" stroke-width="3" opacity=".45"/>
+      <path d="M74 44h24q13 3 14 15v13q-2 13-15 15H74l-8-7-3-35Z" fill="url(#jersey)"/>
+      <path d="M12 58q1-11 13-14h49v39H26Q13 82 12 70Z" fill="url(#skin)"/>
+      <path d="M74 48h31l4 9H74" fill="#2bd4c1" stroke="none"/>
+      <path d="M27 51h31" stroke="#ffe7d2" stroke-width="3" opacity=".48"/>
     </g>
     <!-- forearm L -->
     <g transform="translate(256 128)">
-      <path d="M14 55q2-11 16-14l77 4q10 4 9 16l-1 14q-3 11-14 12l-74-7q-12-3-13-14Z" fill="url(#skinShade)"/>
-      <path d="M28 49 94 54" stroke="#ffe4cf" stroke-width="3" opacity=".45"/>
+      <path d="M12 55q2-12 16-15l79 4q11 3 10 15l-1 14q-2 11-14 13l-78-7q-12-3-12-14Z" fill="url(#skinShade)"/>
+      <path d="M27 48 97 53" stroke="#ffe8d5" stroke-width="3" opacity=".45"/>
     </g>
     <!-- forearm R -->
     <g transform="translate(384 128)">
-      <path d="M12 60q0-11 11-15l76-5q14 2 16 14v13q-1 11-13 14l-76 6q-13-2-14-14Z" fill="url(#skin)"/>
-      <path d="m30 51 66-4" stroke="#ffe4cf" stroke-width="3" opacity=".45"/>
+      <path d="M11 60q0-12 12-16l79-5q14 2 15 14v13q-1 12-13 15l-79 6q-13-2-14-14Z" fill="url(#skin)"/>
+      <path d="m29 50 68-4" stroke="#ffe8d5" stroke-width="3" opacity=".45"/>
     </g>
     <!-- hand L -->
     <g transform="translate(512 128)">
-      <path d="M35 59q4-18 20-22 11-2 18 5l10 10 13 2q8 2 8 9 0 8-10 10l-12 1-9 12q-7 9-19 5-18-5-19-20Z" fill="url(#skin)"/>
-      <path d="M78 58l16 1M76 66l17 2" stroke="#c98c6d" stroke-width="2"/>
+      <path d="M34 60q4-18 19-23 12-3 19 4l10 10 14 3q8 2 8 9 0 8-10 10l-12 1-9 12q-7 9-19 5-18-5-20-19Z" fill="url(#skin)"/>
+      <path d="M78 58l17 2M76 66l17 2" stroke="#c68466" stroke-width="2"/>
     </g>
     <!-- hand R -->
     <g transform="translate(0 256)">
-      <path d="M93 59q-4-18-20-22-11-2-18 5L45 52l-13 2q-8 2-8 9 0 8 10 10l12 1 9 12q7 9 19 5 18-5 19-20Z" fill="url(#skinShade)"/>
-      <path d="M50 58 34 59M52 66l-17 2" stroke="#c98c6d" stroke-width="2"/>
+      <path d="M94 60q-4-18-19-23-12-3-19 4L46 51l-14 3q-8 2-8 9 0 8 10 10l12 1 9 12q7 9 19 5 18-5 20-19Z" fill="url(#skinShade)"/>
+      <path d="M50 58l-17 2M52 66l-17 2" stroke="#c68466" stroke-width="2"/>
     </g>
-    <!-- thigh L -->
+    <!-- thigh L: shorts + muscular leg -->
     <g transform="translate(128 256)">
-      <path d="M37 11h55l-3 43-7 58H47l-8-58Z" fill="url(#skin)"/>
-      <path d="M34 10h61l-4 44H38Z" fill="url(#shorts)"/>
-      <path d="M47 18h34M44 50h45" stroke="#2d4b68" stroke-width="3"/>
-      <path d="M54 61h20" stroke="#ffe4cf" stroke-width="3" opacity=".45"/>
+      <path d="M39 9h52l-2 44-6 60H47l-7-60Z" fill="url(#skin)"/>
+      <path d="M33 8h64l-5 47H38Z" fill="url(#navy)"/>
+      <path d="M37 19h17L47 51H38ZM92 19H75l8 32h9Z" fill="#2bd4c1" stroke="none"/>
+      <path d="M53 64h23" stroke="#ffe7d2" stroke-width="3" opacity=".44"/>
     </g>
     <!-- thigh R -->
     <g transform="translate(256 256)">
-      <path d="M36 11h56l-4 43-7 58H47l-8-58Z" fill="url(#skinShade)"/>
-      <path d="M33 10h62l-4 44H38Z" fill="url(#shorts)"/>
-      <path d="M46 18h36M42 50h47" stroke="#2d4b68" stroke-width="3"/>
-      <path d="M54 61h20" stroke="#ffe4cf" stroke-width="3" opacity=".45"/>
+      <path d="M38 9h53l-3 44-6 60H47l-7-60Z" fill="url(#skinShade)"/>
+      <path d="M32 8h65l-5 47H38Z" fill="url(#navy)"/>
+      <path d="M36 19h17L46 51H37ZM92 19H75l8 32h9Z" fill="#2bd4c1" stroke="none"/>
+      <path d="M53 64h23" stroke="#ffe7d2" stroke-width="3" opacity=".44"/>
     </g>
-    <!-- shin L -->
+    <!-- shin L + knee pad -->
     <g transform="translate(384 256)">
-      <path d="M42 13h45l-4 98H48Z" fill="url(#skin)"/>
-      <path d="M39 13h51v25q-5 10-25 10T40 38Z" fill="#183149"/>
-      <path d="M48 26h33" stroke="#25cfbd" stroke-width="4"/>
-      <path d="M54 57h20" stroke="#ffe4cf" stroke-width="3" opacity=".45"/>
+      <path d="M42 11h45l-5 101H48Z" fill="url(#skin)"/>
+      <path d="M38 12h52v27q-6 11-26 11T39 39Z" fill="#142d46"/>
+      <path d="M45 27h38" stroke="#2bd4c1" stroke-width="4"/>
+      <path d="M53 59h22" stroke="#ffe7d2" stroke-width="3" opacity=".44"/>
     </g>
     <!-- shin R -->
     <g transform="translate(512 256)">
-      <path d="M41 13h46l-4 98H48Z" fill="url(#skinShade)"/>
-      <path d="M38 13h52v25q-5 10-26 10T39 38Z" fill="#183149"/>
-      <path d="M47 26h34" stroke="#25cfbd" stroke-width="4"/>
-      <path d="M54 57h20" stroke="#ffe4cf" stroke-width="3" opacity=".45"/>
+      <path d="M41 11h46l-5 101H48Z" fill="url(#skinShade)"/>
+      <path d="M37 12h53v27q-6 11-26 11T38 39Z" fill="#142d46"/>
+      <path d="M44 27h39" stroke="#2bd4c1" stroke-width="4"/>
+      <path d="M53 59h22" stroke="#ffe7d2" stroke-width="3" opacity=".44"/>
     </g>
     <!-- shoe L -->
     <g transform="translate(0 384)">
-      <path d="M18 69q11-19 31-22l20 3 35 19q9 5 5 18l-4 12H19q-10-7-7-18Z" fill="url(#shoe)"/>
-      <path d="M22 87h82" stroke="#25cfbd" stroke-width="6"/>
-      <path d="m50 59 24 19M61 56 84 75" stroke="#17314a" stroke-width="3"/>
-      <path d="M17 99h89" stroke="#0b1728" stroke-width="5"/>
+      <path d="M17 70q12-21 33-23l21 3 34 18q10 5 6 18l-4 13H18q-10-7-7-18Z" fill="url(#shoe)"/>
+      <path d="M22 86h84" stroke="#2bd4c1" stroke-width="5"/>
+      <path d="m49 58 26 20M61 55 86 75" stroke="#16324a" stroke-width="3"/>
+      <path d="M16 99h92" stroke="#091827" stroke-width="5"/>
     </g>
     <!-- shoe R -->
     <g transform="translate(128 384)">
-      <path d="M20 69q11-19 31-22l20 3 35 19q9 5 5 18l-4 12H21q-10-7-7-18Z" fill="url(#shoe)"/>
-      <path d="M24 87h82" stroke="#25cfbd" stroke-width="6"/>
-      <path d="m52 59 24 19M63 56 86 75" stroke="#17314a" stroke-width="3"/>
-      <path d="M19 99h89" stroke="#0b1728" stroke-width="5"/>
+      <path d="M19 70q12-21 33-23l21 3 34 18q10 5 6 18l-4 13H20q-10-7-7-18Z" fill="url(#shoe)"/>
+      <path d="M24 86h84" stroke="#2bd4c1" stroke-width="5"/>
+      <path d="m51 58 26 20M63 55 88 75" stroke="#16324a" stroke-width="3"/>
+      <path d="M18 99h92" stroke="#091827" stroke-width="5"/>
     </g>
   </g>
 </svg>

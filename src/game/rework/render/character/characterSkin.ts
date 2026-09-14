@@ -52,7 +52,7 @@ export interface CharacterSkin {
 const CELL = 128;
 const DEFAULT_CHARACTER_ATLAS_REVISION = 'athletic-v2';
 const CHARACTER_ATLAS_REVISIONS: Partial<Record<CharacterId, string>> = {
-  kai: 'kai-v3',
+  kai: 'kai-v4',
 };
 
 const ATLAS_RECTS: Record<CharacterPartName, AtlasRect> = {
@@ -99,11 +99,11 @@ function skin(id: CharacterId, visual: CharacterVisualProfile): CharacterSkin {
 
 export const CHARACTER_SKINS: Record<CharacterId, CharacterSkin> = {
   kai: skin('kai', {
-    heightScale: 1.08,
-    shoulderScale: 0.9,
-    legScale: 1.12,
-    armScale: 1.05,
-    headScale: 0.88,
+    heightScale: 1.1,
+    shoulderScale: 0.88,
+    legScale: 1.15,
+    armScale: 1.15,
+    headScale: 0.84,
     motionSpeed: 1,
     approachStride: 1,
     jumpVisualScale: 1,
