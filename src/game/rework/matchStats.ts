@@ -19,10 +19,6 @@ const CONTACT_EVENTS = new Set<ReworkEvent['type']>([
   'BLOCK',
 ]);
 
-function isHomeActor(event: ReworkEvent): boolean {
-  return event.actorId?.startsWith('home-') ?? false;
-}
-
 function isAwayActor(event: ReworkEvent): boolean {
   return event.actorId?.startsWith('away-') ?? false;
 }
@@ -44,13 +40,13 @@ export function recordReworkEvent(
   source: ReworkMatchStats,
   event: ReworkEvent,
 ): ReworkMatchStats {
-  let next: ReworkMatchStats = { ...source };
+  const next: ReworkMatchStats = { ...source };
 
   if (CONTACT_EVENTS.has(event.type)) {
     next.currentRallyContacts += 1;
   }
 
-  if (isHomeActor(event) && event.quality === 'PERFECT') {
+  if (event.actorId === 'home-0' && event.quality === 'PERFECT') {
     next.perfectCount += 1;
   }
 
