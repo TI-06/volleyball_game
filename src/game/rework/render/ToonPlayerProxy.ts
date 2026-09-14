@@ -5,6 +5,10 @@ import type { ReworkEvent } from '../types';
 import { poseForEvent, poseForPlayerState, type ToonPose } from './toonPresentation';
 
 export const REWORK_PLAYER_PRESENTATION = 'TOON_PROXY_2_5D' as const;
+export const TOON_TEXTURE_SIZE = 320;
+
+const DRAWING_SIZE = 512;
+const DRAW_SCALE = TOON_TEXTURE_SIZE / DRAWING_SIZE;
 
 const HEIGHT_BY_CLASS: Record<HeightClass, number> = {
   SHORT: 1.9,
@@ -164,17 +168,49 @@ function drawHair(
   ctx.fill();
 }
 
+function drawCourtFacingFace(
+  ctx: CanvasRenderingContext2D,
+  side: TeamSide,
+  head: [number, number],
+  skin: string,
+  outline: string,
+): void {
+  const facing = side === 'home' ? 1 : -1;
+  const eyeX = head[0] + facing * 16;
+  const eyeY = head[1] + 1;
+
+  ctx.strokeStyle = outline;
+  ctx.lineWidth = 7;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(eyeX - facing * 8, eyeY + 1);
+  ctx.lineTo(eyeX + facing * 7, eyeY - 2);
+  ctx.stroke();
+
+  ctx.fillStyle = skin;
+  ctx.strokeStyle = outline;
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(head[0] + facing * 38, head[1] + 3);
+  ctx.lineTo(head[0] + facing * 50, head[1] + 11);
+  ctx.lineTo(head[0] + facing * 37, head[1] + 17);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+}
+
 function makeTexture(
   character: CharacterDefinition,
   side: TeamSide,
   pose: ToonPose,
 ): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 512;
+  canvas.width = TOON_TEXTURE_SIZE;
+  canvas.height = TOON_TEXTURE_SIZE;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('2D canvas is unavailable');
-  ctx.clearRect(0, 0, 512, 512);
+  ctx.scale(DRAW_SCALE, DRAW_SCALE);
+  ctx.clearRect(0, 0, DRAWING_SIZE, DRAWING_SIZE);
 
   const rig = rigForPose(pose);
   const skin = '#f2c8a8';
@@ -225,16 +261,7 @@ function makeTexture(
   ctx.arc(rig.head[0], rig.head[1], 45, 0, Math.PI * 2);
   ctx.fill();
   drawHair(ctx, character.id, rig.head[0], rig.head[1]);
-
-  ctx.strokeStyle = outline;
-  ctx.lineWidth = 7;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(rig.head[0] - 24, rig.head[1] + 5);
-  ctx.lineTo(rig.head[0] - 8, rig.head[1] + 1);
-  ctx.moveTo(rig.head[0] + 8, rig.head[1] + 1);
-  ctx.lineTo(rig.head[0] + 24, rig.head[1] + 5);
-  ctx.stroke();
+  drawCourtFacingFace(ctx, side, rig.head, skin, outline);
 
   ctx.fillStyle = '#f3f6fa';
   ctx.strokeStyle = outline;
@@ -252,6 +279,7 @@ function makeTexture(
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = false;
   texture.needsUpdate = true;
   return texture;
 }
