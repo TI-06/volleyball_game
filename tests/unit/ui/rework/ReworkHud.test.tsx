@@ -15,6 +15,7 @@ describe('ReworkHud', () => {
         onPlayPress={() => undefined}
         onPowerPress={() => undefined}
         onPowerRelease={() => undefined}
+        onPowerCancel={() => undefined}
       />,
     );
     expect(screen.getByText('KAI')).toBeInTheDocument();
