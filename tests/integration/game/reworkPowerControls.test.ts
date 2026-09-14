@@ -64,6 +64,9 @@ describe('rework POWER controls', () => {
     expect(runtime.match.rally.phase).toBe('RALLY');
     expect(runtime.match.ball.lastContact).toBe('SERVE');
     expect(runtime.match.ball.lastTouchedBy).toBe('home-0');
+    expect(Number.isFinite(runtime.match.ball.velocity.x)).toBe(true);
+    expect(Number.isFinite(runtime.match.ball.velocity.y)).toBe(true);
+    expect(Number.isFinite(runtime.match.ball.velocity.z)).toBe(true);
     expect(runtime.match.ball.velocity.z).toBeGreaterThan(0);
     expect(runtime.match.ball.velocity.x).toBeLessThan(0);
     expect(runtime.powerHoldStartedAt).toBeNull();
