@@ -1,0 +1,26 @@
+name: cpu-rally-diagnostics
+
+on:
+  push:
+    branches:
+      - fix/cpu-rally-and-visual-quality
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.12.0'
+          cache: npm
+      - run: npm ci
+      - name: Run CPU rally reproduction without failing workflow
+        shell: bash
+        run: |
+          set +e
+          npx vitest run tests/integration/game/reworkRallyAI.test.ts > focused.log 2>&1
+          code=$?
+          cat focused.log
+          echo "FOCUSED_EXIT=$code"
+          exit 0
