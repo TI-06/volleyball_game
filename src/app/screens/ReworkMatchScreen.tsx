@@ -2,6 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CpuDifficulty } from '../../game/ai/difficulty';
 import { FIXED_STEP_SECONDS } from '../../game/core/constants';
 import {
+  createReworkMatchStats,
+  recordReworkEvent,
+} from '../../game/rework/matchStats';
+import {
   createReworkRuntime,
   stepReworkRuntime,
 } from '../../game/rework/playableRuntime';
@@ -60,7 +64,7 @@ export function ReworkMatchScreen({
   const runtimeRef = useRef<ReworkRuntimeState>(createReworkRuntime(seed, difficulty));
   const inputRef = useRef<ReworkInput>(createInput());
   const finishSentRef = useRef(false);
-  const statsRef = useRef({ highestSpikeKmh: 0, perfectCount: 0 });
+  const statsRef = useRef(createReworkMatchStats());
   const [tutorialActive, setTutorialActive] = useState(tutorial);
   const [hud, setHud] = useState<HudState>(() => ({
     homeScore: 0,
@@ -86,7 +90,7 @@ export function ReworkMatchScreen({
     runtimeRef.current = runtime;
     inputRef.current = createInput();
     finishSentRef.current = false;
-    statsRef.current = { highestSpikeKmh: 0, perfectCount: 0 };
+    statsRef.current = createReworkMatchStats();
     updateHud(runtime, null);
 
     const host = sceneHostRef.current;
@@ -123,17 +127,9 @@ export function ReworkMatchScreen({
         runtime = stepReworkRuntime(runtime, inputRef.current, FIXED_STEP_SECONDS);
         const event = runtime.lastEvent;
         if (event) {
+          statsRef.current = recordReworkEvent(statsRef.current, event);
           scene.playEvent(event);
           const userEvent = event.actorId === runtime.focusPlayerId;
-          if (userEvent && event.quality === 'PERFECT') {
-            statsRef.current.perfectCount += 1;
-          }
-          if (userEvent && event.type === 'SPIKE' && event.value) {
-            statsRef.current.highestSpikeKmh = Math.max(
-              statsRef.current.highestSpikeKmh,
-              event.value,
-            );
-          }
           if (userEvent || latestEvent === null) latestEvent = event;
         }
 
@@ -157,12 +153,17 @@ export function ReworkMatchScreen({
         finishSentRef.current = true;
         updateHud(runtime, latestEvent);
         finishTimer = window.setTimeout(() => {
+          const stats = statsRef.current;
           onFinished({
             difficulty,
             homeScore: runtime.match.score.home,
             awayScore: runtime.match.score.away,
-            highestSpikeKmh: statsRef.current.highestSpikeKmh,
-            perfectCount: statsRef.current.perfectCount,
+            highestSpikeKmh: stats.highestSpikeKmh,
+            perfectCount: stats.perfectCount,
+            spikeKills: stats.spikeKills,
+            blockPoints: stats.blockPoints,
+            perfectPasses: stats.perfectPasses,
+            longestRally: stats.longestRally,
           });
         }, MATCH_FINISH_DELAY_MS);
         return;
