@@ -21,7 +21,7 @@ export function prepareReworkTutorial(source: ReworkRuntimeState): ReworkRuntime
     server,
     { x: kai.position.x, y: 0, z: kai.position.z - 0.25 },
     'FLOAT',
-    0.48,
+    0.58,
   );
 
   return {
