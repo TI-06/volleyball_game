@@ -62,10 +62,13 @@ export const DEFAULT_VISUAL_RIG: VisualRigDefinition = {
     head: transform(0, 0.24),
     shoulderL: transform(-0.22, 0.27),
     shoulderR: transform(0.22, 0.27),
-    elbowL: transform(-0.2, -0.25),
-    elbowR: transform(0.2, -0.25),
-    wristL: transform(-0.12, -0.25),
-    wristR: transform(0.12, -0.25),
+    // Limb sprites are authored along the local X axis. Keep the articulated
+    // chain aligned with that geometry; athletic arm drop comes from shoulder
+    // rotation in the motion clips rather than disconnecting child joints.
+    elbowL: transform(-0.31, -0.03),
+    elbowR: transform(0.31, -0.03),
+    wristL: transform(-0.29, -0.02),
+    wristR: transform(0.29, -0.02),
     hipL: transform(-0.13, -0.08),
     hipR: transform(0.13, -0.08),
     kneeL: transform(-0.02, -0.52),
