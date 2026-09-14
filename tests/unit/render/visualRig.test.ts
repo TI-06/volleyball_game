@@ -24,14 +24,14 @@ describe('DEFAULT_VISUAL_RIG', () => {
     }
   });
 
-  it('starts from a relaxed athletic arm shape instead of a T pose', () => {
+  it('keeps arm child joints aligned with the locally horizontal limb artwork', () => {
     const pose = DEFAULT_VISUAL_RIG.bindPose;
-    expect(pose.elbowL.y).toBeLessThan(-0.2);
-    expect(pose.elbowR.y).toBeLessThan(-0.2);
-    expect(pose.wristL.y).toBeLessThan(-0.2);
-    expect(pose.wristR.y).toBeLessThan(-0.2);
-    expect(Math.abs(pose.elbowL.x)).toBeLessThan(0.25);
-    expect(Math.abs(pose.elbowR.x)).toBeLessThan(0.25);
+    expect(Math.abs(pose.elbowL.y)).toBeLessThan(0.06);
+    expect(Math.abs(pose.elbowR.y)).toBeLessThan(0.06);
+    expect(Math.abs(pose.wristL.y)).toBeLessThan(0.06);
+    expect(Math.abs(pose.wristR.y)).toBeLessThan(0.06);
+    expect(pose.elbowL.x).toBeLessThan(-0.25);
+    expect(pose.elbowR.x).toBeGreaterThan(0.25);
   });
 
   it('clones poses deeply so one character cannot mutate another', () => {
