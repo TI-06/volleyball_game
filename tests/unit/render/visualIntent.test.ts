@@ -26,10 +26,12 @@ describe('resolveVisualIntent', () => {
 
   it('maps lateral and court-relative movement directions', () => {
     const left = createMatch(7002);
+    left.rally.phase = 'RALLY';
     player(left, 'home-0').velocity.x = -1;
     expect(intent(left, 'home-0').intent).toBe('MOVE_LEFT');
 
     const right = createMatch(7003);
+    right.rally.phase = 'RALLY';
     player(right, 'home-0').velocity.x = 1;
     expect(intent(right, 'home-0').intent).toBe('MOVE_RIGHT');
 
