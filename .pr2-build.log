@@ -13,7 +13,7 @@ dist/wrangler.json                1.24 kB │ gzip:   0.60 kB
 dist/assets/index-DH_kVjkZ.css   19.07 kB │ gzip:   4.73 kB
 dist/assets/index-CCQMfDo9.js   834.89 kB │ gzip: 225.11 kB
 
-[32m✓ built in 311ms[39m
+[32m✓ built in 304ms[39m
 [33m[plugin builtin:vite-reporter] 
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application

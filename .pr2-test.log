@@ -5,235 +5,88 @@
 
 [1m[30m[46m RUN [49m[39m[22m [36mv5.0.0 [39m[90m/home/runner/work/volleyball_game/volleyball_game[39m
 
- [32m✓[39m tests/integration/game/matchRuntime.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 18[2mms[22m[39m
- [32m✓[39m tests/integration/game/playableRuntime.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 31[2mms[22m[39m
- [32m✓[39m tests/integration/game/reworkPowerControls.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 21[2mms[22m[39m
- [32m✓[39m tests/unit/game/cpuAI.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 23[2mms[22m[39m
- [32m✓[39m tests/unit/game/actionResolver.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 12[2mms[22m[39m
- [32m✓[39m tests/unit/game/blockContext.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 16[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/teammateAI.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 21[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/actionResolver.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 25[2mms[22m[39m
- [32m✓[39m tests/unit/game/actions.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 15[2mms[22m[39m
- [32m✓[39m tests/integration/game/reworkRallyAI.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 26[2mms[22m[39m
- [32m✓[39m tests/unit/game/characterSwitch.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 17[2mms[22m[39m
- [32m✓[39m tests/unit/ui/ActionButton.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[33m 307[2mms[22m[39m
- [32m✓[39m tests/unit/game/allyAI.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 11[2mms[22m[39m
- [32m✓[39m tests/integration/game/reworkRuntime.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m tests/integration/game/matchRuntime.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/integration/game/playableRuntime.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkPowerControls.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/game/cpuAI.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/game/blockContext.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/game/actionResolver.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/actionResolver.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/unit/game/actions.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/teammateAI.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkRallyAI.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32m✓[39m tests/unit/game/characterSwitch.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/ui/ActionButton.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[33m 310[2mms[22m[39m
+ [32m✓[39m tests/unit/game/allyAI.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkRuntime.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 15[2mms[22m[39m
  [32m✓[39m tests/unit/game/rework/cpuAI.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 11[2mms[22m[39m
- [32m✓[39m tests/integration/game/reworkRotationServe.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 21[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/markerState.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 11[2mms[22m[39m
- [32m✓[39m tests/unit/game/serveTargeting.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 20[2mms[22m[39m
- [32m✓[39m tests/unit/game/abilities.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 11[2mms[22m[39m
- [32m✓[39m tests/integration/game/cpuBlockDifficulty.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 11[2mms[22m[39m
- [32m✓[39m tests/unit/app/AppRematch.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 423[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/markerState.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkRotationServe.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m tests/unit/game/serveTargeting.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/game/abilities.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/app/AppRematch.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 372[2mms[22m[39m
    [32m✓[39m App rematch lifecycle [2m(1)[22m
-     [33m[2m✓[22m[39m rematches with tutorial off, a normal seed, and no duplicate saved result[33m 420[2mms[22m[39m
- [32m✓[39m tests/integration/game/reworkSpikeTrajectory.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 12[2mms[22m[39m
- [32m✓[39m tests/unit/game/deadBall.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
- [32m✓[39m tests/unit/ui/rework/DualActionPad.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[33m 330[2mms[22m[39m
- [32m✓[39m tests/integration/game/rallyFlow.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 10[2mms[22m[39m
- [32m✓[39m tests/integration/game/reworkSwipeDirection.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 12[2mms[22m[39m
- [32m✓[39m tests/unit/persistence/stores.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+     [33m[2m✓[22m[39m rematches with tutorial off, a normal seed, and no duplicate saved result[33m 370[2mms[22m[39m
+ [32m✓[39m tests/integration/game/cpuBlockDifficulty.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkSpikeTrajectory.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/ui/rework/DualActionPad.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[33m 312[2mms[22m[39m
+ [32m✓[39m tests/unit/game/deadBall.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/integration/game/rallyFlow.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/persistence/stores.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkSwipeDirection.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/integration/game/gameRuntime.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 15[2mms[22m[39m
  [32m✓[39m tests/unit/game/cameraDirector.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 8[2mms[22m[39m
- [32m✓[39m tests/integration/game/gameRuntime.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 18[2mms[22m[39m
- [32m✓[39m tests/unit/game/ballCorrection.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 15[2mms[22m[39m
- [32m✓[39m tests/unit/game/ballPhysics.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 10[2mms[22m[39m
- [32m✓[39m tests/unit/game/serveTrajectory.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 11[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/spikeWindow.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/matchStats.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
- [32m✓[39m tests/integration/game/baseRuntimeBlockGuard.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 14[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/render.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
- [32m✓[39m tests/integration/game/reworkPointReset.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 12[2mms[22m[39m
- [32m✓[39m tests/unit/game/landingAssist.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
- [32m✓[39m tests/unit/game/playerMotion.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 13[2mms[22m[39m
- [32m✓[39m tests/unit/app/ReworkTutorialScreen.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 103[2mms[22m[39m
- [32m✓[39m tests/integration/game/reworkMatchOver.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 12[2mms[22m[39m
- [32m✓[39m tests/unit/app/TutorialScreen.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 218[2mms[22m[39m
+ [32m✓[39m tests/unit/game/ballCorrection.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/game/ballPhysics.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/game/serveTrajectory.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/spikeWindow.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/matchStats.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/integration/game/baseRuntimeBlockGuard.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/render.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkPointReset.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/game/playerMotion.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/game/landingAssist.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/app/TutorialScreen.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 223[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkMatchOver.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/app/ReworkTutorialScreen.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 128[2mms[22m[39m
  [32m✓[39m tests/unit/game/scoring.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/haptics.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
- [32m✓[39m tests/unit/app/MatchFeedback.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 93[2mms[22m[39m
- [32m✓[39m tests/integration/game/playableRuntimeCarryover.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/haptics.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/app/MatchFeedback.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 83[2mms[22m[39m
+ [32m✓[39m tests/integration/game/playableRuntimeCarryover.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 8[2mms[22m[39m
  [32m✓[39m tests/unit/game/rework/receiveOwnership.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 7[2mms[22m[39m
- [32m✓[39m tests/unit/game/gesture.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
- [32m✓[39m tests/unit/game/blockPhysics.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/approachZone.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/game/gesture.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/game/blockPhysics.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/approachZone.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 15[2mms[22m[39m
  [32m✓[39m tests/unit/game/createMatch.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 9[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/formation.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 7[2mms[22m[39m
- [32m✓[39m tests/unit/app/ResultScreen.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 56[2mms[22m[39m
- [32m✓[39m tests/unit/app/App.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 354[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/toonPresentation.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
- [31m❯[39m tests/integration/app/matchFlow.test.tsx [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 491[2mms[22m[39m
-   [31m❯[39m application match flow [2m(2)[22m
-     [33m[2m✓[22m[39m moves from title to difficulty selection[33m 350[2mms[22m[39m
-[31m     [31m×[31m opens the match shell after selecting an unlocked difficulty[39m[32m 139[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/impactStyle.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/formation.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/app/ResultScreen.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 60[2mms[22m[39m
+ [32m✓[39m tests/integration/app/matchFlow.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 392[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/toonPresentation.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/app/App.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 356[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/impactStyle.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
  [32m✓[39m tests/unit/app/matchSeed.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
- [32m✓[39m tests/unit/ui/rework/ReworkHud.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 228[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/reworkCamera.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 8[2mms[22m[39m
- [32m✓[39m tests/unit/game/serve.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/ui/rework/ReworkHud.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 192[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/reworkCamera.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/game/serve.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 8[2mms[22m[39m
  [32m✓[39m tests/unit/game/rework/movement.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/courtLanding.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
- [32m✓[39m tests/unit/game/setContext.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/courtLanding.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/game/setContext.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/ui/rework/MovementStrip.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 84[2mms[22m[39m
  [32m✓[39m tests/unit/game/servePresentation.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
- [32m✓[39m tests/unit/ui/rework/MovementStrip.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 95[2mms[22m[39m
- [32m✓[39m tests/unit/app/matchFinishPresentation.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/serveStaging.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 6[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/tutorialStart.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 7[2mms[22m[39m
- [32m✓[39m tests/unit/game/rework/ballTrail.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
- [32m✓[39m tests/unit/app/matchViewport.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
- [32m✓[39m tests/unit/game/serveReadyMovement.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 9[2mms[22m[39m
- [32m✓[39m tests/unit/game/playerPresentation.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/app/matchFinishPresentation.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/serveStaging.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/tutorialStart.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/ballTrail.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/game/serveReadyMovement.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/app/matchViewport.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/game/playerPresentation.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
 
-[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+[2m Test Files [22m [1m[32m73 passed[39m[22m[90m (73)[39m
+[2m      Tests [22m [1m[32m235 passed[39m[22m[90m (235)[39m
+[2m   Start at [22m 07:45:44
+[2m   Duration [22m 30.95s[2m (environment 67%, setup 23%, tests 4%, transform 3%, import 2%, worker 1%)[22m
 
-[41m[1m FAIL [22m[49m tests/integration/app/matchFlow.test.tsx[2m > [22mapplication match flow[2m > [22mopens the match shell after selecting an unlocked difficulty
-[31m[1mTestingLibraryElementError[22m: Unable to find an element by: [data-testid="match-screen"]
-
-Ignored nodes: comments, script, style
-[36m<body>[31m
-  [36m<div>[31m
-    [36m<main[31m
-      [33mclass[31m=[32m"rework-match-screen"[31m
-      [33mdata-testid[31m=[32m"rework-match-screen"[31m
-    [36m>[31m
-      [36m<div[31m
-        [33mclass[31m=[32m"rework-match-scene"[31m
-      [36m/>[31m
-      [36m<div[31m
-        [33mclass[31m=[32m"rework-hud"[31m
-      [36m>[31m
-        [36m<div[31m
-          [33mclass[31m=[32m"rework-focus-id"[31m
-        [36m>[31m
-          [36m<small>[31m
-            [0mACE / FOCUS[0m
-          [36m</small>[31m
-          [36m<strong>[31m
-            [0mKAI[0m
-          [36m</strong>[31m
-        [36m</div>[31m
-        [36m<div[31m
-          [33maria-label[31m=[32m"PLAYER 0 CPU 0"[31m
-          [33mclass[31m=[32m"rework-score"[31m
-        [36m>[31m
-          [36m<span>[31m
-            [0mPLAYER[0m
-          [36m</span>[31m
-          [36m<strong>[31m
-            [0m0[0m
-          [36m</strong>[31m
-          [36m<i>[31m
-            [0m15 PT[0m
-          [36m</i>[31m
-          [36m<strong>[31m
-            [0m0[0m
-          [36m</strong>[31m
-          [36m<span>[31m
-            [0mCPU[0m
-          [36m</span>[31m
-        [36m</div>[31m
-        [36m<div[31m
-          [33mclass[31m=[32m"rework-hud__movement"[31m
-        [36m>[31m
-          [36m<div[31m
-            [33mclass[31m=[32m"rework-movement-strip"[31m
-            [33mdata-testid[31m=[32m"rework-movement-strip"[31m
-          [36m>[31m
-            [36m<div[31m
-              [33mclass[31m=[32m"rework-movement-strip__guide"[31m
-            [36m>[31m
-              [36m<span>[31m
-                [0mBACK[0m
-              [36m</span>[31m
-              [36m<i[31m
-                [33mstyle[31m=[32m"transform: translateX(0px);"[31m
-              [36m/>[31m
-              [36m<span>[31m
-                [0mNET[0m
-              [36m</span>[31m
-            [36m</div>[31m
-          [36m</div>[31m
-        [36m</div>[31m
-        [36m<div[31m
-          [33mclass[31m=[32m"rework-hud__actions"[31m
-        [36m>[31m
-          [36m<div[31m
-            [33mclass[31m=[32m"rework-action-pad"[31m
-          [36m>[31m
-            [36m<button[31m
-              [33maria-label[31m=[32m"PLAY READY"[31m
-              [33mclass[31m=[32m"rework-action rework-action--play"[31m
-              [33mtype[31m=[32m"button"[31m
-            [36m>[31m
-              [36m<strong>[31m
-                [0mPLAY[0m
-              [36m</strong>[31m
-              [36m<span>[31m
-                [0mREADY[0m
-              [36m</span>[31m
-            [36m</button>[31m
-            [36m<button[31m
-              [33maria-label[31m=[32m"POWER SERVE"[31m
-              [33mclass[31m=[32m"rework-action rework-action--power is-ready"[31m
-              [33mtype[31m=[32m"button"[31m
-            [36m>[31m
-              [36m<strong>[31m
-                [0mPOWER[0m
-              [36m</strong>[31m
-              [36m<span>[31m
-                [0mSERVE[0m
-              [36m</span>[31m
-            [36m</button>[31m
-          [36m</div>[31m
-        [36m</div>[31m
-      [36m</div>[31m
-      [36m<aside[31m
-        [33mclass[31m=[32m"rework-tutorial"[31m
-      [36m>[31m
-        [36m<span>[31m
-          [0mQUICK START [0m
-          [0m1[0m
-          [0m/[0m
-          [0m3[0m
-        [36m</span>[31m
-        [36m<strong>[31m
-          [0mPLAYで拾う[0m
-        [36m</strong>[31m
-        [36m<p>[31m
-          [0m左側を横ドラッグしてボールへ寄り、腕に入る瞬間にPLAY。[0m
-        [36m</p>[31m
-        [36m<button[31m
-          [33mtype[31m=[32m"button"[31m
-        [36m>[31m
-          [0mSKIP[0m
-        [36m</button>[31m
-      [36m</aside>[31m
-    [36m</main>[31m
-  [36m</div>[31m
-[36m</body>[31m[39m
-[90m [2m❯[22m Object.getElementError node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
-[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m76:38[22m[39m
-[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m52:17[22m[39m
-[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
-[36m [2m❯[22m tests/integration/app/matchFlow.test.tsx:[2m22:19[22m[39m
-    [90m 20|[39m     fireEvent.click(screen.getByRole('button', { name: 'CPU MATCH' }));
-    [90m 21|[39m     fireEvent.click(screen.getByRole('button', { name: /NORMAL/ }));
-    [90m 22|[39m     expect(screen.getByTestId('match-screen')).toBeInTheDocument();
-    [90m   |[39m                   [31m^[39m
-    [90m 23|[39m     expect(screen.getByText(/TUTORIAL/)).toBeInTheDocument();
-    [90m 24|[39m   });
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
-
-
-[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m72 passed[39m[22m[90m (73)[39m
-[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m234 passed[39m[22m[90m (235)[39m
-[2m   Start at [22m 07:43:15
-[2m   Duration [22m 32.10s[2m (environment 66%, setup 23%, tests 4%, transform 3%, import 2%, worker 1%)[22m
-
-[2mEnvironment [22m [33mjsdom was created 73 times[39m[2m · 54.69s total, 66% of tracked time[22m
+[2mEnvironment [22m [33mjsdom was created 73 times[39m[2m · 53.12s total, 67% of tracked time[22m
 [2m            [22m [2mcreate it once per worker with [22m[33mpool: 'vmThreads'[39m[2m (keeps per-file isolation) or [22m[33misolate: false[39m[2m (shares it across files)[22m
 [2m            [22m [2mlearn more: https://vitest.dev/guide/improving-performance#test-environments[22m
 
-
-::error file=/home/runner/work/volleyball_game/volleyball_game/tests/integration/app/matchFlow.test.tsx,title=tests/integration/app/matchFlow.test.tsx > application match flow > opens the match shell after selecting an unlocked difficulty,line=22,column=19::TestingLibraryElementError: Unable to find an element by: [data-testid="match-screen"]%0A%0AIgnored nodes: comments, script, style%0A<body>%0A  <div>%0A    <main%0A      class="rework-match-screen"%0A      data-testid="rework-match-screen"%0A    >%0A      <div%0A        class="rework-match-scene"%0A      />%0A      <div%0A        class="rework-hud"%0A      >%0A        <div%0A          class="rework-focus-id"%0A        >%0A          <small>%0A            ACE / FOCUS%0A          </small>%0A          <strong>%0A            KAI%0A          </strong>%0A        </div>%0A        <div%0A          aria-label="PLAYER 0 CPU 0"%0A          class="rework-score"%0A        >%0A          <span>%0A            PLAYER%0A          </span>%0A          <strong>%0A            0%0A          </strong>%0A          <i>%0A            15 PT%0A          </i>%0A          <strong>%0A            0%0A          </strong>%0A          <span>%0A            CPU%0A          </span>%0A        </div>%0A        <div%0A          class="rework-hud__movement"%0A        >%0A          <div%0A            class="rework-movement-strip"%0A            data-testid="rework-movement-strip"%0A          >%0A            <div%0A              class="rework-movement-strip__guide"%0A            >%0A              <span>%0A                BACK%0A              </span>%0A              <i%0A                style="transform: translateX(0px);"%0A              />%0A              <span>%0A                NET%0A              </span>%0A            </div>%0A          </div>%0A        </div>%0A        <div%0A          class="rework-hud__actions"%0A        >%0A          <div%0A            class="rework-action-pad"%0A          >%0A            <button%0A              aria-label="PLAY READY"%0A              class="rework-action rework-action--play"%0A              type="button"%0A            >%0A              <strong>%0A                PLAY%0A              </strong>%0A              <span>%0A                READY%0A              </span>%0A            </button>%0A            <button%0A              aria-label="POWER SERVE"%0A              class="rework-action rework-action--power is-ready"%0A              type="button"%0A            >%0A              <strong>%0A                POWER%0A              </strong>%0A              <span>%0A                SERVE%0A              </span>%0A            </button>%0A          </div>%0A        </div>%0A      </div>%0A      <aside%0A        class="rework-tutorial"%0A      >%0A        <span>%0A          QUICK START %0A          1%0A          /%0A          3%0A        </span>%0A        <strong>%0A          PLAYで拾う%0A        </strong>%0A        <p>%0A          左側を横ドラッグしてボールへ寄り、腕に入る瞬間にPLAY。%0A        </p>%0A        <button%0A          type="button"%0A        >%0A          SKIP%0A        </button>%0A      </aside>%0A    </main>%0A  </div>%0A</body>%0A ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19%0A ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38%0A ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17%0A ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19%0A ❯ tests/integration/app/matchFlow.test.tsx:22:19%0A%0A
