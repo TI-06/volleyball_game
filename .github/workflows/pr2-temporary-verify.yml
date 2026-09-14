@@ -1,0 +1,62 @@
+name: PR2 Temporary Verification
+
+on:
+  push:
+    branches:
+      - feat/gameplay-rework-2-5d
+    paths:
+      - .github/workflows/pr2-temporary-verify.yml
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+
+      - name: Verify without failing the workflow
+        shell: bash
+        run: |
+          set +e
+
+          npm install --no-audit --no-fund
+          install_exit=$?
+
+          playwright_exit=99
+          verify_exit=99
+
+          if [ "$install_exit" -eq 0 ]; then
+            npx playwright install --with-deps chromium
+            playwright_exit=$?
+          fi
+
+          if [ "$install_exit" -eq 0 ] && [ "$playwright_exit" -eq 0 ]; then
+            npm run verify:full
+            verify_exit=$?
+          fi
+
+          printf 'head_before=%s\ninstall_exit=%s\nplaywright_install_exit=%s\nverify_full_exit=%s\n' \
+            "${GITHUB_SHA}" "$install_exit" "$playwright_exit" "$verify_exit" \
+            > .pr2-verification-result.txt
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .pr2-verification-result.txt
+
+          if [ "$install_exit" -eq 0 ] && [ "$playwright_exit" -eq 0 ] && [ "$verify_exit" -eq 0 ] && [ -f package-lock.json ]; then
+            git add package-lock.json
+          fi
+
+          git commit -m 'chore: record PR2 verification result [skip ci]'
+          git push
+
+          exit 0
