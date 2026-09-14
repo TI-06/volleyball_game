@@ -78,7 +78,7 @@ test('smartphone landscape enters the 2.5d match with fixed PLAY and POWER contr
   }
 });
 
-test('mobile match serves, scores, reaches result, and rematches without replaying tutorial', async ({ page }) => {
+test('mobile match serves, scores, reaches result, and rematches without replaying tutorial', async ({ page }, testInfo) => {
   await seedTutorialComplete(page);
   await page.goto('/?e2e=1');
   await enterNormalMatch(page);
@@ -87,12 +87,28 @@ test('mobile match serves, scores, reaches result, and rematches without replayi
   const score = page.locator('.rework-score');
   await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
 
+  await page.screenshot({
+    path: `test-results/visual-audit/${testInfo.project.name}-serve-ready.png`,
+    fullPage: true,
+  });
+
   const servePower = page.getByRole('button', { name: /POWER SERVE/i });
   await expect(servePower).toBeVisible();
   await servePower.tap();
 
+  await page.waitForTimeout(450);
+  await page.screenshot({
+    path: `test-results/visual-audit/${testInfo.project.name}-serve-flight.png`,
+    fullPage: true,
+  });
+
   await expect(score).not.toHaveAttribute('aria-label', 'PLAYER 0 CPU 0', { timeout: 12_000 });
   await expect(page.getByTestId('rework-match-screen')).toBeVisible();
+
+  await page.screenshot({
+    path: `test-results/visual-audit/${testInfo.project.name}-after-point.png`,
+    fullPage: true,
+  });
 
   await page.evaluate(() => {
     const bridge = (window as typeof window & {
