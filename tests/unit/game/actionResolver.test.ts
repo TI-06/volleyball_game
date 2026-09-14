@@ -30,19 +30,49 @@ describe('resolveAction', () => {
     expect(resolveAction(diveState, 'home-0')).toBe('DIVE');
   });
 
-  it('offers set to a setter under a playable ball', () => {
+  it('offers set to the setter after a teammate first touch', () => {
     const base = createMatch(1);
     const state = {
       ...base,
       rally: { ...base.rally, phase: 'RALLY' as const },
+      players: base.players.map((player) =>
+        player.id === 'home-1'
+          ? { ...player, position: { x: 0, y: 0, z: -1.2 } }
+          : player,
+      ),
       ball: {
         ...base.ball,
         inPlay: true,
-        position: { x: 0, y: 1.6, z: -5.2 },
+        lastTouchedBy: 'home-2',
+        lastContact: 'RECEIVE' as const,
+        position: { x: 0, y: 1.6, z: -1.2 },
         velocity: { x: 0, y: 1, z: 0 },
       },
     };
     expect(resolveAction(state, 'home-1')).toBe('SET');
+  });
+
+  it('offers an emergency set to a non-setter when REN made the first touch', () => {
+    const base = createMatch(1);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      players: base.players.map((player) =>
+        player.id === 'home-2'
+          ? { ...player, position: { x: 0.4, y: 0, z: -1.4 } }
+          : player,
+      ),
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-1',
+        lastContact: 'RECEIVE' as const,
+        position: { x: 0.45, y: 1.7, z: -1.35 },
+        velocity: { x: 0, y: 1.2, z: 0.1 },
+      },
+    };
+
+    expect(resolveAction(state, 'home-2')).toBe('SET');
   });
 
   it('keeps a descending teammate set in jump context instead of receive', () => {
