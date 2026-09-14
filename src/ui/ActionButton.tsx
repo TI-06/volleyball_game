@@ -2,6 +2,8 @@ import { useEffect, useRef, type PointerEvent } from 'react';
 import { isGestureAction } from '../game/input/gesture';
 import type { ActionKind, SwipeInput } from '../game/input/inputTypes';
 
+const SAME_ACTION_RETRY_MS = 180;
+
 const ACTION_ICON: Record<ActionKind, string> = {
   SERVE: '↗',
   RECEIVE: '⌄',
@@ -25,11 +27,18 @@ interface PointerStart {
   at: number;
   action: ActionKind;
   gesture: boolean;
+  committed: boolean;
+}
+
+interface LastCommit {
+  action: ActionKind;
+  at: number;
 }
 
 export function ActionButton({ action, onPress, onRelease, onGesture }: ActionButtonProps) {
   const activePointerId = useRef<number | null>(null);
   const pointerStart = useRef<PointerStart | null>(null);
+  const lastCommit = useRef<LastCommit | null>(null);
 
   useEffect(() => {
     const start = pointerStart.current;
@@ -43,6 +52,19 @@ export function ActionButton({ action, onPress, onRelease, onGesture }: ActionBu
 
   if (!action) return null;
   const gestureAction = isGestureAction(action);
+
+  const claimCommit = (nextAction: ActionKind): boolean => {
+    const now = performance.now();
+    const previous = lastCommit.current;
+    if (
+      previous?.action === nextAction &&
+      now - previous.at < SAME_ACTION_RETRY_MS
+    ) {
+      return false;
+    }
+    lastCommit.current = { action: nextAction, at: now };
+    return true;
+  };
 
   const releaseCapture = (event: PointerEvent<HTMLButtonElement>) => {
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
@@ -67,14 +89,23 @@ export function ActionButton({ action, onPress, onRelease, onGesture }: ActionBu
         if (activePointerId.current !== null) return;
         activePointerId.current = event.pointerId;
         event.currentTarget.setPointerCapture?.(event.pointerId);
-        pointerStart.current = {
+        const start: PointerStart = {
           x: event.clientX,
           y: event.clientY,
           at: performance.now(),
           action,
           gesture: gestureAction,
+          committed: false,
         };
+        pointerStart.current = start;
         if (!gestureAction) {
+          if (!claimCommit(action)) {
+            activePointerId.current = null;
+            pointerStart.current = null;
+            releaseCapture(event);
+            return;
+          }
+          start.committed = true;
           onPress(action);
         }
       }}
@@ -89,16 +120,20 @@ export function ActionButton({ action, onPress, onRelease, onGesture }: ActionBu
             durationMs: Math.max(0, performance.now() - start.at),
           };
           clearPointer(event);
-          onGesture?.(start.action, swipe);
+          if (claimCommit(start.action)) {
+            onGesture?.(start.action, swipe);
+          }
           return;
         }
 
         clearPointer(event);
-        onRelease?.(start.action);
+        if (start.committed) {
+          onRelease?.(start.action);
+        }
       }}
       onPointerCancel={(event) => {
         const start = clearPointer(event);
-        if (start && !start.gesture) {
+        if (start && !start.gesture && start.committed) {
           onRelease?.(start.action);
         }
       }}
