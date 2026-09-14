@@ -87,6 +87,14 @@ describe('MOTION_CLIPS', () => {
     }
   });
 
+  it('keeps serve-ready arms compact instead of returning to a T-pose', () => {
+    const first = MOTION_CLIPS.serve_ready.keyframes[0].joints;
+    expect(first.shoulderL?.rotation ?? 0).toBeGreaterThanOrEqual(0.75);
+    expect(first.shoulderR?.rotation ?? 0).toBeLessThanOrEqual(-0.75);
+    expect(first.elbowL?.rotation ?? 0).toBeLessThanOrEqual(-0.45);
+    expect(first.elbowR?.rotation ?? 0).toBeGreaterThanOrEqual(0.45);
+  });
+
   it('encodes readable volleyball silhouettes instead of generic pose swaps', () => {
     const receive = MOTION_CLIPS.receive_contact.keyframes;
     const plant = MOTION_CLIPS.spike_plant.keyframes;
