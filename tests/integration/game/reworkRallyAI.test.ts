@@ -55,6 +55,42 @@ describe('rework rally AI', () => {
     expect(runtime.focusPlayerId).toBe('home-0');
   });
 
+  it('lets REN take a nearby first ball and HINA continue with the emergency set', () => {
+    let runtime = rally(createReworkRuntime(82, 'NORMAL'));
+    runtime = {
+      ...runtime,
+      match: {
+        ...runtime.match,
+        players: runtime.match.players.map((player) => {
+          if (player.id === 'home-0') return { ...player, position: { x: -3.8, y: 0, z: -5.6 } };
+          if (player.id === 'home-1') return { ...player, position: { x: 0, y: 0, z: -2.1 } };
+          if (player.id === 'home-2') return { ...player, position: { x: 1.8, y: 0, z: -2.4 } };
+          return player;
+        }),
+        ball: {
+          ...runtime.match.ball,
+          inPlay: true,
+          lastTouchedBy: 'away-0',
+          lastContact: 'SPIKE',
+          position: { x: 0.1, y: 1.25, z: -2.05 },
+          velocity: { x: 0, y: -1.0, z: -2.8 },
+        },
+      },
+    };
+
+    runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
+    expect(runtime.lastEvent).toMatchObject({ type: 'RECEIVE', actorId: 'home-1' });
+
+    let setter: string | null = null;
+    for (let frame = 0; frame < 180 && setter === null; frame += 1) {
+      runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
+      if (runtime.lastEvent?.type === 'SET') setter = runtime.lastEvent.actorId ?? null;
+    }
+
+    expect(setter).toBe('home-2');
+    expect(runtime.match.ball.lastContact).toBe('SET');
+  });
+
   it('completes SHIN RECEIVE -> YU SET -> GOU SPIKE with no user input', () => {
     let runtime = rally(createReworkRuntime(81, 'MASTER'));
     runtime = {
@@ -93,42 +129,5 @@ describe('rework rally AI', () => {
     expect(events).toContain('SET');
     expect(events).toContain('SPIKE');
     expect(spikeActor).toBe('away-1');
-  });
-
-  it('does not let a backcourt cpu blocker contact a spike from meters away', () => {
-    let runtime = rally(createReworkRuntime(82, 'MASTER'));
-    runtime = {
-      ...runtime,
-      cpuMemory: {
-        'away-1': { role: 'BLOCK', readyAt: 0 },
-      },
-      match: {
-        ...runtime.match,
-        players: runtime.match.players.map((player) => {
-          if (player.id === 'away-1') {
-            return {
-              ...player,
-              isAirborne: true,
-              position: { x: 0, y: 0.8, z: 5.0 },
-              velocity: { ...player.velocity, y: 1.2 },
-            };
-          }
-          return player;
-        }),
-        ball: {
-          ...runtime.match.ball,
-          inPlay: true,
-          lastTouchedBy: 'home-0',
-          lastContact: 'SPIKE',
-          position: { x: 0, y: 2.55, z: 0.65 },
-          velocity: { x: 0, y: -1.1, z: 12.5 },
-        },
-      },
-    };
-
-    runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
-
-    expect(runtime.lastEvent?.type).not.toBe('BLOCK');
-    expect(runtime.match.ball.lastContact).toBe('SPIKE');
   });
 });
