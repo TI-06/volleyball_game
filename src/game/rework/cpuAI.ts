@@ -15,6 +15,7 @@ export interface ReworkCpuDecision {
 
 const EMPTY_HISTORY = createTendencyHistory();
 const AWAY_ATTACK_CONTACT_Z = 0.72;
+const CPU_BLOCK_READY_Z = 1.8;
 
 function mapRole(state: ReturnType<typeof decideCpuIntent>['state']): ReworkCpuRole {
   return state === 'RECOVER' ? 'COVER' : state;
@@ -54,6 +55,25 @@ function keepSetTargetAttacker(
   );
 }
 
+function requireNetApproachBeforeBlock(
+  state: MatchState,
+  decision: ReworkCpuDecision,
+): ReworkCpuDecision {
+  if (decision.role !== 'BLOCK') return decision;
+  const player = state.players.find((candidate) => candidate.id === decision.playerId);
+  if (!player || player.position.z <= CPU_BLOCK_READY_Z) return decision;
+
+  return {
+    ...decision,
+    role: 'APPROACH',
+    target: {
+      x: decision.target.x,
+      y: 0,
+      z: 1.05,
+    },
+  };
+}
+
 export function decideCpuRoles(
   state: MatchState,
   difficulty: CpuDifficulty,
@@ -63,13 +83,13 @@ export function decideCpuRoles(
     .filter((player) => player.side === 'away')
     .map((player) => {
       const intent = decideCpuIntent(state, player.id, profile, EMPTY_HISTORY);
-      return {
+      return requireNetApproachBeforeBlock(state, {
         playerId: player.id,
         role: mapRole(intent.state),
         target: intent.target,
         attackIntent: intent.attackIntent,
         reactionDelay: intent.reactionDelay,
-      };
+      });
     });
 
   return keepSetTargetAttacker(state, decisions);
