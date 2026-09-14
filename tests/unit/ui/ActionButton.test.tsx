@@ -78,4 +78,70 @@ describe('ActionButton', () => {
 
     expect(onGesture).not.toHaveBeenCalled();
   });
+
+  it('suppresses an immediate repeated press of the same contextual action', () => {
+    const onPress = vi.fn();
+    const view = render(
+      <ActionButton
+        action="RECEIVE"
+        onPress={onPress}
+        onRelease={vi.fn()}
+        onGesture={vi.fn()}
+      />,
+    );
+
+    fireEvent.pointerDown(screen.getByRole('button'), { pointerId: 4 });
+    fireEvent.pointerUp(screen.getByRole('button'), { pointerId: 4 });
+    fireEvent.pointerDown(screen.getByRole('button'), { pointerId: 5 });
+    fireEvent.pointerUp(screen.getByRole('button'), { pointerId: 5 });
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+
+    view.rerender(
+      <ActionButton
+        action="JUMP"
+        onPress={onPress}
+        onRelease={vi.fn()}
+        onGesture={vi.fn()}
+      />,
+    );
+    fireEvent.pointerDown(screen.getByRole('button'), { pointerId: 6 });
+    expect(onPress).toHaveBeenCalledTimes(2);
+    expect(onPress).toHaveBeenLastCalledWith('JUMP');
+  });
+
+  it('suppresses an immediate repeated gesture of the same contextual action', () => {
+    const onGesture = vi.fn();
+    render(
+      <ActionButton
+        action="SET"
+        onPress={vi.fn()}
+        onRelease={vi.fn()}
+        onGesture={onGesture}
+      />,
+    );
+
+    fireEvent.pointerDown(screen.getByRole('button'), {
+      pointerId: 7,
+      clientX: 100,
+      clientY: 100,
+    });
+    fireEvent.pointerUp(screen.getByRole('button'), {
+      pointerId: 7,
+      clientX: 140,
+      clientY: 80,
+    });
+    fireEvent.pointerDown(screen.getByRole('button'), {
+      pointerId: 8,
+      clientX: 100,
+      clientY: 100,
+    });
+    fireEvent.pointerUp(screen.getByRole('button'), {
+      pointerId: 8,
+      clientX: 150,
+      clientY: 70,
+    });
+
+    expect(onGesture).toHaveBeenCalledTimes(1);
+  });
 });
