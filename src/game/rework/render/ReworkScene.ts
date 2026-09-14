@@ -4,6 +4,7 @@ import { COURT } from '../../core/constants';
 import type { MatchState, PlayerState } from '../../core/types';
 import { BallView } from '../../render/BallView';
 import type { ReworkEvent } from '../types';
+import { ReworkBallTrail } from './ReworkBallTrail';
 import { getReworkCameraFrame, type ReworkCameraFrame } from './ReworkCamera';
 import { ReworkCourtView } from './ReworkCourtView';
 import { ReworkImpactEffects } from './ReworkImpactEffects';
@@ -59,6 +60,7 @@ export class ReworkScene {
   private readonly court = new ReworkCourtView();
   private readonly markers = new ReworkMarkers();
   private readonly impacts = new ReworkImpactEffects();
+  private readonly ballTrail = new ReworkBallTrail();
   private readonly ball = new BallView();
   private readonly players = new Map<string, ToonPlayerProxy>();
   private readonly resizeObserver: ResizeObserver;
@@ -83,6 +85,7 @@ export class ReworkScene {
     this.scene.add(this.court.group);
     this.scene.add(this.markers.group);
     this.scene.add(this.impacts.group);
+    this.scene.add(this.ballTrail.group);
     this.scene.add(this.ball.mesh);
 
     const hemi = new THREE.HemisphereLight(0xd9f6ff, 0x111018, 2.15);
@@ -107,6 +110,7 @@ export class ReworkScene {
     }
 
     this.ball.update(initialState.ball);
+    this.ballTrail.update(initialState.ball);
     applyCameraFrame(this.camera, getReworkCameraFrame(initialState));
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
@@ -184,6 +188,7 @@ export class ReworkScene {
     } else {
       this.ball.update(state.ball);
     }
+    this.ballTrail.update(state.ball);
 
     this.markers.update(getReworkMarkerState(state, this.focusPlayerId), state.time);
     this.impacts.update(now);
@@ -207,6 +212,7 @@ export class ReworkScene {
     this.court.dispose();
     this.markers.dispose();
     this.impacts.dispose();
+    this.ballTrail.dispose();
     this.ball.mesh.geometry.dispose();
     const ballMaterial = this.ball.mesh.material;
     if (Array.isArray(ballMaterial)) ballMaterial.forEach((material) => material.dispose());
