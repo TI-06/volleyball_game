@@ -17,6 +17,7 @@ interface ResolvedKeyframe {
 }
 
 const CONTACT_WINDOW = 0.05;
+const IDLE_SHOULDER_DROP = 0.4;
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
@@ -58,9 +59,20 @@ function blendPoses(
   ) as Record<JointName, JointTransform>;
 }
 
+function applyPresentationPose(
+  clip: MotionClip,
+  pose: Record<JointName, JointTransform>,
+): Record<JointName, JointTransform> {
+  if (clip.id !== 'idle_ready') return pose;
+  const styled = clonePose(pose);
+  styled.shoulderL.rotation += IDLE_SHOULDER_DROP;
+  styled.shoulderR.rotation -= IDLE_SHOULDER_DROP;
+  return styled;
+}
+
 function resolveKeyframes(clip: MotionClip): ResolvedKeyframe[] {
   if (clip.keyframes.length === 0) {
-    return [{ at: 0, pose: cloneRigPose() }];
+    return [{ at: 0, pose: applyPresentationPose(clip, cloneRigPose()) }];
   }
 
   const sorted = [...clip.keyframes].sort((a, b) => a.at - b.at);
@@ -75,7 +87,7 @@ function resolveKeyframes(clip: MotionClip): ResolvedKeyframe[] {
     }
     return {
       at: clamp01(keyframe.at),
-      pose: clonePose(working),
+      pose: applyPresentationPose(clip, clonePose(working)),
     };
   });
 }
