@@ -69,6 +69,7 @@ describe('rework POWER controls', () => {
     expect(runtime.match.ball.lastContact).toBe('SERVE');
     expect(runtime.match.ball.lastTouchedBy).toBe('home-0');
     expect(runtime.match.ball.velocity.z).toBeGreaterThan(0);
+    expect(runtime.match.ball.velocity.x).toBeLessThan(0);
     expect(runtime.powerHoldStartedAt).toBeNull();
   });
 
