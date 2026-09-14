@@ -1,5 +1,6 @@
 import { predictLanding } from '../ball/ballPhysics';
 import { STARTER_ROSTER, type CharacterId } from '../characters/roster';
+import { COURT } from '../core/constants';
 import type { MatchState, PlayerState } from '../core/types';
 
 export type HomeReceiveOwner = 'home-0' | 'home-1' | 'home-2';
@@ -20,8 +21,18 @@ function receiveScore(player: PlayerState, landingX: number, landingZ: number): 
   return distance - receiveAbility(player) * RECEIVE_ABILITY_DISTANCE_BONUS - focusBias;
 }
 
-export function chooseHomeReceiveOwner(state: MatchState): HomeReceiveOwner {
+function landsInsideHomeCourt(x: number, z: number): boolean {
+  return (
+    Math.abs(x) <= COURT.width / 2 &&
+    z <= 0 &&
+    z >= -COURT.length / 2
+  );
+}
+
+export function chooseHomeReceiveOwner(state: MatchState): HomeReceiveOwner | null {
   const landing = predictLanding(state.ball);
+  if (!landsInsideHomeCourt(landing.x, landing.z)) return null;
+
   const candidates = state.players.filter(
     (player): player is PlayerState & { id: HomeReceiveOwner } =>
       player.id === 'home-0' || player.id === 'home-1' || player.id === 'home-2',
