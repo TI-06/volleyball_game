@@ -64,7 +64,19 @@ export class ReworkCourtView {
       this.group.add(makeLine([
         new THREE.Vector3(-halfWidth, y, z),
         new THREE.Vector3(halfWidth, y, z),
-      ], 0xc8e6ef, 0.38));
+      ], 0xc8e6ef, 0.56));
+    }
+
+    // Short service-zone ticks make the end line read like a volleyball court
+    // without adding visual noise across the rally area.
+    for (const z of [-halfLength, halfLength]) {
+      const outward = z < 0 ? -1 : 1;
+      for (const x of [-halfWidth, halfWidth]) {
+        this.group.add(makeLine([
+          new THREE.Vector3(x, y, z),
+          new THREE.Vector3(x, y, z + outward * 0.34),
+        ], white, 0.72));
+      }
     }
 
     const netTop = COURT.netHeight;
@@ -97,15 +109,44 @@ export class ReworkCourtView {
       ]);
       this.group.add(new THREE.Line(geometry, netMaterial));
     }
+
+    // Volleyball-specific red/white antennas above both sidelines.
+    const antennaSegmentHeight = 0.16;
+    const antennaSegments = 5;
+    for (const x of [-halfWidth, halfWidth]) {
+      for (let index = 0; index < antennaSegments; index += 1) {
+        const material = new THREE.MeshStandardMaterial({
+          color: index % 2 === 0 ? 0xff4f52 : 0xf5fbff,
+          roughness: 0.48,
+          emissive: index % 2 === 0 ? 0x351014 : 0x182025,
+          emissiveIntensity: 0.16,
+        });
+        const segment = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.018, 0.018, antennaSegmentHeight, 8),
+          material,
+        );
+        segment.position.set(
+          x,
+          netTop + antennaSegmentHeight * (index + 0.5),
+          0,
+        );
+        this.group.add(segment);
+      }
+    }
   }
 
   dispose(): void {
+    const disposedMaterials = new Set<THREE.Material>();
     this.group.traverse((object) => {
       if (object instanceof THREE.Mesh || object instanceof THREE.Line) {
         object.geometry.dispose();
         const material = object.material;
-        if (Array.isArray(material)) material.forEach((item) => item.dispose());
-        else material.dispose();
+        const materials = Array.isArray(material) ? material : [material];
+        for (const item of materials) {
+          if (disposedMaterials.has(item)) continue;
+          item.dispose();
+          disposedMaterials.add(item);
+        }
       }
     });
   }
