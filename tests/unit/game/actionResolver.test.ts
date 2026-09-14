@@ -98,6 +98,29 @@ describe('resolveAction', () => {
     expect(resolveAction(state, 'home-0')).toBe('JUMP');
   });
 
+  it('does not offer attack jump after a teammate set has crossed the net', () => {
+    const base = createMatch(1);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      players: base.players.map((player) =>
+        player.id === 'home-0'
+          ? { ...player, position: { x: -0.4, y: 0, z: -0.55 } }
+          : player,
+      ),
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-1',
+        lastContact: 'SET' as const,
+        position: { x: -0.3, y: 2.8, z: 0.35 },
+        velocity: { x: 0, y: -0.4, z: 0.8 },
+      },
+    };
+
+    expect(resolveAction(state, 'home-0')).toBeNull();
+  });
+
   it('uses jump on the ground and block only after the defender is airborne', () => {
     const base = createMatch(1);
     const groundState = {
