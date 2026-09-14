@@ -1,3 +1,5 @@
+import { performSet } from '../actions/set';
+import { DIFFICULTY_PROFILES } from '../ai/difficulty';
 import { getMovementProfile } from '../characters/abilities';
 import { STARTER_ROSTER, type CharacterId } from '../characters/roster';
 import type { PlayerState } from '../core/types';
@@ -103,6 +105,107 @@ function clearStaleBlockIntent(
 
 function horizontalDistance(player: PlayerState, x: number, z: number): number {
   return Math.hypot(player.position.x - x, player.position.z - z);
+}
+
+function cpuTimingError(runtime: MatchRuntimeState): number {
+  const profile = DIFFICULTY_PROFILES[runtime.difficulty];
+  return (profile.predictionError + profile.decisionNoise) * 0.055;
+}
+
+function chooseSetAttacker(runtime: MatchRuntimeState): PlayerState | null {
+  const { ball } = runtime.match;
+  return (
+    [...runtime.match.players]
+      .filter(
+        (player) =>
+          player.side === 'away' &&
+          (player.role === 'ACE' || player.role === 'MIDDLE'),
+      )
+      .sort(
+        (a, b) =>
+          Math.abs(a.position.x - ball.position.x) -
+          Math.abs(b.position.x - ball.position.x),
+      )[0] ?? null
+  );
+}
+
+function settableCpuContact(runtime: MatchRuntimeState): boolean {
+  const contact = runtime.match.ball.lastContact;
+  return contact === 'RECEIVE' || contact === 'DIVE' || contact === 'BLOCK';
+}
+
+function performLateCpuSet(runtime: MatchRuntimeState): {
+  runtime: MatchRuntimeState;
+  event: RuntimeEvent | null;
+} {
+  const { match } = runtime;
+  const { ball } = match;
+  if (
+    match.rally.phase !== 'RALLY' ||
+    ball.position.z < 0 ||
+    ball.position.y < 0.8 ||
+    ball.position.y > 3 ||
+    ball.velocity.y > 0.15 ||
+    !(ball.lastTouchedBy?.startsWith('away-') ?? false) ||
+    !settableCpuContact(runtime)
+  ) {
+    return { runtime, event: null };
+  }
+
+  const setter = match.players.find(
+    (player) => player.side === 'away' && player.role === 'SETTER',
+  );
+  if (!setter) return { runtime, event: null };
+
+  const memories = cpuMemories(runtime);
+  const setterMemory = memories[setter.id];
+  if (
+    setterMemory?.intent.state !== 'SET' ||
+    match.time < setterMemory.actionReadyAt ||
+    horizontalDistance(setter, ball.position.x, ball.position.z) > 2.55
+  ) {
+    return { runtime, event: null };
+  }
+
+  const attacker = chooseSetAttacker(runtime);
+  if (!attacker) return { runtime, event: null };
+
+  const tempo = runtime.difficulty === 'BEGINNER'
+    ? 'HIGH'
+    : runtime.difficulty === 'MASTER'
+      ? 'QUICK'
+      : 'NORMAL';
+  const result = performSet(
+    ball,
+    characterFor(setter),
+    setter.id,
+    { x: attacker.position.x, y: 3.15, z: 0.8 },
+    cpuTimingError(runtime),
+    tempo,
+  );
+
+  const nextMemories: Record<string, CpuMemoryShape> = { ...memories };
+  nextMemories[setter.id] = {
+    ...setterMemory,
+    actionReadyAt: match.time + setterMemory.intent.reactionDelay,
+  };
+  for (const player of match.players) {
+    if (
+      player.side === 'away' &&
+      (player.role === 'ACE' || player.role === 'MIDDLE')
+    ) {
+      delete nextMemories[player.id];
+    }
+  }
+
+  return {
+    runtime: {
+      ...runtime,
+      match: { ...match, ball: result.ball },
+      cpuDecisions: nextMemories as MatchRuntimeState['cpuDecisions'],
+    },
+    event: { type: 'SET', actorId: setter.id, quality: result.quality },
+  };
 }
 
 function startCpuJump(
@@ -236,14 +339,20 @@ export function stepMatchRuntime(
   dt: number,
 ): MatchRuntimeState {
   const guarded = clearStaleBlockIntent(source, input);
-  const prepared = prepareCpuJump(guarded);
+  const lateSet = performLateCpuSet(guarded);
+  const prepared = prepareCpuJump(lateSet.runtime);
   const stepped = stepBaseRuntime(prepared.runtime, input, dt);
 
-  if (prepared.jumperId && stepped.lastEvent === null) {
-    return {
-      ...stepped,
-      lastEvent: { type: 'JUMP', actorId: prepared.jumperId },
-    };
+  if (stepped.lastEvent === null) {
+    if (prepared.jumperId) {
+      return {
+        ...stepped,
+        lastEvent: { type: 'JUMP', actorId: prepared.jumperId },
+      };
+    }
+    if (lateSet.event) {
+      return { ...stepped, lastEvent: lateSet.event };
+    }
   }
 
   return stepped;
