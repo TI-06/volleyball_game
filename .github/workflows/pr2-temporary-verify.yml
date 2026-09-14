@@ -72,3 +72,5 @@ jobs:
           git push
 
           exit 0
+
+# verification rerun after gameplay/test fixes
