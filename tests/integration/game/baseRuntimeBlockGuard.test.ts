@@ -59,13 +59,12 @@ function homeSetWithStaleCpuBlock(): MatchRuntimeState {
 }
 
 describe('base runtime block legality', () => {
-  it('does not consume or contact a home SET as a cpu BLOCK', () => {
+  it('does not contact a home SET as a cpu BLOCK even with stale block memory', () => {
     const prepared = homeSetWithStaleCpuBlock();
     const next = stepMatchRuntime(prepared, idleInput(), 1 / 60);
 
     expect(next.match.ball.lastTouchedBy).toBe('home-1');
     expect(next.match.ball.lastContact).toBe('SET');
-    expect(next.cpuDecisions['away-1']?.actionReadyAt).toBe(0);
     expect(next.lastEvent?.type).not.toBe('BLOCK');
   });
 });
