@@ -14,10 +14,19 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'mobile-landscape-chromium',
+      name: 'mobile-landscape-compact-chromium',
       use: {
         ...devices['Pixel 7'],
         viewport: { width: 844, height: 390 },
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
+    {
+      name: 'mobile-landscape-wide-chromium',
+      use: {
+        ...devices['Pixel 7'],
+        viewport: { width: 932, height: 430 },
         isMobile: true,
         hasTouch: true,
       },
