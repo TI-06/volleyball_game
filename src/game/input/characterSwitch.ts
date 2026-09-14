@@ -5,6 +5,8 @@ import type { ManualSwitchResult, SwitchDecision, SwitchMode } from './inputType
 
 const AUTO_WARNING_LEAD = 0.35;
 const ATTACK_HANDOFF_LEAD = 0.08;
+const SETTER_ROLE_BONUS = 16;
+const SECOND_TOUCH_DISTANCE_WEIGHT = 8;
 
 function distanceXZ(player: PlayerState, x: number, z: number): number {
   return Math.hypot(player.position.x - x, player.position.z - z);
@@ -12,6 +14,14 @@ function distanceXZ(player: PlayerState, x: number, z: number): number {
 
 function setAbility(player: PlayerState): number {
   return STARTER_ROSTER[player.characterId as CharacterId]?.abilities.set ?? 0;
+}
+
+function secondTouchScore(player: PlayerState, x: number, z: number): number {
+  return (
+    setAbility(player) +
+    (player.role === 'SETTER' ? SETTER_ROLE_BONUS : 0) -
+    distanceXZ(player, x, z) * SECOND_TOUCH_DISTANCE_WEIGHT
+  );
 }
 
 function homePlayers(state: MatchState): PlayerState[] {
@@ -43,13 +53,11 @@ function secondTouchCandidate(
   return (
     [...homePlayers(state)]
       .filter((player) => player.id !== lastToucher.id)
-      .sort((a, b) => {
-        const aSetterBonus = a.role === 'SETTER' ? 1000 : 0;
-        const bSetterBonus = b.role === 'SETTER' ? 1000 : 0;
-        const abilityOrder = (bSetterBonus + setAbility(b)) - (aSetterBonus + setAbility(a));
-        if (abilityOrder !== 0) return abilityOrder;
-        return distanceXZ(a, target.x, target.z) - distanceXZ(b, target.x, target.z);
-      })[0] ?? null
+      .sort(
+        (a, b) =>
+          secondTouchScore(b, target.x, target.z) -
+          secondTouchScore(a, target.x, target.z),
+      )[0] ?? null
   );
 }
 
