@@ -99,6 +99,18 @@ describe('MOTION_CLIPS', () => {
     expect(pose.elbowR.rotation).toBeGreaterThanOrEqual(0.45);
   });
 
+  it('finishes point reactions with compact arms instead of holding a T-pose', () => {
+    for (const id of ['celebrate_short', 'frustrated_short'] as const) {
+      const clip = MOTION_CLIPS[id];
+      const player = new MotionPlayer();
+      player.play(clip, 0);
+      const pose = player.sample(clip.durationMs + 100).pose;
+
+      expect(pose.shoulderL.rotation).toBeGreaterThanOrEqual(0.75);
+      expect(pose.shoulderR.rotation).toBeLessThanOrEqual(-0.75);
+    }
+  });
+
   it('encodes readable volleyball silhouettes instead of generic pose swaps', () => {
     const receive = MOTION_CLIPS.receive_contact.keyframes;
     const plant = MOTION_CLIPS.spike_plant.keyframes;
