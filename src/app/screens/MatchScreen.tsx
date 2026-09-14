@@ -154,6 +154,7 @@ export function MatchScreen({
         runtime = stepMatchRuntime(runtime, inputRef.current, FIXED_STEP_SECONDS);
         const event = runtime.lastEvent;
         if (event) {
+          scene.playEvent(event);
           const isPlayerEvent = event.actorId?.startsWith('home-') ?? false;
           if (isPlayerEvent && event.quality === 'PERFECT') {
             statsRef.current.perfectCount += 1;
