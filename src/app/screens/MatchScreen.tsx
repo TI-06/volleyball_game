@@ -20,6 +20,8 @@ import { MatchHud } from '../../ui/MatchHud';
 import { TutorialScreen } from './TutorialScreen';
 import type { MatchResultView } from './ResultScreen';
 
+const MATCH_FINISH_DELAY_MS = 900;
+
 interface MatchScreenProps {
   difficulty: CpuDifficulty;
   switchMode: SwitchMode;
@@ -181,7 +183,7 @@ export function MatchScreen({
             highestSpikeKmh: statsRef.current.highestSpikeKmh,
             perfectCount: statsRef.current.perfectCount,
           });
-        }, 550);
+        }, MATCH_FINISH_DELAY_MS);
         return;
       }
 
