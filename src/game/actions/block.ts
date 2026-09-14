@@ -16,6 +16,10 @@ export function performBlock(
   timingOffsetSeconds: number,
   horizontalErrorMeters: number,
 ): BlockResult {
+  if (ball.lastContact !== 'SPIKE') {
+    return { quality: 'MISS', touched: false, ball };
+  }
+
   const wallTimingBonus = character.trait === 'WALL' ? 0.025 : 0;
   const timing = classifyContactTiming(
     timingOffsetSeconds,
