@@ -26,6 +26,25 @@ describe('character switching', () => {
     expect(decision.warningLead).toBeCloseTo(0.35);
   });
 
+  it('waits for an opponent serve to reveal its trajectory before auto-switching', () => {
+    const base = createMatch(20);
+    const state = {
+      ...base,
+      rally: {
+        ...base.rally,
+        phase: 'SERVE_READY' as const,
+        servingSide: 'away' as const,
+      },
+    };
+
+    expect(
+      getSwitchCandidate(state, {
+        mode: 'STANDARD',
+        currentPlayerId: 'home-2',
+      }),
+    ).toMatchObject({ playerId: null, reason: 'NO_CANDIDATE' });
+  });
+
   it('does not force an automatic switch during strong STANDARD movement input', () => {
     const base = createMatch(2);
     const state = {
