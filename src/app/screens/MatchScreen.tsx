@@ -152,6 +152,10 @@ export function MatchScreen({
       let latestEvent: RuntimeEvent | null = null;
 
       while (accumulator >= FIXED_STEP_SECONDS) {
+        inputRef.current.move = constrainServeReadyMove(
+          runtime.match.rally.phase,
+          inputRef.current.move,
+        );
         runtime = stepMatchRuntime(runtime, inputRef.current, FIXED_STEP_SECONDS);
         const event = runtime.lastEvent;
         if (event) {
