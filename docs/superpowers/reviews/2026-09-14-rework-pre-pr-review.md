@@ -27,12 +27,33 @@ This branch replaces the Phase 1 match presentation and control surface while pr
 - Normal spike trajectory could clip the net.
 - CPU set target and actual attacker could disagree.
 - KAI-only control could stall when REN/HINA rotated to serve.
+- REN/HINA automatic serve happened almost instantly after SERVE_READY; a 0.45s readable windup is now used.
+- KAI manual serve remains manual when rotation returns to index 0.
 - Point transition could retain displaced/airborne player states.
+- Final POINT could persist after MATCH_OVER and be processed more than once inside a multi-step render frame.
 - Tutorial opening serve could clip the net or target the wrong player.
+- Serve-ready ball staging used a lower visual height than the real FLOAT contact origin, causing a visible jump on contact.
 - Server visuals could jump from service area to court position.
 - Ground movement could look like an idle sprite sliding.
 - Block hold reservation was lost when opponent SET changed to SPIKE.
+- User BLOCK could contact before the player had physically left the floor.
+- CPU blockers could attempt a block from the back court instead of first approaching the net.
 - Tutorial could advance on MISS contacts.
+- Teammate receive assignment always forced HINA, even when REN was much closer to the landing ball; receive coverage now considers reachability plus Receive ability.
+- REN first touch can continue into HINA emergency set.
+- Movement / serve / spike screen direction could disagree with the fixed camera; all now map finger direction to screen direction.
+- pointercancel could behave like POWER release and accidentally trigger a serve/block; cancel now discards the hold.
+
+## Presentation / feedback added during review
+
+- Volleyball-specific court cues: attack lines, antennae, service marks.
+- Staged receive / approach / attack-lane / block guidance to avoid showing every marker at once.
+- Contact impact rings and light impact zoom on RECEIVE / SPIKE / BLOCK.
+- Supported-device haptics for KAI RECEIVE / SPIKE / BLOCK and won points; unsupported browsers no-op.
+- Fast-ball trail only on high-speed serves/spikes to make trajectories readable.
+- Toon proxy textures reduced to 320px, mipmaps disabled, and renderer DPR capped at 1.5 for mobile performance.
+- Home/away proxy faces orient toward the net.
+- Volleyball-specific result stats: spike kills, block points, perfect passes, longest rally, best spike.
 
 ## Verification status
 
@@ -42,10 +63,11 @@ This branch replaces the Phase 1 match presentation and control surface while pr
 - Pure TypeScript spot checks performed during implementation for isolated movement/action/runtime helpers where dependencies were not required.
 - Existing and new Vitest/Playwright regression cases have been written around the rework flow.
 - Branch contains no `.github/workflows` directory.
+- Latest checked PR-head Workflow run list is empty.
 
 ### NOT performed in this environment
 
-The current execution environment cannot resolve GitHub/npm registry DNS, so these have **not** been successfully run here:
+The current execution environment still cannot reliably reach the npm registry, so these have **not** been successfully run here:
 
 ```bash
 npm install
@@ -56,4 +78,14 @@ npm run build
 npm run verify:full
 ```
 
-Do not mark the PR ready and do not merge until the real project dependencies are installed and `npm run verify:full` is green in an environment with network/dependency access.
+Before merge, run:
+
+```bash
+npm install
+npm run test:e2e:install
+npm run verify:full
+```
+
+If this is the repository's first successful dependency install, commit the generated `package-lock.json`, then use `npm ci` for subsequent verification.
+
+Do not mark PR #2 ready and do not merge until the real project dependencies are installed, `npm run verify:full` is green, and the 844x390 / 932x430 landscape flows have been manually smoke-tested.
