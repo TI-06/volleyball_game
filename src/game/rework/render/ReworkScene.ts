@@ -9,6 +9,7 @@ import { ReworkCourtView } from './ReworkCourtView';
 import { ReworkImpactEffects } from './ReworkImpactEffects';
 import { ReworkMarkers } from './ReworkMarkers';
 import { getReworkMarkerState } from './markerState';
+import { getReworkServeStagePosition } from './serveStaging';
 import { ToonPlayerProxy } from './ToonPlayerProxy';
 
 const SERVE_RETURN_MS = 420;
@@ -178,7 +179,7 @@ export class ReworkScene {
     if (server) {
       this.ball.update({
         ...state.ball,
-        position: { x: server.position.x, y: 1.35, z: serviceZ(server) },
+        position: getReworkServeStagePosition(server),
       });
     } else {
       this.ball.update(state.ball);
