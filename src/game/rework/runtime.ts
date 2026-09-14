@@ -1,10 +1,13 @@
+import { performBlock } from '../actions/block';
 import { performReceive } from '../actions/receive';
+import { performServe } from '../actions/serve';
 import { performSet } from '../actions/set';
 import { performSpike, type AttackIntent } from '../actions/spike';
 import { getMovementProfile } from '../characters/abilities';
 import { STARTER_ROSTER, type CharacterId } from '../characters/roster';
 import { COURT } from '../core/constants';
 import { createMatch } from '../core/createMatch';
+import { startRallyWithBall } from '../core/rally';
 import { stepMatch } from '../core/stepMatch';
 import type { MatchInput, MatchState, PlayerState, Vec3 } from '../core/types';
 import type { CpuDifficulty } from '../ai/difficulty';
@@ -219,6 +222,10 @@ function spikeTimingOffset(match: MatchState, focus: PlayerState): number {
   return Math.abs(match.ball.position.y - idealContactHeight) * 0.045;
 }
 
+function blockTimingOffset(focus: PlayerState): number {
+  return Math.abs(focus.position.y - 0.72) * 0.22;
+}
+
 function attackFromSwipe(swipe: ReworkSwipe): { intent: AttackIntent; target: Vec3 } {
   const distance = Math.hypot(swipe.x, swipe.y);
   if (distance < 42) {
@@ -231,6 +238,45 @@ function attackFromSwipe(swipe: ReworkSwipe): { intent: AttackIntent; target: Ve
     return { intent: 'CROSS', target: { x: -3.2, y: 0.75, z: 6.7 } };
   }
   return { intent: 'POWER', target: { x: 0, y: 0.75, z: 6.8 } };
+}
+
+function servePower(holdSeconds: number): number {
+  return clamp(0.58 + Math.max(0, holdSeconds) * 0.5, 0.58, 0.9);
+}
+
+function serveTarget(swipe: ReworkSwipe | null): Vec3 {
+  const lane = clamp((swipe?.x ?? 0) / 80, -1, 1);
+  return { x: lane * 3.4, y: 0, z: 6.7 };
+}
+
+function tryFocusBlock(match: MatchState): { match: MatchState; event: ReworkEvent | null } {
+  const focus = match.players.find((player) => player.id === FOCUS_PLAYER_ID);
+  const { ball } = match;
+  if (
+    !focus?.isAirborne ||
+    ball.lastContact !== 'SPIKE' ||
+    !(ball.lastTouchedBy?.startsWith('away-') ?? false) ||
+    ball.velocity.z >= -0.05 ||
+    focus.position.z < -1.8 ||
+    Math.abs(ball.position.z) > 1.8 ||
+    ball.position.y < 1.65 ||
+    Math.abs(focus.position.x - ball.position.x) > 1.4
+  ) {
+    return { match, event: null };
+  }
+
+  const result = performBlock(
+    ball,
+    STARTER_ROSTER.kai,
+    focus.id,
+    blockTimingOffset(focus),
+    ball.position.x - focus.position.x,
+  );
+  if (!result.touched) return { match, event: null };
+  return {
+    match: { ...match, ball: result.ball },
+    event: { type: 'BLOCK', actorId: focus.id, quality: result.quality },
+  };
 }
 
 function applyUserAction(
@@ -328,12 +374,62 @@ export function stepReworkRuntime(
   const setAssist = tryTeammateSet(match);
   match = setAssist.match;
 
+  let blockHoldStartedAt = source.blockHoldStartedAt;
+  let powerHoldStartedAt = source.powerHoldStartedAt;
+  let powerEvent: ReworkEvent | null = null;
+  const actionsBeforePower = resolveReworkActions(match);
+
+  if (input.powerPressed && actionsBeforePower.power === 'SERVE' && powerHoldStartedAt === null) {
+    powerHoldStartedAt = match.time;
+  }
+  if (input.powerPressed && actionsBeforePower.power === 'BLOCK_READY' && blockHoldStartedAt === null) {
+    blockHoldStartedAt = match.time;
+  }
+
+  if (input.powerReleased && actionsBeforePower.power === 'SERVE' && powerHoldStartedAt !== null) {
+    const focus = match.players.find((player) => player.id === FOCUS_PLAYER_ID);
+    if (focus) {
+      const ball = performServe(
+        match.ball,
+        focus,
+        serveTarget(input.powerSwipe),
+        'FLOAT',
+        servePower(match.time - powerHoldStartedAt),
+      );
+      match = startRallyWithBall(match, ball);
+      powerEvent = { type: 'SERVE', actorId: focus.id };
+    }
+    powerHoldStartedAt = null;
+  } else if (input.powerReleased && blockHoldStartedAt !== null) {
+    const legalRead =
+      match.ball.lastContact === 'SET' &&
+      (match.ball.lastTouchedBy?.startsWith('away-') ?? false);
+    if (legalRead) {
+      match = startFocusJump(match);
+      powerEvent = { type: 'JUMP', actorId: FOCUS_PLAYER_ID };
+    }
+    blockHoldStartedAt = null;
+  }
+
+  if (
+    blockHoldStartedAt !== null &&
+    !(match.ball.lastContact === 'SET' && (match.ball.lastTouchedBy?.startsWith('away-') ?? false))
+  ) {
+    blockHoldStartedAt = null;
+  }
+  if (powerHoldStartedAt !== null && resolveReworkActions(match).power !== 'SERVE') {
+    powerHoldStartedAt = null;
+  }
+
+  const block = tryFocusBlock(match);
+  match = block.match;
+
   const userAction = applyUserAction(match, input);
   match = userAction.match;
 
   match = stepMatch(match, MATCH_INPUT_IDLE, dt);
 
-  let event = userAction.event ?? setAssist.event;
+  let event = block.event ?? powerEvent ?? userAction.event ?? setAssist.event;
   if (
     match.score.home !== scoreBefore.home ||
     match.score.away !== scoreBefore.away
@@ -347,6 +443,8 @@ export function stepReworkRuntime(
   return withResolvedActions({
     ...source,
     match,
+    blockHoldStartedAt,
+    powerHoldStartedAt,
     lastEvent: event,
   });
 }
