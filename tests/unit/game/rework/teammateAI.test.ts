@@ -35,7 +35,7 @@ describe('rework teammate roles', () => {
     expect(decisions).toContainEqual(expect.objectContaining({ playerId: 'home-1', role: 'SET' }));
   });
 
-  it('sends HINA to rear receive coverage on opponent attack', () => {
+  it('prefers HINA for a normal rear receive when her defensive ability offsets distance', () => {
     const base = createMatch(22);
     const state = {
       ...base,
@@ -53,5 +53,30 @@ describe('rework teammate roles', () => {
     const decisions = decideTeammateRoles(state);
     expect(decisions).toContainEqual(expect.objectContaining({ playerId: 'home-2', role: 'RECEIVE' }));
     expect(decisions).toContainEqual(expect.objectContaining({ playerId: 'home-1', role: 'COVER' }));
+  });
+
+  it('lets REN take a ball landing near him instead of forcing HINA across the court', () => {
+    const base = createMatch(23);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      players: base.players.map((player) => {
+        if (player.id === 'home-1') return { ...player, position: { x: 0, y: 0, z: -2.1 } };
+        if (player.id === 'home-2') return { ...player, position: { x: 3.0, y: 0, z: -5.4 } };
+        return player;
+      }),
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'away-0',
+        lastContact: 'SPIKE' as const,
+        position: { x: 0.1, y: 2.3, z: -0.3 },
+        velocity: { x: 0, y: -2.6, z: -4.6 },
+      },
+    };
+
+    const decisions = decideTeammateRoles(state);
+    expect(decisions).toContainEqual(expect.objectContaining({ playerId: 'home-1', role: 'RECEIVE' }));
+    expect(decisions).toContainEqual(expect.objectContaining({ playerId: 'home-2', role: 'COVER' }));
   });
 });
