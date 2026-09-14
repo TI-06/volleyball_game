@@ -9,12 +9,15 @@ import { getReworkCameraFrame, type ReworkCameraFrame } from './ReworkCamera';
 import { ReworkCourtView } from './ReworkCourtView';
 import { ReworkImpactEffects } from './ReworkImpactEffects';
 import { ReworkMarkers } from './ReworkMarkers';
+import { ArticulatedPlayerView } from './character/ArticulatedPlayerView';
 import { getReworkMarkerState } from './markerState';
 import { getReworkServeStagePosition } from './serveStaging';
 import { ToonPlayerProxy } from './ToonPlayerProxy';
 
 const SERVE_RETURN_MS = 420;
 const MAX_RENDER_PIXEL_RATIO = 1.5;
+
+type ReworkPlayerView = ToonPlayerProxy | ArticulatedPlayerView;
 
 interface ServeFollowThrough {
   playerId: string;
@@ -62,7 +65,7 @@ export class ReworkScene {
   private readonly impacts = new ReworkImpactEffects();
   private readonly ballTrail = new ReworkBallTrail();
   private readonly ball = new BallView();
-  private readonly players = new Map<string, ToonPlayerProxy>();
+  private readonly players = new Map<string, ReworkPlayerView>();
   private readonly resizeObserver: ResizeObserver;
   private impactPeak = 0;
   private impactStartedAt = 0;
@@ -99,12 +102,17 @@ export class ReworkScene {
     rim.position.set(-8, 7, 4);
     this.scene.add(rim);
 
+    const now = performance.now();
     for (const player of initialState.players) {
       const character = STARTER_ROSTER[player.characterId as CharacterId];
       if (!character) continue;
-      const proxy = new ToonPlayerProxy(character, player.side);
+      const proxy: ReworkPlayerView =
+        player.id === 'home-0'
+          ? new ArticulatedPlayerView(character.id, player.side)
+          : new ToonPlayerProxy(character, player.side);
       proxy.setFocused(player.id === this.focusPlayerId);
-      proxy.update(player);
+      if (proxy instanceof ArticulatedPlayerView) proxy.update(player, initialState, now);
+      else proxy.update(player);
       this.players.set(player.id, proxy);
       this.scene.add(proxy.group);
     }
@@ -175,7 +183,9 @@ export class ReworkScene {
           },
         };
       }
-      proxy.update(displayPlayer);
+
+      if (proxy instanceof ArticulatedPlayerView) proxy.update(displayPlayer, state, now);
+      else proxy.update(displayPlayer);
     }
 
     if (follow && !followActive) this.serveFollowThrough = null;
