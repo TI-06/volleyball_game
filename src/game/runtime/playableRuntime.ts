@@ -468,7 +468,7 @@ function performPreparedCpuBlock(runtime: MatchRuntimeState): {
     ball,
     characterFor(blocker),
     blocker.id,
-    cpuTimingError(runtime),
+    cpuTimingError(runtime) * 1.7,
     ball.position.x - blocker.position.x,
   );
   const readyAt = match.time + Math.max(
