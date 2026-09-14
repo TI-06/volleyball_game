@@ -37,10 +37,10 @@ npm run verify
 
 `verify` は `typecheck -> unit/integration tests -> production build` の順に実行します。
 
-Playwrightを含むスマホE2Eまで確認する場合:
+Playwrightを含むスマホE2Eまで確認する場合、初回だけChromiumを入れてから実行します。
 
 ```bash
-npx playwright install chromium
+npm run test:e2e:install
 npm run verify:full
 ```
 
@@ -56,6 +56,8 @@ npm run deploy
 
 `npm run deploy` は `npm run build && wrangler deploy` を実行します。
 
+初回公開・workers.dev確認・Custom Domain設定を含む手順は `docs/cloudflare-deploy.md` を参照してください。
+
 ## GitHub Actions / notification policy
 
 Phase 1 foundationではGitHub Actionsを意図的に追加していません。開発初期の失敗ジョブによる通知メールを増やさないためです。
@@ -66,3 +68,4 @@ Phase 1 foundationではGitHub Actionsを意図的に追加していません。
 
 - Design: `docs/superpowers/specs/2026-09-14-phase1-core-game-design.md`
 - Implementation plan: `docs/superpowers/plans/2026-09-14-phase1-foundation.md`
+- Cloudflare deploy: `docs/cloudflare-deploy.md`
