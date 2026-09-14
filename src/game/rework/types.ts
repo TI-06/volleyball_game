@@ -40,6 +40,7 @@ export interface ReworkInput {
   powerPressed: boolean;
   powerReleased: boolean;
   powerSwipe: ReworkSwipe | null;
+  powerCancelled?: boolean;
 }
 
 export interface ReworkEvent {
