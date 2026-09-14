@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react';
 import type { ReworkEvent } from '../../game/rework/types';
 
+function successfulContact(event: ReworkEvent | null, type: 'RECEIVE' | 'SPIKE'): boolean {
+  return (
+    event?.type === type &&
+    event.actorId === 'home-0' &&
+    event.quality !== 'MISS'
+  );
+}
+
 const STEPS = [
   {
     title: 'PLAYで拾う',
     body: '左側を横ドラッグしてボールへ寄り、腕に入る瞬間にPLAY。',
-    complete: (event: ReworkEvent | null) => event?.type === 'RECEIVE' && event.actorId === 'home-0',
+    complete: (event: ReworkEvent | null) => successfulContact(event, 'RECEIVE'),
   },
   {
     title: 'POWERで跳ぶ',
@@ -15,7 +23,7 @@ const STEPS = [
   {
     title: 'POWERをスワイプ',
     body: '空中でPOWERをスワイプ。左右でコース、短い入力でフェイント。',
-    complete: (event: ReworkEvent | null) => event?.type === 'SPIKE' && event.actorId === 'home-0',
+    complete: (event: ReworkEvent | null) => successfulContact(event, 'SPIKE'),
   },
 ] as const;
 
