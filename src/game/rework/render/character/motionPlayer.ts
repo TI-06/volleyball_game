@@ -17,7 +17,8 @@ interface ResolvedKeyframe {
 }
 
 const CONTACT_WINDOW = 0.05;
-const IDLE_SHOULDER_DROP = 0.4;
+const IDLE_SHOULDER_DROP = 0.9;
+const IDLE_ELBOW_BEND = 0.24;
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
@@ -67,6 +68,8 @@ function applyPresentationPose(
   const styled = clonePose(pose);
   styled.shoulderL.rotation += IDLE_SHOULDER_DROP;
   styled.shoulderR.rotation -= IDLE_SHOULDER_DROP;
+  styled.elbowL.rotation -= IDLE_ELBOW_BEND;
+  styled.elbowR.rotation += IDLE_ELBOW_BEND;
   return styled;
 }
 
