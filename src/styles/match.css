@@ -1,0 +1,100 @@
+.menu-screen,
+.result-screen {
+  min-height: 100dvh;
+  padding: max(28px, env(safe-area-inset-top)) max(34px, env(safe-area-inset-right)) max(28px, env(safe-area-inset-bottom)) max(34px, env(safe-area-inset-left));
+  background:
+    radial-gradient(circle at 75% 10%, rgba(58, 222, 203, 0.14), transparent 32%),
+    linear-gradient(135deg, #07111f, #0c2036 58%, #0b2b37);
+  color: #f6fbff;
+}
+
+.menu-header { display: flex; align-items: center; gap: clamp(20px, 4vw, 60px); margin-bottom: clamp(18px, 4vh, 42px); }
+.menu-header h1, .team-preview h2, .result-screen h1 { margin: 4px 0 0; font-style: italic; font-weight: 950; letter-spacing: -0.035em; }
+.menu-header h1 { font-size: clamp(1.7rem, 4vw, 3.5rem); }
+.menu-kicker { color: #65dfd0; font-size: 0.72rem; font-weight: 900; letter-spacing: 0.2em; }
+.text-button, .secondary-button { border: 0; color: #d8e8ef; background: transparent; font-weight: 850; cursor: pointer; }
+.secondary-button { min-height: 50px; padding: 0 24px; border: 1px solid rgba(255,255,255,.18); border-radius: 14px; background: rgba(255,255,255,.06); }
+.difficulty-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 12px; }
+.difficulty-card { position: relative; min-height: clamp(112px,24vh,190px); padding: 18px; overflow: hidden; border: 1px solid rgba(255,255,255,.15); border-radius: 18px; color: #f8fcff; background: linear-gradient(155deg,rgba(255,255,255,.1),rgba(255,255,255,.03)); text-align: left; cursor: pointer; }
+.difficulty-card:not(.is-locked):hover,.difficulty-card:not(.is-locked):focus-visible { border-color: rgba(101,223,208,.8); background: linear-gradient(155deg,rgba(101,223,208,.19),rgba(255,255,255,.04)); }
+.difficulty-card strong,.difficulty-card small,.difficulty-card__level { display: block; }
+.difficulty-card strong { margin-top: clamp(10px,3vh,28px); font-size: clamp(1rem,2.5vw,1.8rem); }
+.difficulty-card small { margin-top: 8px; color: rgba(236,248,252,.66); }
+.difficulty-card__level { color: #65dfd0; font-size: .68rem; font-weight: 900; letter-spacing: .15em; }
+.difficulty-card.is-locked { opacity: .32; cursor: not-allowed; }
+.team-preview { display: flex; align-items: center; justify-content: space-between; gap: 28px; margin-top: clamp(18px,4vh,42px); padding-top: 18px; border-top: 1px solid rgba(255,255,255,.1); }
+.team-preview__players { display: flex; gap: 10px; }
+.mini-player-card { min-width: 112px; padding: 12px 16px; border-radius: 14px; background: rgba(255,255,255,.07); }
+.mini-player-card span,.mini-player-card small { display: block; color: rgba(236,248,252,.62); font-size: .66rem; }
+.mini-player-card strong { display: block; margin: 3px 0; font-size: 1.08rem; }
+
+.match-screen { position: fixed; inset: 0; overflow: hidden; background: #07111f; touch-action: none; user-select: none; }
+.match-scene { position: absolute; inset: 0; }
+.match-scene canvas { display: block; width: 100%; height: 100%; }
+.match-hud { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.score-hud { position: absolute; top: max(12px,env(safe-area-inset-top)); left: 50%; display: grid; grid-template-columns: auto 46px auto 46px auto; align-items: center; gap: 8px; padding: 7px 14px; border: 1px solid rgba(255,255,255,.14); border-radius: 999px; background: rgba(4,12,22,.68); backdrop-filter: blur(9px); transform: translateX(-50%); }
+.score-hud span { color: rgba(255,255,255,.58); font-size: .62rem; font-weight: 800; }
+.score-hud strong { font-size: 1.26rem; text-align: center; }
+.score-hud i { color: #65dfd0; font-size: .62rem; font-style: normal; font-weight: 900; }
+.controlled-player-label { position: absolute; z-index: 5; top: max(18px,env(safe-area-inset-top)); left: max(20px,env(safe-area-inset-left)); color: rgba(255,255,255,.84); font-size: .72rem; font-weight: 900; letter-spacing: .15em; }
+.match-hud__move { position: absolute; inset: auto auto 0 0; width: 36%; height: 62%; pointer-events: auto; }
+.virtual-stick-zone { position: absolute; inset: 0; touch-action: none; }
+.virtual-stick-base { position: absolute; left: 50%; top: 50%; width: 112px; height: 112px; border: 1px solid rgba(255,255,255,.28); border-radius: 50%; background: rgba(8,20,33,.2); transform: translate(-50%,-50%); }
+.virtual-stick-thumb { position: absolute; left: 34px; top: 34px; width: 44px; height: 44px; border: 1px solid rgba(255,255,255,.64); border-radius: 50%; background: rgba(101,223,208,.68); }
+.match-hud__action { position: absolute; right: max(28px,env(safe-area-inset-right)); bottom: max(28px,env(safe-area-inset-bottom)); display: grid; width: clamp(84px,12vw,118px); height: clamp(84px,12vw,118px); place-items: center; pointer-events: auto; }
+.action-button { position: relative; display: grid; width: 100%; height: 100%; place-items: center; border: 2px solid rgba(255,255,255,.66); border-radius: 50%; color: #061019; background: rgba(101,223,208,.94); box-shadow: 0 9px 34px rgba(0,0,0,.34),0 0 28px rgba(101,223,208,.2); font-weight: 950; touch-action: none; }
+.action-button__icon { margin-bottom: -14px; font-size: 1.4rem; }
+.action-button__label { font-size: clamp(.58rem,1.5vw,.78rem); letter-spacing: .04em; }
+.action-button__hint { position: absolute; bottom: 8px; font-size: .46rem; letter-spacing: .14em; opacity: .58; }
+.action-button.is-gesture::after { content: ''; position: absolute; inset: -11px; border: 1px dashed rgba(101,223,208,.38); border-radius: 50%; pointer-events: none; }
+.match-hud__switch { position: absolute; left: 50%; bottom: max(12px,env(safe-area-inset-bottom)); pointer-events: auto; transform: translateX(-50%); }
+.character-switcher { display: flex; gap: 7px; }
+.character-card { min-width: clamp(72px,9vw,104px); padding: 7px 12px; border: 1px solid rgba(255,255,255,.16); border-radius: 12px; color: #f4fbff; background: rgba(4,12,22,.64); backdrop-filter: blur(8px); }
+.character-card span,.character-card strong { display: block; }
+.character-card__role { color: rgba(255,255,255,.55); font-size: .54rem; }
+.character-card.is-active { border-color: #65dfd0; background: rgba(23,95,99,.78); box-shadow: 0 0 20px rgba(101,223,208,.24); }
+.character-card.is-suggested { animation: switch-pulse .72s ease-in-out infinite alternate; }
+@keyframes switch-pulse { to { border-color: rgba(255,255,255,.85); transform: translateY(-3px); } }
+.tutorial-coach { position: absolute; z-index: 8; top: 72px; left: 50%; width: min(440px,52vw); padding: 12px 16px; border: 1px solid rgba(101,223,208,.45); border-radius: 14px; color: #f4fbff; background: rgba(4,13,22,.82); backdrop-filter: blur(10px); transform: translateX(-50%); }
+.tutorial-coach__progress { color: #65dfd0; font-size: .6rem; font-weight: 900; letter-spacing: .16em; }
+.tutorial-coach strong { display: block; margin-top: 3px; }
+.tutorial-coach p { margin: 4px 0 6px; color: rgba(242,250,253,.72); font-size: .75rem; }
+.tutorial-coach .text-button { float: right; font-size: .64rem; }
+.result-screen { display: grid; place-content: center; text-align: center; }
+.result-screen h1 { margin: 8px 0 6px; font-size: clamp(3rem,10vw,7rem); }
+.result-score { display: flex; align-items: center; justify-content: center; gap: 18px; font-size: 2rem; }
+.result-score strong { font-size: clamp(2.4rem,7vw,5rem); }
+.result-score span { color: rgba(255,255,255,.35); }
+.result-stats { display: flex; justify-content: center; gap: 12px; margin: 20px 0; }
+.result-stats div { min-width: 150px; padding: 12px 18px; border-radius: 14px; background: rgba(255,255,255,.07); }
+.result-stats span,.result-stats strong { display: block; }
+.result-stats span { color: rgba(255,255,255,.5); font-size: .62rem; }
+.result-actions { display: flex; align-items: center; justify-content: center; gap: 12px; }
+
+@media (max-height: 430px) {
+  .menu-screen,.result-screen { padding-top: 16px; padding-bottom: 16px; }
+  .menu-header { margin-bottom: 12px; }
+  .difficulty-card { min-height: 104px; padding: 12px; }
+  .team-preview { margin-top: 12px; padding-top: 10px; }
+  .match-hud__action { right: max(28px,env(safe-area-inset-right)); bottom: max(20px,env(safe-area-inset-bottom)); width: 82px; height: 82px; }
+  .character-card { padding: 5px 9px; }
+}
+
+@media (orientation: portrait) {
+  .match-screen::after {
+    content: '端末を横向きにしてください';
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: grid;
+    place-items: center;
+    padding: 32px;
+    color: #f6fbff;
+    background: #07111f;
+    font-size: clamp(1rem,4vw,1.35rem);
+    font-weight: 900;
+    letter-spacing: .05em;
+    text-align: center;
+  }
+  .match-hud,.controlled-player-label,.tutorial-coach { visibility: hidden; }
+}

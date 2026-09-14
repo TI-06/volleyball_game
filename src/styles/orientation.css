@@ -1,0 +1,23 @@
+@media (orientation: portrait) {
+  .menu-screen::after,
+  .result-screen::after {
+    content: '端末を横向きにしてください';
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 32px;
+    color: #f6fbff;
+    background: #07111f;
+    font-size: clamp(1rem, 4vw, 1.35rem);
+    font-weight: 900;
+    letter-spacing: .05em;
+    text-align: center;
+  }
+
+  .menu-screen > *,
+  .result-screen > * {
+    visibility: hidden;
+  }
+}
