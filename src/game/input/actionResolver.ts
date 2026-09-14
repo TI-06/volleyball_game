@@ -104,6 +104,7 @@ export function resolveAction(
   }
 
   if (
+    ownSide &&
     !player.isAirborne &&
     lastTouchWasOtherTeammate &&
     state.ball.lastContact === 'SET' &&
