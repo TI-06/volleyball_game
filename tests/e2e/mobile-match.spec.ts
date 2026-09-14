@@ -10,10 +10,20 @@ test('smartphone landscape can enter a CPU match without layout overflow', async
 
   await expect(page.getByTestId('match-screen')).toBeVisible();
   await expect(page.getByText(/TUTORIAL/)).toBeVisible();
-  await expect(page.locator('.action-button')).toBeVisible({ timeout: 5000 });
+  const actionButton = page.locator('.action-button');
+  await expect(actionButton).toBeVisible({ timeout: 5000 });
 
   const hasHorizontalOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth + 1,
   );
   expect(hasHorizontalOverflow).toBe(false);
+
+  const actionBox = await actionButton.boundingBox();
+  expect(actionBox).not.toBeNull();
+  if (actionBox) {
+    const rightGutter = 844 - (actionBox.x + actionBox.width);
+    const bottomGutter = 390 - (actionBox.y + actionBox.height);
+    expect(rightGutter).toBeGreaterThanOrEqual(28);
+    expect(bottomGutter).toBeGreaterThanOrEqual(20);
+  }
 });
