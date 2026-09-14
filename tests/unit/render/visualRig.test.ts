@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ARTICULATED_PART_LAYOUT,
+  ARTICULATED_PLAYER_DISPLAY_SCALE,
+} from '../../../src/game/rework/render/character/ArticulatedPlayerView';
+import {
   DEFAULT_VISUAL_RIG,
   JOINT_NAMES,
   cloneRigPose,
@@ -32,6 +36,22 @@ describe('DEFAULT_VISUAL_RIG', () => {
     expect(Math.abs(pose.wristR.y)).toBeLessThan(0.06);
     expect(pose.elbowL.x).toBeLessThan(-0.25);
     expect(pose.elbowR.x).toBeGreaterThan(0.25);
+  });
+
+  it('uses readable athletic proportions at smartphone match scale', () => {
+    const pose = DEFAULT_VISUAL_RIG.bindPose;
+    expect(ARTICULATED_PLAYER_DISPLAY_SCALE).toBeGreaterThanOrEqual(1.1);
+    expect(ARTICULATED_PLAYER_DISPLAY_SCALE).toBeLessThanOrEqual(1.2);
+    expect(pose.neck.y).toBeLessThanOrEqual(0.32);
+    expect(pose.shoulderL.y).toBeLessThanOrEqual(0.22);
+    expect(pose.shoulderR.y).toBeLessThanOrEqual(0.22);
+
+    expect(ARTICULATED_PART_LAYOUT.torso.width).toBeLessThanOrEqual(0.72);
+    expect(ARTICULATED_PART_LAYOUT.torso.height).toBeGreaterThanOrEqual(0.84);
+    expect(ARTICULATED_PART_LAYOUT.upperArmL.height).toBeGreaterThanOrEqual(0.27);
+    expect(ARTICULATED_PART_LAYOUT.foreArmL.height).toBeGreaterThanOrEqual(0.25);
+    expect(ARTICULATED_PART_LAYOUT.thighL.width).toBeGreaterThanOrEqual(0.29);
+    expect(ARTICULATED_PART_LAYOUT.shinL.width).toBeGreaterThanOrEqual(0.26);
   });
 
   it('clones poses deeply so one character cannot mutate another', () => {
