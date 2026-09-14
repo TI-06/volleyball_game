@@ -12,6 +12,8 @@ import {
   type RuntimeInput,
 } from './playableRuntime';
 
+const TUTORIAL_SEED = 1;
+
 export {
   createMatchRuntime,
   getCurrentAction,
@@ -71,7 +73,9 @@ export function stepMatchRuntime(
     rallyIndex,
     receivers,
   );
-  const serveKind = source.difficulty === 'BEGINNER' ? 'FLOAT' : 'JUMP';
+  const tutorialOpening = source.match.seed === TUTORIAL_SEED && rallyIndex === 0;
+  const serveKind =
+    tutorialOpening || source.difficulty === 'BEGINNER' ? 'FLOAT' : 'JUMP';
   const servedBall = performServe(
     source.match.ball,
     server,
