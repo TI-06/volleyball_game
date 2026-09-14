@@ -1,0 +1,1292 @@
+
+> volleyball-game@0.1.0 test
+> vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.0 [39m[90m/home/runner/work/volleyball_game/volleyball_game[39m
+
+ [32m✓[39m tests/integration/game/playableRuntime.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [31m❯[39m tests/integration/game/matchRuntime.test.ts [2m([22m[2m8 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 16[2mms[22m[39m
+   [31m❯[39m match runtime [2m(8)[22m
+     [32m✓[39m connects the home contextual serve action to the rally state[32m 5[2mms[22m[39m
+     [32m✓[39m uses an upward committed serve swipe as a jump serve[32m 1[2mms[22m[39m
+     [32m✓[39m moves the controlled player from stick input while keeping them on their court side[32m 1[2mms[22m[39m
+     [32m✓[39m warns before switching from a receiver to the setter[32m 2[2mms[22m[39m
+     [32m✓[39m does not auto-switch while STANDARD mode has strong manual movement[32m 1[2mms[22m[39m
+[31m     [31m×[31m routes a right-side set gesture toward the right-side teammate[39m[32m 5[2mms[22m[39m
+     [32m✓[39m waits for cpu reaction time before an away serve[32m 1[2mms[22m[39m
+     [32m✓[39m gives MASTER an earlier cpu action window than BEGINNER[32m 0[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkPowerControls.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/game/cpuAI.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/game/blockContext.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/game/actionResolver.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/actionResolver.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/teammateAI.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/game/actions.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/game/characterSwitch.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkRallyAI.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [31m❯[39m tests/unit/ui/ActionButton.test.tsx [2m([22m[2m4 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[32m 165[2mms[22m[39m
+   [31m❯[39m ActionButton [2m(4)[22m
+     [32m✓[39m does not carry a stale JUMP pointer into the following SPIKE action[32m 95[2mms[22m[39m
+[31m     [31m×[31m does not commit a gesture after pointer cancel[39m[32m 23[2mms[22m[39m
+[31m     [31m×[31m suppresses an immediate repeated press of the same contextual action[39m[32m 26[2mms[22m[39m
+[31m     [31m×[31m suppresses an immediate repeated gesture of the same contextual action[39m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/game/allyAI.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkRuntime.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/cpuAI.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/markerState.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkRotationServe.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/game/serveTargeting.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/game/abilities.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/app/AppRematch.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 199[2mms[22m[39m
+ [32m✓[39m tests/integration/game/cpuBlockDifficulty.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkSpikeTrajectory.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+ [31m❯[39m tests/unit/game/deadBall.test.ts [2m([22m[2m3 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 10[2mms[22m[39m
+   [31m❯[39m dead-ball resolution [2m(3)[22m
+     [32m✓[39m keeps a legal serve alive while it travels in from behind the end line[32m 2[2mms[22m[39m
+[31m     [31m×[31m lets an untouched standard serve land in and score for the server[39m[32m 6[2mms[22m[39m
+     [32m✓[39m awards an out ball only after it contacts the floor outside the court[32m 0[2mms[22m[39m
+ [32m✓[39m tests/unit/ui/rework/DualActionPad.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 156[2mms[22m[39m
+ [32m✓[39m tests/integration/game/rallyFlow.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/persistence/stores.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkSwipeDirection.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/integration/game/gameRuntime.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/game/cameraDirector.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/game/ballCorrection.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [31m❯[39m tests/e2e/mobile-match.spec.ts [2m([22m[2m0 test[22m[2m)[22m
+ [32m✓[39m tests/unit/game/ballPhysics.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/spikeWindow.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/game/serveTrajectory.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/matchStats.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/render.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/integration/game/baseRuntimeBlockGuard.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkPointReset.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/game/playerMotion.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/game/landingAssist.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/app/ReworkTutorialScreen.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 50[2mms[22m[39m
+ [32m✓[39m tests/integration/game/reworkMatchOver.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 6[2mms[22m[39m
+ [31m❯[39m tests/unit/app/TutorialScreen.test.tsx [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 106[2mms[22m[39m
+   [31m❯[39m TutorialScreen [2m(2)[22m
+     [32m✓[39m does not advance when the required volleyball action misses[32m 39[2mms[22m[39m
+[31m     [31m×[31m advances after a successful home receive and lets the player skip explicitly[39m[32m 66[2mms[22m[39m
+ [32m✓[39m tests/unit/game/scoring.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/haptics.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/app/MatchFeedback.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m tests/integration/game/playableRuntimeCarryover.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/receiveOwnership.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/game/gesture.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/approachZone.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/game/blockPhysics.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/game/createMatch.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/formation.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/app/ResultScreen.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 31[2mms[22m[39m
+ [31m❯[39m tests/unit/app/App.test.tsx [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 141[2mms[22m[39m
+   [31m❯[39m App [2m(2)[22m
+     [32m✓[39m shows the game title and CPU match entry point[32m 117[2mms[22m[39m
+[31m     [31m×[31m opens the fixed-control rework match from difficulty select[39m[32m 23[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/toonPresentation.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [31m❯[39m tests/integration/app/matchFlow.test.tsx [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 285[2mms[22m[39m
+   [31m❯[39m application match flow [2m(2)[22m
+     [32m✓[39m moves from title to difficulty selection[32m 187[2mms[22m[39m
+[31m     [31m×[31m opens the match shell after selecting an unlocked difficulty[39m[32m 97[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/impactStyle.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/app/matchSeed.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/ui/rework/ReworkHud.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 77[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/reworkCamera.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/game/serve.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/movement.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/courtLanding.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/game/setContext.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/ui/rework/MovementStrip.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 34[2mms[22m[39m
+ [32m✓[39m tests/unit/app/matchFinishPresentation.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/game/servePresentation.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/serveStaging.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/tutorialStart.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/game/rework/ballTrail.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/game/serveReadyMovement.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/game/playerPresentation.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/app/matchViewport.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Suites 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/e2e/mobile-match.spec.ts[2m [ tests/e2e/mobile-match.spec.ts ][22m
+[31m[1mError[22m: Playwright Test did not expect test() to be called here.
+Most common reasons include:
+- You are calling test() in a configuration file.
+- You are calling test() in a file that is imported by the configuration file.
+- You have two different versions of @playwright/test. This usually happens
+  when one of the dependencies in your package.json depends on @playwright/test.
+- You are calling test() from an async test.describe() block. Only sync ones are supported.[39m
+[90m [2m❯[22m _TestTypeImpl._currentSuite node_modules/playwright/lib/common/index.js:[2m2224:13[22m[39m
+[90m [2m❯[22m _TestTypeImpl._createTest node_modules/playwright/lib/common/index.js:[2m2238:24[22m[39m
+[90m [2m❯[22m node_modules/playwright/lib/common/index.js:[2m1154:12[22m[39m
+[36m [2m❯[22m tests/e2e/mobile-match.spec.ts:[2m3:1[22m[39m
+    [90m  1|[39m import { expect, test } from '@playwright/test';
+    [90m  2|[39m
+    [90m  3|[39m test('smartphone landscape enters the 2.5d match with fixed PLAY and P…
+    [90m   |[39m [31m^[39m
+    [90m  4|[39m   await page.goto('/');
+    [90m  5|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯[22m[39m
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 8 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/integration/app/matchFlow.test.tsx[2m > [22mapplication match flow[2m > [22mopens the match shell after selecting an unlocked difficulty
+[31m[1mTestingLibraryElementError[22m[39m: Found multiple elements with the role "button" and name `/NORMAL/`
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mclass[39m=[32m"difficulty-card"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<span[39m
+    [33mclass[39m=[32m"difficulty-card__level"[39m
+  [36m>[39m
+    [0mLV [0m
+    [0m2[0m
+  [36m</span>[39m
+  [36m<strong>[39m
+    [0mNORMAL[0m
+  [36m</strong>[39m
+  [36m<small>[39m
+    [0m基本の読み合い[0m
+  [36m</small>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mclass[39m=[32m"difficulty-card"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<span[39m
+    [33mclass[39m=[32m"difficulty-card__level"[39m
+  [36m>[39m
+    [0mLV [0m
+    [0m2[0m
+  [36m</span>[39m
+  [36m<strong>[39m
+    [0mNORMAL[0m
+  [36m</strong>[39m
+  [36m<small>[39m
+    [0m基本の読み合い[0m
+  [36m</small>[39m
+[36m</button>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<main[39m
+      [33mclass[39m=[32m"menu-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"menu-header"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"text-button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0m← BACK[0m
+        [36m</button>[39m
+        [36m<div>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"menu-kicker"[39m
+          [36m>[39m
+            [0mCPU MATCH[0m
+          [36m</span>[39m
+          [36m<h1>[39m
+            [0m難易度を選択[0m
+          [36m</h1>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"CPU難易度"[39m
+        [33mclass[39m=[32m"difficulty-grid"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"difficulty-card"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"difficulty-card__level"[39m
+          [36m>[39m
+            [0mLV [0m
+            [0m1[0m
+          [36m</span>[39m
+          [36m<strong>[39m
+            [0mBEGINNER[0m
+          [36m</strong>[39m
+          [36m<small>[39m
+            [0m操作練習向け[0m
+          [36m</small>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"difficulty-card"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"difficulty-card__level"[39m
+          [36m>[39m
+            [0mLV [0m
+            [0m2[0m
+          [36m</span>[39m
+          [36m<strong>[39m
+            [0mNORMAL[0m
+          [36m</strong>[39m
+          [36m<small>[39m
+            [0m基本の読み合い[0m
+          [36m</small>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"difficulty-card"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"difficulty-card__level"[39m
+          [36m>[39m
+            [0mLV [0m
+            [0m3[0m
+          [36m</span>[39m
+          [36m<strong>[39m
+            [0mHARD[0m
+          [36m</strong>[39m
+          [36m<small>[39m
+            [0mブロック位置を読む[0m
+          [36m</small>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"difficulty-card is-locked"[39m
+          [33mdisabled[39m=[32m""[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"difficulty-card__level"[39m
+          [36m>[39m
+            [0mLV [0m
+            [0m4[0m
+          [36m</span>[39m
+          [36m<strong>[39m
+            [0mEXPERT[0m
+          [36m</strong>[39m
+          [36m<small>[39m
+            [0mLOCKED[0m
+          [36m</small>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"difficulty-card is-locked"[39m
+          [33mdisabled[39m=[32m""[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"difficulty-card__level"[39m
+          [36m>[39m
+            [0mLV [0m
+            [0m5[0m
+          [36m</span>[39m
+          [36m<strong>[39m
+            [0mMASTER[0m
+          [36m</strong>[39m
+          [36m<small>[39m
+            [0mLOCKED[0m
+          [36m</small>[39m
+        [36m</button>[39m
+      [36m</section>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"team-preview"[39m
+      [36m>[39m
+        [36m<div>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"menu-kicker"[39m
+          [36m>[39m
+            [0mFOCUS PLAYER[0m
+          [36m</span>[39m
+          [36m<h2>[39m
+            [0mKAI + SUPPORT[0m
+          [36m</h2>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"team-preview__players"[39m
+        [36m>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"mini-player-card"[39m
+          [36m>[39m
+            [36m<span>[39m
+              [0mYOU · ACE[0m
+            [36m</span>[39m
+            [36m<strong>[39m
+              [0mKAI[0m
+            [36m</strong>[39m
+            [36m<small>[39m
+              [0mPOWER[0m
+            [36m</small>[39m
+          [36m</article>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"mini-player-card"[39m
+          [36m>[39m
+            [36m<span>[39m
+              [0mAI · SETTER[0m
+            [36m</span>[39m
+            [36m<strong>[39m
+              [0mREN[0m
+            [36m</strong>[39m
+            [36m<small>[39m
+              [0mTECHNICAL[0m
+            [36m</small>[39m
+          [36m</article>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"mini-player-card"[39m
+          [36m>[39m
+            [36m<span>[39m
+              [0mAI · LIBERO[0m
+            [36m</span>[39m
+            [36m<strong>[39m
+              [0mHINA[0m
+            [36m</strong>[39m
+            [36m<small>[39m
+              [0mSPEED[0m
+            [36m</small>[39m
+          [36m</article>[39m
+        [36m</div>[39m
+      [36m</section>[39m
+    [36m</main>[39m
+  [36m</div>[39m
+  [36m<div>[39m
+    [36m<main[39m
+      [33mclass[39m=[32m"menu-screen"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"menu-header"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"text-button"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [0m← BACK[0m
+        [36m</button>[39m
+        [36m<div>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"menu-kicker"[39m
+          [36m>[39m
+            [0mCPU MATCH[0m
+          [36m</span>[39m
+          [36m<h1>[39m
+            [0m難易度を選択[0m
+          [36m</h1>[39m
+        [36m</div>[39m
+      [36m</header>[39m
+      [36m<section[39m
+        [33maria-label[39m=[32m"CPU難易度"[39m
+        [33mclass[39m=[32m"difficulty-grid"[39m
+      [36m>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"difficulty-card"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"difficulty-card__level"[39m
+          [36m>[39m
+            [0mLV [0m
+            [0m1[0m
+          [36m</span>[39m
+          [36m<strong>[39m
+            [0mBEGINNER[0m
+          [36m</strong>[39m
+          [36m<small>[39m
+            [0m操作練習向け[0m
+          [36m</small>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"difficulty-card"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"difficulty-card__level"[39m
+          [36m>[39m
+            [0mLV [0m
+            [0m2[0m
+          [36m</span>[39m
+          [36m<strong>[39m
+            [0mNORMAL[0m
+          [36m</strong>[39m
+          [36m<small>[39m
+            [0m基本の読み合い[0m
+          [36m</small>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"difficulty-card"[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"difficulty-card__level"[39m
+          [36m>[39m
+            [0mLV [0m
+            [0m3[0m
+          [36m</span>[39m
+          [36m<strong>[39m
+            [0mHARD[0m
+          [36m</strong>[39m
+          [36m<small>[39m
+            [0mブロック位置を読む[0m
+          [36m</small>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"difficulty-card is-locked"[39m
+          [33mdisabled[39m=[32m""[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"difficulty-card__level"[39m
+          [36m>[39m
+            [0mLV [0m
+            [0m4[0m
+          [36m</span>[39m
+          [36m<strong>[39m
+            [0mEXPERT[0m
+          [36m</strong>[39m
+          [36m<small>[39m
+            [0mLOCKED[0m
+          [36m</small>[39m
+        [36m</button>[39m
+        [36m<button[39m
+          [33mclass[39m=[32m"difficulty-card is-locked"[39m
+          [33mdisabled[39m=[32m""[39m
+          [33mtype[39m=[32m"button"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"difficulty-card__level"[39m
+          [36m>[39m
+            [0mLV [0m
+            [0m5[0m
+          [36m</span>[39m
+          [36m<strong>[39m
+            [0mMASTER[0m
+          [36m</strong>[39m
+          [36m<small>[39m
+            [0mLOCKED[0m
+          [36m</small>[39m
+        [36m</button>[39m
+      [36m</section>[39m
+      [36m<section[39m
+        [33mclass[39m=[32m"team-preview"[39m
+      [36m>[39m
+        [36m<div>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"menu-kicker"[39m
+          [36m>[39m
+            [0mFOCUS PLAYER[0m
+          [36m</span>[39m
+          [36m<h2>[39m
+            [0mKAI + SUPPORT[0m
+          [36m</h2>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"team-preview__players"[39m
+        [36m>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"mini-player-card"[39m
+          [36m>[39m
+            [36m<span>[39m
+              [0mYOU · ACE[0m
+            [36m</span>[39m
+            [36m<strong>[39m
+              [0mKAI[0m
+            [36m</strong>[39m
+            [36m<small>[39m
+              [0mPOWER[0m
+            [36m</small>[39m
+          [36m</article>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"mini-player-card"[39m
+          [36m>[39m
+            [36m<span>[39m
+              [0mAI · SETTER[0m
+            [36m</span>[39m
+            [36m<strong>[39m
+              [0mREN[0m
+            [36m</strong>[39m
+            [36m<small>[39m
+              [0mTECHNICAL[0m
+            [36m</small>[39m
+          [36m</article>[39m
+          [36m<article[39m
+            [33mclass[39m=[32m"mini-player-card"[39m
+          [36m>[39m
+            [36m<span>[39m
+              [0mAI · LIBERO[0m
+            [36m</span>[39m
+            [36m<strong>[39m
+              [0mHINA[0m
+            [36m</strong>[39m
+            [36m<small>[39m
+              [0mSPEED[0m
+            [36m</small>[39m
+          [36m</article>[39m
+        [36m</div>[39m
+      [36m</section>[39m
+    [36m</main>[39m
+  [36m</div>[39m
+[36m</body>[39m
+[90m [2m❯[22m Object.getElementError node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m getElementError node_modules/@testing-library/dom/dist/query-helpers.js:[2m20:35[22m[39m
+[90m [2m❯[22m getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:[2m23:10[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m55:13[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m tests/integration/app/matchFlow.test.tsx:[2m21:28[22m[39m
+    [90m 19|[39m     render(<App />);
+    [90m 20|[39m     fireEvent.click(screen.getByRole('button', { name: 'CPU MATCH' }));
+    [90m 21|[39m     fireEvent.click(screen.getByRole('button', { name: /NORMAL/ }));
+    [90m   |[39m                            [31m^[39m
+    [90m 22|[39m     expect(screen.getByTestId('match-screen')).toBeInTheDocument();
+    [90m 23|[39m     expect(screen.getByText(/TUTORIAL/)).toBeInTheDocument();
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/game/matchRuntime.test.ts[2m > [22mmatch runtime[2m > [22mroutes a right-side set gesture toward the right-side teammate
+[31m[1mAssertionError[22m: expected 'home-2' to be 'home-1' // Object.is equality[39m
+
+Expected: [32m"home-[7m1[27m"[39m
+Received: [31m"home-[7m2[27m"[39m
+
+[36m [2m❯[22m tests/integration/game/matchRuntime.test.ts:[2m159:43[22m[39m
+    [90m157|[39m     );
+    [90m158|[39m
+    [90m159|[39m     expect(next.match.ball.lastTouchedBy).toBe('home-1');
+    [90m   |[39m                                           [31m^[39m
+    [90m160|[39m     expect(next.match.ball.velocity.x).toBeGreaterThan(0);
+    [90m161|[39m   });
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/app/App.test.tsx[2m > [22mApp[2m > [22mopens the fixed-control rework match from difficulty select
+[31m[1mTestingLibraryElementError[22m: Found multiple elements with the role "button" and name "CPU MATCH"
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33mclass[31m=[32m"primary-button"[31m
+  [33mtype[31m=[32m"button"[31m
+[36m>[31m
+  [0mCPU MATCH[0m
+[36m</button>[31m
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33mclass[31m=[32m"primary-button"[31m
+  [33mtype[31m=[32m"button"[31m
+[36m>[31m
+  [0mCPU MATCH[0m
+[36m</button>[31m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<main[31m
+      [33mclass[31m=[32m"app-shell app-shell--title"[31m
+    [36m>[31m
+      [36m<section[31m
+        [33maria-labelledby[31m=[32m"game-title"[31m
+        [33mclass[31m=[32m"title-screen"[31m
+      [36m>[31m
+        [36m<p[31m
+          [33mclass[31m=[32m"title-screen__eyebrow"[31m
+        [36m>[31m
+          [0m3 VS 3 / ONE PLAYER FOCUS[0m
+        [36m</p>[31m
+        [36m<h1[31m
+          [33mclass[31m=[32m"title-screen__title"[31m
+          [33mid[31m=[32m"game-title"[31m
+        [36m>[31m
+          [0mVOLLEYBALL[0m
+        [36m</h1>[31m
+        [36m<p[31m
+          [33mclass[31m=[32m"title-screen__lead"[31m
+        [36m>[31m
+          [0m拾う。上がる。跳ぶ。決める。[0m
+        [36m</p>[31m
+        [36m<button[31m
+          [33mclass[31m=[32m"primary-button"[31m
+          [33mtype[31m=[32m"button"[31m
+        [36m>[31m
+          [0mCPU MATCH[0m
+        [36m</button>[31m
+        [36m<p[31m
+          [33mclass[31m=[32m"title-screen__control-note"[31m
+        [36m>[31m
+          [0mLANDSCAPE · DRAG + PLAY + POWER[0m
+        [36m</p>[31m
+      [36m</section>[31m
+    [36m</main>[31m
+  [36m</div>[31m
+  [36m<div>[31m
+    [36m<main[31m
+      [33mclass[31m=[32m"app-shell app-shell--title"[31m
+    [36m>[31m
+      [36m<section[31m
+        [33maria-labelledby[31m=[32m"game-title"[31m
+        [33mclass[31m=[32m"title-screen"[31m
+      [36m>[31m
+        [36m<p[31m
+          [33mclass[31m=[32m"title-screen__eyebrow"[31m
+        [36m>[31m
+          [0m3 VS 3 / ONE PLAYER FOCUS[0m
+        [36m</p>[31m
+        [36m<h1[31m
+          [33mclass[31m=[32m"title-screen__title"[31m
+          [33mid[31m=[32m"game-title"[31m
+        [36m>[31m
+          [0mVOLLEYBALL[0m
+        [36m</h1>[31m
+        [36m<p[31m
+          [33mclass[31m=[32m"title-screen__lead"[31m
+        [36m>[31m
+          [0m拾う。上がる。跳ぶ。決める。[0m
+        [36m</p>[31m
+        [36m<button[31m
+          [33mclass[31m=[32m"primary-button"[31m
+          [33mtype[31m=[32m"button"[31m
+        [36m>[31m
+          [0mCPU MATCH[0m
+        [36m</button>[31m
+        [36m<p[31m
+          [33mclass[31m=[32m"title-screen__control-note"[31m
+        [36m>[31m
+          [0mLANDSCAPE · DRAG + PLAY + POWER[0m
+        [36m</p>[31m
+      [36m</section>[31m
+    [36m</main>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m Object.getElementError node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m getElementError node_modules/@testing-library/dom/dist/query-helpers.js:[2m20:35[22m[39m
+[90m [2m❯[22m getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:[2m23:10[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m55:13[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m tests/unit/app/App.test.tsx:[2m19:28[22m[39m
+    [90m 17|[39m   it('opens the fixed-control rework match from difficulty select', ()…
+    [90m 18|[39m     render(<App />);
+    [90m 19|[39m     fireEvent.click(screen.getByRole('button', { name: 'CPU MATCH' }));
+    [90m   |[39m                            [31m^[39m
+    [90m 20|[39m     fireEvent.click(screen.getByRole('button', { name: /NORMAL/ }));
+    [90m 21|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/app/TutorialScreen.test.tsx[2m > [22mTutorialScreen[2m > [22madvances after a successful home receive and lets the player skip explicitly
+[31m[1mTestingLibraryElementError[22m: Found multiple elements with the role "button" and name "SKIP"
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33mclass[31m=[32m"text-button"[31m
+  [33mtype[31m=[32m"button"[31m
+[36m>[31m
+  [0mSKIP[0m
+[36m</button>[31m
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33mclass[31m=[32m"text-button"[31m
+  [33mtype[31m=[32m"button"[31m
+[36m>[31m
+  [0mSKIP[0m
+[36m</button>[31m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<aside[31m
+      [33maria-live[31m=[32m"polite"[31m
+      [33mclass[31m=[32m"tutorial-coach"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"tutorial-coach__progress"[31m
+      [36m>[31m
+        [0mTUTORIAL [0m
+        [0m1 / 5[0m
+      [36m</div>[31m
+      [36m<strong>[31m
+        [0mまずは拾う[0m
+      [36m</strong>[31m
+      [36m<p>[31m
+        [0m左スティックで落下地点へ移動して、RECEIVEをタイミングよく押そう。[0m
+      [36m</p>[31m
+      [36m<button[31m
+        [33mclass[31m=[32m"text-button"[31m
+        [33mtype[31m=[32m"button"[31m
+      [36m>[31m
+        [0mSKIP[0m
+      [36m</button>[31m
+    [36m</aside>[31m
+  [36m</div>[31m
+  [36m<div>[31m
+    [36m<aside[31m
+      [33maria-live[31m=[32m"polite"[31m
+      [33mclass[31m=[32m"tutorial-coach"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"tutorial-coach__progress"[31m
+      [36m>[31m
+        [0mTUTORIAL [0m
+        [0m2 / 5[0m
+      [36m</div>[31m
+      [36m<strong>[31m
+        [0m攻撃につなぐ[0m
+      [36m</strong>[31m
+      [36m<p>[31m
+        [0mセッターに切り替わったらSETをスワイプ。速さと方向でトスを選ぶ。[0m
+      [36m</p>[31m
+      [36m<button[31m
+        [33mclass[31m=[32m"text-button"[31m
+        [33mtype[31m=[32m"button"[31m
+      [36m>[31m
+        [0mSKIP[0m
+      [36m</button>[31m
+    [36m</aside>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m Object.getElementError node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m getElementError node_modules/@testing-library/dom/dist/query-helpers.js:[2m20:35[22m[39m
+[90m [2m❯[22m getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:[2m23:10[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m55:13[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m tests/unit/app/TutorialScreen.test.tsx:[2m43:28[22m[39m
+    [90m 41|[39m
+    [90m 42|[39m     expect(screen.getByText('攻撃につなぐ')).toBeInTheDocument();
+    [90m 43|[39m     fireEvent.click(screen.getByRole('button', { name: 'SKIP' }));
+    [90m   |[39m                            [31m^[39m
+    [90m 44|[39m     expect(onSkip).toHaveBeenCalledTimes(1);
+    [90m 45|[39m   });
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/game/deadBall.test.ts[2m > [22mdead-ball resolution[2m > [22mlets an untouched standard serve land in and score for the server
+[31m[1mAssertionError[22m: expected { home: +0, away: 1 } to deeply equal { home: 1, away: +0 }[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  {[22m
+[32m-   "away": 0,[39m
+[32m-   "home": 1,[39m
+[31m+   "away": 1,[39m
+[31m+   "home": 0,[39m
+[2m  }[22m
+
+[36m [2m❯[22m tests/unit/game/deadBall.test.ts:[2m42:25[22m[39m
+    [90m 40|[39m     }
+    [90m 41|[39m
+    [90m 42|[39m     expect(state.score).toEqual({ home: 1, away: 0 });
+    [90m   |[39m                         [31m^[39m
+    [90m 43|[39m     expect(state.rally.phase).toBe('POINT');
+    [90m 44|[39m   });
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/ui/ActionButton.test.tsx[2m > [22mActionButton[2m > [22mdoes not commit a gesture after pointer cancel
+[31m[1mTestingLibraryElementError[22m: Found multiple elements with the role "button"
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33mclass[31m=[32m"action-button action-button--spike is-gesture"[31m
+  [33mtype[31m=[32m"button"[31m
+[36m>[31m
+  [36m<span[31m
+    [33maria-hidden[31m=[32m"true"[31m
+    [33mclass[31m=[32m"action-button__icon"[31m
+  [36m>[31m
+    [0m⚡[0m
+  [36m</span>[31m
+  [36m<span[31m
+    [33mclass[31m=[32m"action-button__label"[31m
+  [36m>[31m
+    [0mSPIKE[0m
+  [36m</span>[31m
+  [36m<span[31m
+    [33mclass[31m=[32m"action-button__hint"[31m
+  [36m>[31m
+    [0mSWIPE[0m
+  [36m</span>[31m
+[36m</button>[31m
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33mclass[31m=[32m"action-button action-button--set is-gesture"[31m
+  [33mtype[31m=[32m"button"[31m
+[36m>[31m
+  [36m<span[31m
+    [33maria-hidden[31m=[32m"true"[31m
+    [33mclass[31m=[32m"action-button__icon"[31m
+  [36m>[31m
+    [0m△[0m
+  [36m</span>[31m
+  [36m<span[31m
+    [33mclass[31m=[32m"action-button__label"[31m
+  [36m>[31m
+    [0mSET[0m
+  [36m</span>[31m
+  [36m<span[31m
+    [33mclass[31m=[32m"action-button__hint"[31m
+  [36m>[31m
+    [0mSWIPE[0m
+  [36m</span>[31m
+[36m</button>[31m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<button[31m
+      [33mclass[31m=[32m"action-button action-button--spike is-gesture"[31m
+      [33mtype[31m=[32m"button"[31m
+    [36m>[31m
+      [36m<span[31m
+        [33maria-hidden[31m=[32m"true"[31m
+        [33mclass[31m=[32m"action-button__icon"[31m
+      [36m>[31m
+        [0m⚡[0m
+      [36m</span>[31m
+      [36m<span[31m
+        [33mclass[31m=[32m"action-button__label"[31m
+      [36m>[31m
+        [0mSPIKE[0m
+      [36m</span>[31m
+      [36m<span[31m
+        [33mclass[31m=[32m"action-button__hint"[31m
+      [36m>[31m
+        [0mSWIPE[0m
+      [36m</span>[31m
+    [36m</button>[31m
+  [36m</div>[31m
+  [36m<div>[31m
+    [36m<button[31m
+      [33mclass[31m=[32m"action-button action-button--set is-gesture"[31m
+      [33mtype[31m=[32m"button"[31m
+    [36m>[31m
+      [36m<span[31m
+        [33maria-hidden[31m=[32m"true"[31m
+        [33mclass[31m=[32m"action-button__icon"[31m
+      [36m>[31m
+        [0m△[0m
+      [36m</span>[31m
+      [36m<span[31m
+        [33mclass[31m=[32m"action-button__label"[31m
+      [36m>[31m
+        [0mSET[0m
+      [36m</span>[31m
+      [36m<span[31m
+        [33mclass[31m=[32m"action-button__hint"[31m
+      [36m>[31m
+        [0mSWIPE[0m
+      [36m</span>[31m
+    [36m</button>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m Object.getElementError node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m getElementError node_modules/@testing-library/dom/dist/query-helpers.js:[2m20:35[22m[39m
+[90m [2m❯[22m getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:[2m23:10[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m55:13[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m tests/unit/ui/ActionButton.test.tsx:[2m72:34[22m[39m
+    [90m 70|[39m     );
+    [90m 71|[39m
+    [90m 72|[39m     fireEvent.pointerDown(screen.getByRole('button'), {
+    [90m   |[39m                                  [31m^[39m
+    [90m 73|[39m       pointerId: 3,
+    [90m 74|[39m       clientX: 50,
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/ui/ActionButton.test.tsx[2m > [22mActionButton[2m > [22msuppresses an immediate repeated press of the same contextual action
+[31m[1mTestingLibraryElementError[22m: Found multiple elements with the role "button"
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33mclass[31m=[32m"action-button action-button--spike is-gesture"[31m
+  [33mtype[31m=[32m"button"[31m
+[36m>[31m
+  [36m<span[31m
+    [33maria-hidden[31m=[32m"true"[31m
+    [33mclass[31m=[32m"action-button__icon"[31m
+  [36m>[31m
+    [0m⚡[0m
+  [36m</span>[31m
+  [36m<span[31m
+    [33mclass[31m=[32m"action-button__label"[31m
+  [36m>[31m
+    [0mSPIKE[0m
+  [36m</span>[31m
+  [36m<span[31m
+    [33mclass[31m=[32m"action-button__hint"[31m
+  [36m>[31m
+    [0mSWIPE[0m
+  [36m</span>[31m
+[36m</button>[31m
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33mclass[31m=[32m"action-button action-button--set is-gesture"[31m
+  [33mtype[31m=[32m"button"[31m
+[36m>[31m
+  [36m<span[31m
+    [33maria-hidden[31m=[32m"true"[31m
+    [33mclass[31m=[32m"action-button__icon"[31m
+  [36m>[31m
+    [0m△[0m
+  [36m</span>[31m
+  [36m<span[31m
+    [33mclass[31m=[32m"action-button__label"[31m
+  [36m>[31m
+    [0mSET[0m
+  [36m</span>[31m
+  [36m<span[31m
+    [33mclass[31m=[32m"action-button__hint"[31m
+  [36m>[31m
+    [0mSWIPE[0m
+  [36m</span>[31m
+[36m</button>[31m
+
+Ignored nodes: comments, script, style
+[36m<button[31m
+  [33mclass[31m=[32m"action-button action-button--receive"[31m
+  [33mtype[31m=[32m"button"[31m
+[36m>[31m
+  [36m<span[31m
+    [33maria-hidden[31m=[32m"true"[31m
+    [33mclass[31m=[32m"action-button__icon"[31m
+  [36m>[31m
+    [0m⌄[0m
+  [36m</span>[31m
+  [36m<span[31m
+    [33mclass[31m=[32m"action-button__label"[31m
+  [36m>[31m
+    [0mRECEIVE[0m
+  [36m</span>[31m
+[36m</button>[31m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<button[31m
+      [33mclass[31m=[32m"action-button action-button--spike is-gesture"[31m
+      [33mtype[31m=[32m"button"[31m
+    [36m>[31m
+      [36m<span[31m
+        [33maria-hidden[31m=[32m"true"[31m
+        [33mclass[31m=[32m"action-button__icon"[31m
+      [36m>[31m
+        [0m⚡[0m
+      [36m</span>[31m
+      [36m<span[31m
+        [33mclass[31m=[32m"action-button__label"[31m
+      [36m>[31m
+        [0mSPIKE[0m
+      [36m</span>[31m
+      [36m<span[31m
+        [33mclass[31m=[32m"action-button__hint"[31m
+      [36m>[31m
+        [0mSWIPE[0m
+      [36m</span>[31m
+    [36m</button>[31m
+  [36m</div>[31m
+  [36m<div>[31m
+    [36m<button[31m
+      [33mclass[31m=[32m"action-button action-button--set is-gesture"[31m
+      [33mtype[31m=[32m"button"[31m
+    [36m>[31m
+      [36m<span[31m
+        [33maria-hidden[31m=[32m"true"[31m
+        [33mclass[31m=[32m"action-button__icon"[31m
+      [36m>[31m
+        [0m△[0m
+      [36m</span>[31m
+      [36m<span[31m
+        [33mclass[31m=[32m"action-button__label"[31m
+      [36m>[31m
+        [0mSET[0m
+      [36m</span>[31m
+      [36m<span[31m
+        [33mclass[31m=[32m"action-button__hint"[31m
+      [36m>[31m
+        [0mSWIPE[0m
+      [36m</span>[31m
+    [36m</button>[31m
+  [36m</div>[31m
+  [36m<div>[31m
+    [36m<button[31m
+      [33mclass[31m=[32m"action-button action-button--receive"[31m
+      [33mtype[31m=[32m"button"[31m
+    [36m>[31m
+      [36m<span[31m
+        [33maria-hidden[31m=[32m"true"[31m
+        [33mclass[31m=[32m"action-button__icon"[31m
+      [36m>[31m
+        [0m⌄[0m
+      [36m</span>[31m
+      [36m<span[31m
+        [33mclass[31m=[32m"action-button__label"[31m
+      [36m>[31m
+        [0mRECEIVE[0m
+      [36m</span>[31m
+    [36m</button>[31m
+  [36m</div>[31m
+[36m</body>[31m[39m
+[90m [2m❯[22m Object.getElementError node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m getElementError node_modules/@testing-library/dom/dist/query-helpers.js:[2m20:35[22m[39m
+[90m [2m❯[22m getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:[2m23:10[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m55:13[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m tests/unit/ui/ActionButton.test.tsx:[2m93:34[22m[39m
+    [90m 91|[39m     );
+    [90m 92|[39m
+    [90m 93|[39m     fireEvent.pointerDown(screen.getByRole('button'), { pointerId: 4 }…
+    [90m   |[39m                                  [31m^[39m
+    [90m 94|[39m     fireEvent.pointerUp(screen.getByRole('button'), { pointerId: 4 });
+    [90m 95|[39m     fireEvent.pointerDown(screen.getByRole('button'), { pointerId: 5 }…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/ui/ActionButton.test.tsx[2m > [22mActionButton[2m > [22msuppresses an immediate repeated gesture of the same contextual action
+[31m[1mTestingLibraryElementError[22m[39m: Found multiple elements with the role "button"
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mclass[39m=[32m"action-button action-button--spike is-gesture"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"action-button__icon"[39m
+  [36m>[39m
+    [0m⚡[0m
+  [36m</span>[39m
+  [36m<span[39m
+    [33mclass[39m=[32m"action-button__label"[39m
+  [36m>[39m
+    [0mSPIKE[0m
+  [36m</span>[39m
+  [36m<span[39m
+    [33mclass[39m=[32m"action-button__hint"[39m
+  [36m>[39m
+    [0mSWIPE[0m
+  [36m</span>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mclass[39m=[32m"action-button action-button--set is-gesture"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"action-button__icon"[39m
+  [36m>[39m
+    [0m△[0m
+  [36m</span>[39m
+  [36m<span[39m
+    [33mclass[39m=[32m"action-button__label"[39m
+  [36m>[39m
+    [0mSET[0m
+  [36m</span>[39m
+  [36m<span[39m
+    [33mclass[39m=[32m"action-button__hint"[39m
+  [36m>[39m
+    [0mSWIPE[0m
+  [36m</span>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mclass[39m=[32m"action-button action-button--receive"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"action-button__icon"[39m
+  [36m>[39m
+    [0m⌄[0m
+  [36m</span>[39m
+  [36m<span[39m
+    [33mclass[39m=[32m"action-button__label"[39m
+  [36m>[39m
+    [0mRECEIVE[0m
+  [36m</span>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mclass[39m=[32m"action-button action-button--set is-gesture"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<span[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mclass[39m=[32m"action-button__icon"[39m
+  [36m>[39m
+    [0m△[0m
+  [36m</span>[39m
+  [36m<span[39m
+    [33mclass[39m=[32m"action-button__label"[39m
+  [36m>[39m
+    [0mSET[0m
+  [36m</span>[39m
+  [36m<span[39m
+    [33mclass[39m=[32m"action-button__hint"[39m
+  [36m>[39m
+    [0mSWIPE[0m
+  [36m</span>[39m
+[36m</button>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"action-button action-button--spike is-gesture"[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33maria-hidden[39m=[32m"true"[39m
+        [33mclass[39m=[32m"action-button__icon"[39m
+      [36m>[39m
+        [0m⚡[0m
+      [36m</span>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"action-button__label"[39m
+      [36m>[39m
+        [0mSPIKE[0m
+      [36m</span>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"action-button__hint"[39m
+      [36m>[39m
+        [0mSWIPE[0m
+      [36m</span>[39m
+    [36m</button>[39m
+  [36m</div>[39m
+  [36m<div>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"action-button action-button--set is-gesture"[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33maria-hidden[39m=[32m"true"[39m
+        [33mclass[39m=[32m"action-button__icon"[39m
+      [36m>[39m
+        [0m△[0m
+      [36m</span>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"action-button__label"[39m
+      [36m>[39m
+        [0mSET[0m
+      [36m</span>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"action-button__hint"[39m
+      [36m>[39m
+        [0mSWIPE[0m
+      [36m</span>[39m
+    [36m</button>[39m
+  [36m</div>[39m
+  [36m<div>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"action-button action-button--receive"[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33maria-hidden[39m=[32m"true"[39m
+        [33mclass[39m=[32m"action-button__icon"[39m
+      [36m>[39m
+        [0m⌄[0m
+      [36m</span>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"action-button__label"[39m
+      [36m>[39m
+        [0mRECEIVE[0m
+      [36m</span>[39m
+    [36m</button>[39m
+  [36m</div>[39m
+  [36m<div>[39m
+    [36m<button[39m
+      [33mclass[39m=[32m"action-button action-button--set is-gesture"[39m
+      [33mtype[39m=[32m"button"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33maria-hidden[39m=[32m"true"[39m
+        [33mclass[39m=[32m"action-button__icon"[39m
+      [36m>[39m
+        [0m△[0m
+      [36m</span>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"action-button__label"[39m
+      [36m>[39m
+        [0mSET[0m
+      [36m</span>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"action-button__hint"[39m
+      [36m>[39m
+        [0mSWIPE[0m
+      [36m</span>[39m
+    [36m</button>[39m
+  [36m</div>[39m
+[36m</body>[39m
+[90m [2m❯[22m Object.getElementError node_modules/@testing-library/dom/dist/config.js:[2m37:19[22m[39m
+[90m [2m❯[22m getElementError node_modules/@testing-library/dom/dist/query-helpers.js:[2m20:35[22m[39m
+[90m [2m❯[22m getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:[2m23:10[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m55:13[22m[39m
+[90m [2m❯[22m node_modules/@testing-library/dom/dist/query-helpers.js:[2m95:19[22m[39m
+[36m [2m❯[22m tests/unit/ui/ActionButton.test.tsx:[2m124:34[22m[39m
+    [90m122|[39m     );
+    [90m123|[39m
+    [90m124|[39m     fireEvent.pointerDown(screen.getByRole('button'), {
+    [90m   |[39m                                  [31m^[39m
+    [90m125|[39m       pointerId: 7,
+    [90m126|[39m       clientX: 100,
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m7 failed[39m[22m[2m | [22m[1m[32m67 passed[39m[22m[90m (74)[39m
+[2m      Tests [22m [1m[31m8 failed[39m[22m[2m | [22m[1m[32m227 passed[39m[22m[90m (235)[39m
+[2m   Start at [22m 07:36:12
+[2m   Duration [22m 16.52s[2m (environment 75%, setup 10%, import 5%, tests 4%, transform 4%, worker 1%)[22m
+
+[2mEnvironment [22m [33mjsdom was created 74 times[39m[2m · 30.58s total, 75% of tracked time[22m
+[2m            [22m [2mcreate it once per worker with [22m[33mpool: 'vmThreads'[39m[2m (keeps per-file isolation) or [22m[33misolate: false[39m[2m (shares it across files)[22m
+[2m            [22m [2mlearn more: https://vitest.dev/guide/improving-performance#test-environments[22m
+
+
+::error file=/home/runner/work/volleyball_game/volleyball_game/tests/e2e/mobile-match.spec.ts,title=tests/e2e/mobile-match.spec.ts,line=3,column=1::Error: Playwright Test did not expect test() to be called here.%0AMost common reasons include:%0A- You are calling test() in a configuration file.%0A- You are calling test() in a file that is imported by the configuration file.%0A- You have two different versions of @playwright/test. This usually happens%0A  when one of the dependencies in your package.json depends on @playwright/test.%0A- You are calling test() from an async test.describe() block. Only sync ones are supported.%0A ❯ _TestTypeImpl._currentSuite node_modules/playwright/lib/common/index.js:2224:13%0A ❯ _TestTypeImpl._createTest node_modules/playwright/lib/common/index.js:2238:24%0A ❯ node_modules/playwright/lib/common/index.js:1154:12%0A ❯ tests/e2e/mobile-match.spec.ts:3:1%0A%0A
+
+::error file=/home/runner/work/volleyball_game/volleyball_game/tests/integration/app/matchFlow.test.tsx,title=tests/integration/app/matchFlow.test.tsx > application match flow > opens the match shell after selecting an unlocked difficulty,line=21,column=28::TestingLibraryElementError: Found multiple elements with the role "button" and name `/NORMAL/`%0A%0AHere are the matching elements:%0A%0AIgnored nodes: comments, script, style%0A<button%0A  class="difficulty-card"%0A  type="button"%0A>%0A  <span%0A    class="difficulty-card__level"%0A  >%0A    LV %0A    2%0A  </span>%0A  <strong>%0A    NORMAL%0A  </strong>%0A  <small>%0A    基本の読み合い%0A  </small>%0A</button>%0A%0AIgnored nodes: comments, script, style%0A<button%0A  class="difficulty-card"%0A  type="button"%0A>%0A  <span%0A    class="difficulty-card__level"%0A  >%0A    LV %0A    2%0A  </span>%0A  <strong>%0A    NORMAL%0A  </strong>%0A  <small>%0A    基本の読み合い%0A  </small>%0A</button>%0A%0A(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).%0A%0AIgnored nodes: comments, script, style%0A<body>%0A  <div>%0A    <main%0A      class="menu-screen"%0A    >%0A      <header%0A        class="menu-header"%0A      >%0A        <button%0A          class="text-button"%0A          type="button"%0A        >%0A          ← BACK%0A        </button>%0A        <div>%0A          <span%0A            class="menu-kicker"%0A          >%0A            CPU MATCH%0A          </span>%0A          <h1>%0A            難易度を選択%0A          </h1>%0A        </div>%0A      </header>%0A      <section%0A        aria-label="CPU難易度"%0A        class="difficulty-grid"%0A      >%0A        <button%0A          class="difficulty-card"%0A          type="button"%0A        >%0A          <span%0A            class="difficulty-card__level"%0A          >%0A            LV %0A            1%0A          </span>%0A          <strong>%0A            BEGINNER%0A          </strong>%0A          <small>%0A            操作練習向け%0A          </small>%0A        </button>%0A        <button%0A          class="difficulty-card"%0A          type="button"%0A        >%0A          <span%0A            class="difficulty-card__level"%0A          >%0A            LV %0A            2%0A          </span>%0A          <strong>%0A            NORMAL%0A          </strong>%0A          <small>%0A            基本の読み合い%0A          </small>%0A        </button>%0A        <button%0A          class="difficulty-card"%0A          type="button"%0A        >%0A          <span%0A            class="difficulty-card__level"%0A          >%0A            LV %0A            3%0A          </span>%0A          <strong>%0A            HARD%0A          </strong>%0A          <small>%0A            ブロック位置を読む%0A          </small>%0A        </button>%0A        <button%0A          class="difficulty-card is-locked"%0A          disabled=""%0A          type="button"%0A        >%0A          <span%0A            class="difficulty-card__level"%0A          >%0A            LV %0A            4%0A          </span>%0A          <strong>%0A            EXPERT%0A          </strong>%0A          <small>%0A            LOCKED%0A          </small>%0A        </button>%0A        <button%0A          class="difficulty-card is-locked"%0A          disabled=""%0A          type="button"%0A        >%0A          <span%0A            class="difficulty-card__level"%0A          >%0A            LV %0A            5%0A          </span>%0A          <strong>%0A            MASTER%0A          </strong>%0A          <small>%0A            LOCKED%0A          </small>%0A        </button>%0A      </section>%0A      <section%0A        class="team-preview"%0A      >%0A        <div>%0A          <span%0A            class="menu-kicker"%0A          >%0A            FOCUS PLAYER%0A          </span>%0A          <h2>%0A            KAI + SUPPORT%0A          </h2>%0A        </div>%0A        <div%0A          class="team-preview__players"%0A        >%0A          <article%0A            class="mini-player-card"%0A          >%0A            <span>%0A              YOU · ACE%0A            </span>%0A            <strong>%0A              KAI%0A            </strong>%0A            <small>%0A              POWER%0A            </small>%0A          </article>%0A          <article%0A            class="mini-player-card"%0A          >%0A            <span>%0A              AI · SETTER%0A            </span>%0A            <strong>%0A              REN%0A            </strong>%0A            <small>%0A              TECHNICAL%0A            </small>%0A          </article>%0A          <article%0A            class="mini-player-card"%0A          >%0A            <span>%0A              AI · LIBERO%0A            </span>%0A            <strong>%0A              HINA%0A            </strong>%0A            <small>%0A              SPEED%0A            </small>%0A          </article>%0A        </div>%0A      </section>%0A    </main>%0A  </div>%0A  <div>%0A    <main%0A      class="menu-screen"%0A    >%0A      <header%0A        class="menu-header"%0A      >%0A        <button%0A          class="text-button"%0A          type="button"%0A        >%0A          ← BACK%0A        </button>%0A        <div>%0A          <span%0A            class="menu-kicker"%0A          >%0A            CPU MATCH%0A          </span>%0A          <h1>%0A            難易度を選択%0A          </h1>%0A        </div>%0A      </header>%0A      <section%0A        aria-label="CPU難易度"%0A        class="difficulty-grid"%0A      >%0A        <button%0A          class="difficulty-card"%0A          type="button"%0A        >%0A          <span%0A            class="difficulty-card__level"%0A          >%0A            LV %0A            1%0A          </span>%0A          <strong>%0A            BEGINNER%0A          </strong>%0A          <small>%0A            操作練習向け%0A          </small>%0A        </button>%0A        <button%0A          class="difficulty-card"%0A          type="button"%0A        >%0A          <span%0A            class="difficulty-card__level"%0A          >%0A            LV %0A            2%0A          </span>%0A          <strong>%0A            NORMAL%0A          </strong>%0A          <small>%0A            基本の読み合い%0A          </small>%0A        </button>%0A        <button%0A          class="difficulty-card"%0A          type="button"%0A        >%0A          <span%0A            class="difficulty-card__level"%0A          >%0A            LV %0A            3%0A          </span>%0A          <strong>%0A            HARD%0A          </strong>%0A          <small>%0A            ブロック位置を読む%0A          </small>%0A        </button>%0A        <button%0A          class="difficulty-card is-locked"%0A          disabled=""%0A          type="button"%0A        >%0A          <span%0A            class="difficulty-card__level"%0A          >%0A            LV %0A            4%0A          </span>%0A          <strong>%0A            EXPERT%0A          </strong>%0A          <small>%0A            LOCKED%0A          </small>%0A        </button>%0A        <button%0A          class="difficulty-card is-locked"%0A          disabled=""%0A          type="button"%0A        >%0A          <span%0A            class="difficulty-card__level"%0A          >%0A            LV %0A            5%0A          </span>%0A          <strong>%0A            MASTER%0A          </strong>%0A          <small>%0A            LOCKED%0A          </small>%0A        </button>%0A      </section>%0A      <section%0A        class="team-preview"%0A      >%0A        <div>%0A          <span%0A            class="menu-kicker"%0A          >%0A            FOCUS PLAYER%0A          </span>%0A          <h2>%0A            KAI + SUPPORT%0A          </h2>%0A        </div>%0A        <div%0A          class="team-preview__players"%0A        >%0A          <article%0A            class="mini-player-card"%0A          >%0A            <span>%0A              YOU · ACE%0A            </span>%0A            <strong>%0A              KAI%0A            </strong>%0A            <small>%0A              POWER%0A            </small>%0A          </article>%0A          <article%0A            class="mini-player-card"%0A          >%0A            <span>%0A              AI · SETTER%0A            </span>%0A            <strong>%0A              REN%0A            </strong>%0A            <small>%0A              TECHNICAL%0A            </small>%0A          </article>%0A          <article%0A            class="mini-player-card"%0A          >%0A            <span>%0A              AI · LIBERO%0A            </span>%0A            <strong>%0A              HINA%0A            </strong>%0A            <small>%0A              SPEED%0A            </small>%0A          </article>%0A        </div>%0A      </section>%0A    </main>%0A  </div>%0A</body>%0A ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19%0A ❯ getElementError node_modules/@testing-library/dom/dist/query-helpers.js:20:35%0A ❯ getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:23:10%0A ❯ node_modules/@testing-library/dom/dist/query-helpers.js:55:13%0A ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19%0A ❯ tests/integration/app/matchFlow.test.tsx:21:28%0A%0A
+
+::error file=/home/runner/work/volleyball_game/volleyball_game/tests/integration/game/matchRuntime.test.ts,title=tests/integration/game/matchRuntime.test.ts > match runtime > routes a right-side set gesture toward the right-side teammate,line=159,column=43::AssertionError: expected 'home-2' to be 'home-1' // Object.is equality%0A%0AExpected: "home-1"%0AReceived: "home-2"%0A%0A ❯ tests/integration/game/matchRuntime.test.ts:159:43%0A%0A
+
+::error file=/home/runner/work/volleyball_game/volleyball_game/tests/unit/app/App.test.tsx,title=tests/unit/app/App.test.tsx > App > opens the fixed-control rework match from difficulty select,line=19,column=28::TestingLibraryElementError: Found multiple elements with the role "button" and name "CPU MATCH"%0A%0AHere are the matching elements:%0A%0AIgnored nodes: comments, script, style%0A<button%0A  class="primary-button"%0A  type="button"%0A>%0A  CPU MATCH%0A</button>%0A%0AIgnored nodes: comments, script, style%0A<button%0A  class="primary-button"%0A  type="button"%0A>%0A  CPU MATCH%0A</button>%0A%0A(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).%0A%0AIgnored nodes: comments, script, style%0A<body>%0A  <div>%0A    <main%0A      class="app-shell app-shell--title"%0A    >%0A      <section%0A        aria-labelledby="game-title"%0A        class="title-screen"%0A      >%0A        <p%0A          class="title-screen__eyebrow"%0A        >%0A          3 VS 3 / ONE PLAYER FOCUS%0A        </p>%0A        <h1%0A          class="title-screen__title"%0A          id="game-title"%0A        >%0A          VOLLEYBALL%0A        </h1>%0A        <p%0A          class="title-screen__lead"%0A        >%0A          拾う。上がる。跳ぶ。決める。%0A        </p>%0A        <button%0A          class="primary-button"%0A          type="button"%0A        >%0A          CPU MATCH%0A        </button>%0A        <p%0A          class="title-screen__control-note"%0A        >%0A          LANDSCAPE · DRAG + PLAY + POWER%0A        </p>%0A      </section>%0A    </main>%0A  </div>%0A  <div>%0A    <main%0A      class="app-shell app-shell--title"%0A    >%0A      <section%0A        aria-labelledby="game-title"%0A        class="title-screen"%0A      >%0A        <p%0A          class="title-screen__eyebrow"%0A        >%0A          3 VS 3 / ONE PLAYER FOCUS%0A        </p>%0A        <h1%0A          class="title-screen__title"%0A          id="game-title"%0A        >%0A          VOLLEYBALL%0A        </h1>%0A        <p%0A          class="title-screen__lead"%0A        >%0A          拾う。上がる。跳ぶ。決める。%0A        </p>%0A        <button%0A          class="primary-button"%0A          type="button"%0A        >%0A          CPU MATCH%0A        </button>%0A        <p%0A          class="title-screen__control-note"%0A        >%0A          LANDSCAPE · DRAG + PLAY + POWER%0A        </p>%0A      </section>%0A    </main>%0A  </div>%0A</body>%0A ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19%0A ❯ getElementError node_modules/@testing-library/dom/dist/query-helpers.js:20:35%0A ❯ getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:23:10%0A ❯ node_modules/@testing-library/dom/dist/query-helpers.js:55:13%0A ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19%0A ❯ tests/unit/app/App.test.tsx:19:28%0A%0A
+
+::error file=/home/runner/work/volleyball_game/volleyball_game/tests/unit/app/TutorialScreen.test.tsx,title=tests/unit/app/TutorialScreen.test.tsx > TutorialScreen > advances after a successful home receive and lets the player skip explicitly,line=43,column=28::TestingLibraryElementError: Found multiple elements with the role "button" and name "SKIP"%0A%0AHere are the matching elements:%0A%0AIgnored nodes: comments, script, style%0A<button%0A  class="text-button"%0A  type="button"%0A>%0A  SKIP%0A</button>%0A%0AIgnored nodes: comments, script, style%0A<button%0A  class="text-button"%0A  type="button"%0A>%0A  SKIP%0A</button>%0A%0A(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).%0A%0AIgnored nodes: comments, script, style%0A<body>%0A  <div>%0A    <aside%0A      aria-live="polite"%0A      class="tutorial-coach"%0A    >%0A      <div%0A        class="tutorial-coach__progress"%0A      >%0A        TUTORIAL %0A        1 / 5%0A      </div>%0A      <strong>%0A        まずは拾う%0A      </strong>%0A      <p>%0A        左スティックで落下地点へ移動して、RECEIVEをタイミングよく押そう。%0A      </p>%0A      <button%0A        class="text-button"%0A        type="button"%0A      >%0A        SKIP%0A      </button>%0A    </aside>%0A  </div>%0A  <div>%0A    <aside%0A      aria-live="polite"%0A      class="tutorial-coach"%0A    >%0A      <div%0A        class="tutorial-coach__progress"%0A      >%0A        TUTORIAL %0A        2 / 5%0A      </div>%0A      <strong>%0A        攻撃につなぐ%0A      </strong>%0A      <p>%0A        セッターに切り替わったらSETをスワイプ。速さと方向でトスを選ぶ。%0A      </p>%0A      <button%0A        class="text-button"%0A        type="button"%0A      >%0A        SKIP%0A      </button>%0A    </aside>%0A  </div>%0A</body>%0A ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19%0A ❯ getElementError node_modules/@testing-library/dom/dist/query-helpers.js:20:35%0A ❯ getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:23:10%0A ❯ node_modules/@testing-library/dom/dist/query-helpers.js:55:13%0A ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19%0A ❯ tests/unit/app/TutorialScreen.test.tsx:43:28%0A%0A
+
+::error file=/home/runner/work/volleyball_game/volleyball_game/tests/unit/game/deadBall.test.ts,title=tests/unit/game/deadBall.test.ts > dead-ball resolution > lets an untouched standard serve land in and score for the server,line=42,column=25::AssertionError: expected { home: +0, away: 1 } to deeply equal { home: 1, away: +0 }%0A%0A- Expected%0A+ Received%0A%0A  {%0A-   "away": 0,%0A-   "home": 1,%0A+   "away": 1,%0A+   "home": 0,%0A  }%0A%0A ❯ tests/unit/game/deadBall.test.ts:42:25%0A%0A
+
+::error file=/home/runner/work/volleyball_game/volleyball_game/tests/unit/ui/ActionButton.test.tsx,title=tests/unit/ui/ActionButton.test.tsx > ActionButton > does not commit a gesture after pointer cancel,line=72,column=34::TestingLibraryElementError: Found multiple elements with the role "button"%0A%0AHere are the matching elements:%0A%0AIgnored nodes: comments, script, style%0A<button%0A  class="action-button action-button--spike is-gesture"%0A  type="button"%0A>%0A  <span%0A    aria-hidden="true"%0A    class="action-button__icon"%0A  >%0A    ⚡%0A  </span>%0A  <span%0A    class="action-button__label"%0A  >%0A    SPIKE%0A  </span>%0A  <span%0A    class="action-button__hint"%0A  >%0A    SWIPE%0A  </span>%0A</button>%0A%0AIgnored nodes: comments, script, style%0A<button%0A  class="action-button action-button--set is-gesture"%0A  type="button"%0A>%0A  <span%0A    aria-hidden="true"%0A    class="action-button__icon"%0A  >%0A    △%0A  </span>%0A  <span%0A    class="action-button__label"%0A  >%0A    SET%0A  </span>%0A  <span%0A    class="action-button__hint"%0A  >%0A    SWIPE%0A  </span>%0A</button>%0A%0A(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).%0A%0AIgnored nodes: comments, script, style%0A<body>%0A  <div>%0A    <button%0A      class="action-button action-button--spike is-gesture"%0A      type="button"%0A    >%0A      <span%0A        aria-hidden="true"%0A        class="action-button__icon"%0A      >%0A        ⚡%0A      </span>%0A      <span%0A        class="action-button__label"%0A      >%0A        SPIKE%0A      </span>%0A      <span%0A        class="action-button__hint"%0A      >%0A        SWIPE%0A      </span>%0A    </button>%0A  </div>%0A  <div>%0A    <button%0A      class="action-button action-button--set is-gesture"%0A      type="button"%0A    >%0A      <span%0A        aria-hidden="true"%0A        class="action-button__icon"%0A      >%0A        △%0A      </span>%0A      <span%0A        class="action-button__label"%0A      >%0A        SET%0A      </span>%0A      <span%0A        class="action-button__hint"%0A      >%0A        SWIPE%0A      </span>%0A    </button>%0A  </div>%0A</body>%0A ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19%0A ❯ getElementError node_modules/@testing-library/dom/dist/query-helpers.js:20:35%0A ❯ getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:23:10%0A ❯ node_modules/@testing-library/dom/dist/query-helpers.js:55:13%0A ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19%0A ❯ tests/unit/ui/ActionButton.test.tsx:72:34%0A%0A
+
+::error file=/home/runner/work/volleyball_game/volleyball_game/tests/unit/ui/ActionButton.test.tsx,title=tests/unit/ui/ActionButton.test.tsx > ActionButton > suppresses an immediate repeated press of the same contextual action,line=93,column=34::TestingLibraryElementError: Found multiple elements with the role "button"%0A%0AHere are the matching elements:%0A%0AIgnored nodes: comments, script, style%0A<button%0A  class="action-button action-button--spike is-gesture"%0A  type="button"%0A>%0A  <span%0A    aria-hidden="true"%0A    class="action-button__icon"%0A  >%0A    ⚡%0A  </span>%0A  <span%0A    class="action-button__label"%0A  >%0A    SPIKE%0A  </span>%0A  <span%0A    class="action-button__hint"%0A  >%0A    SWIPE%0A  </span>%0A</button>%0A%0AIgnored nodes: comments, script, style%0A<button%0A  class="action-button action-button--set is-gesture"%0A  type="button"%0A>%0A  <span%0A    aria-hidden="true"%0A    class="action-button__icon"%0A  >%0A    △%0A  </span>%0A  <span%0A    class="action-button__label"%0A  >%0A    SET%0A  </span>%0A  <span%0A    class="action-button__hint"%0A  >%0A    SWIPE%0A  </span>%0A</button>%0A%0AIgnored nodes: comments, script, style%0A<button%0A  class="action-button action-button--receive"%0A  type="button"%0A>%0A  <span%0A    aria-hidden="true"%0A    class="action-button__icon"%0A  >%0A    ⌄%0A  </span>%0A  <span%0A    class="action-button__label"%0A  >%0A    RECEIVE%0A  </span>%0A</button>%0A%0A(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).%0A%0AIgnored nodes: comments, script, style%0A<body>%0A  <div>%0A    <button%0A      class="action-button action-button--spike is-gesture"%0A      type="button"%0A    >%0A      <span%0A        aria-hidden="true"%0A        class="action-button__icon"%0A      >%0A        ⚡%0A      </span>%0A      <span%0A        class="action-button__label"%0A      >%0A        SPIKE%0A      </span>%0A      <span%0A        class="action-button__hint"%0A      >%0A        SWIPE%0A      </span>%0A    </button>%0A  </div>%0A  <div>%0A    <button%0A      class="action-button action-button--set is-gesture"%0A      type="button"%0A    >%0A      <span%0A        aria-hidden="true"%0A        class="action-button__icon"%0A      >%0A        △%0A      </span>%0A      <span%0A        class="action-button__label"%0A      >%0A        SET%0A      </span>%0A      <span%0A        class="action-button__hint"%0A      >%0A        SWIPE%0A      </span>%0A    </button>%0A  </div>%0A  <div>%0A    <button%0A      class="action-button action-button--receive"%0A      type="button"%0A    >%0A      <span%0A        aria-hidden="true"%0A        class="action-button__icon"%0A      >%0A        ⌄%0A      </span>%0A      <span%0A        class="action-button__label"%0A      >%0A        RECEIVE%0A      </span>%0A    </button>%0A  </div>%0A</body>%0A ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19%0A ❯ getElementError node_modules/@testing-library/dom/dist/query-helpers.js:20:35%0A ❯ getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:23:10%0A ❯ node_modules/@testing-library/dom/dist/query-helpers.js:55:13%0A ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19%0A ❯ tests/unit/ui/ActionButton.test.tsx:93:34%0A%0A
+
+::error file=/home/runner/work/volleyball_game/volleyball_game/tests/unit/ui/ActionButton.test.tsx,title=tests/unit/ui/ActionButton.test.tsx > ActionButton > suppresses an immediate repeated gesture of the same contextual action,line=124,column=34::TestingLibraryElementError: Found multiple elements with the role "button"%0A%0AHere are the matching elements:%0A%0AIgnored nodes: comments, script, style%0A<button%0A  class="action-button action-button--spike is-gesture"%0A  type="button"%0A>%0A  <span%0A    aria-hidden="true"%0A    class="action-button__icon"%0A  >%0A    ⚡%0A  </span>%0A  <span%0A    class="action-button__label"%0A  >%0A    SPIKE%0A  </span>%0A  <span%0A    class="action-button__hint"%0A  >%0A    SWIPE%0A  </span>%0A</button>%0A%0AIgnored nodes: comments, script, style%0A<button%0A  class="action-button action-button--set is-gesture"%0A  type="button"%0A>%0A  <span%0A    aria-hidden="true"%0A    class="action-button__icon"%0A  >%0A    △%0A  </span>%0A  <span%0A    class="action-button__label"%0A  >%0A    SET%0A  </span>%0A  <span%0A    class="action-button__hint"%0A  >%0A    SWIPE%0A  </span>%0A</button>%0A%0AIgnored nodes: comments, script, style%0A<button%0A  class="action-button action-button--receive"%0A  type="button"%0A>%0A  <span%0A    aria-hidden="true"%0A    class="action-button__icon"%0A  >%0A    ⌄%0A  </span>%0A  <span%0A    class="action-button__label"%0A  >%0A    RECEIVE%0A  </span>%0A</button>%0A%0AIgnored nodes: comments, script, style%0A<button%0A  class="action-button action-button--set is-gesture"%0A  type="button"%0A>%0A  <span%0A    aria-hidden="true"%0A    class="action-button__icon"%0A  >%0A    △%0A  </span>%0A  <span%0A    class="action-button__label"%0A  >%0A    SET%0A  </span>%0A  <span%0A    class="action-button__hint"%0A  >%0A    SWIPE%0A  </span>%0A</button>%0A%0A(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).%0A%0AIgnored nodes: comments, script, style%0A<body>%0A  <div>%0A    <button%0A      class="action-button action-button--spike is-gesture"%0A      type="button"%0A    >%0A      <span%0A        aria-hidden="true"%0A        class="action-button__icon"%0A      >%0A        ⚡%0A      </span>%0A      <span%0A        class="action-button__label"%0A      >%0A        SPIKE%0A      </span>%0A      <span%0A        class="action-button__hint"%0A      >%0A        SWIPE%0A      </span>%0A    </button>%0A  </div>%0A  <div>%0A    <button%0A      class="action-button action-button--set is-gesture"%0A      type="button"%0A    >%0A      <span%0A        aria-hidden="true"%0A        class="action-button__icon"%0A      >%0A        △%0A      </span>%0A      <span%0A        class="action-button__label"%0A      >%0A        SET%0A      </span>%0A      <span%0A        class="action-button__hint"%0A      >%0A        SWIPE%0A      </span>%0A    </button>%0A  </div>%0A  <div>%0A    <button%0A      class="action-button action-button--receive"%0A      type="button"%0A    >%0A      <span%0A        aria-hidden="true"%0A        class="action-button__icon"%0A      >%0A        ⌄%0A      </span>%0A      <span%0A        class="action-button__label"%0A      >%0A        RECEIVE%0A      </span>%0A    </button>%0A  </div>%0A  <div>%0A    <button%0A      class="action-button action-button--set is-gesture"%0A      type="button"%0A    >%0A      <span%0A        aria-hidden="true"%0A        class="action-button__icon"%0A      >%0A        △%0A      </span>%0A      <span%0A        class="action-button__label"%0A      >%0A        SET%0A      </span>%0A      <span%0A        class="action-button__hint"%0A      >%0A        SWIPE%0A      </span>%0A    </button>%0A  </div>%0A</body>%0A ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19%0A ❯ getElementError node_modules/@testing-library/dom/dist/query-helpers.js:20:35%0A ❯ getMultipleElementsFoundError node_modules/@testing-library/dom/dist/query-helpers.js:23:10%0A ❯ node_modules/@testing-library/dom/dist/query-helpers.js:55:13%0A ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19%0A ❯ tests/unit/ui/ActionButton.test.tsx:124:34%0A%0A

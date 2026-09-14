@@ -1,4 +1,7 @@
-head_before=9faf632edd91fc565dcaa07729c698add2b0adbe
+head_before=07572dded114f2b60b9c962bb4584a56e7336802
 install_exit=0
 playwright_install_exit=0
-verify_full_exit=2
+typecheck_exit=2
+test_exit=1
+build_exit=1
+e2e_exit=1
