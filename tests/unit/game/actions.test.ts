@@ -153,7 +153,8 @@ describe('volleyball action calculations', () => {
   });
 
   it('gives GOU a valid perfect block inside his extended Wall reach', () => {
-    const result = performBlock(ball, STARTER_ROSTER.gou, 'away-1', 0, 0.66);
+    const spikeBall: BallState = { ...ball, lastContact: 'SPIKE' };
+    const result = performBlock(spikeBall, STARTER_ROSTER.gou, 'away-1', 0, 0.66);
     expect(result.touched).toBe(true);
     expect(result.quality).toBe('PERFECT');
   });
