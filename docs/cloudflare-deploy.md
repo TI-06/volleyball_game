@@ -43,12 +43,15 @@ Run:
 
 ```bash
 npm install
+npm run test:e2e:install
 npm run verify:full
 npx wrangler login
 npm run deploy
 ```
 
 The first successful `npm install` should generate `package-lock.json`. Commit that file before the Phase 1 merge, then use `npm ci` for repeatable future installs.
+
+`npm run test:e2e:install` installs the Chromium browser binary used by the Playwright mobile-landscape E2E tests. It is normally needed only once per development machine / Playwright browser cache.
 
 `npm run deploy` performs a production build and then deploys with Wrangler. The deployed Worker name is `volleyball-game` unless `wrangler.jsonc` is changed.
 
@@ -69,7 +72,7 @@ In Cloudflare Dashboard:
 3. Confirm the latest deployment is active.
 4. Open the generated `workers.dev` URL.
 5. Check the game at smartphone landscape sizes, especially 844x390 and 932x430.
-6. Confirm direct SPA navigation/fallback serves `index.html` rather than a 404.
+6. Confirm SPA fallback works instead of returning a 404 for client-side routes.
 
 No KV, D1, R2, Durable Objects, environment variables, secrets, or custom bindings are required for Phase 1.
 
@@ -83,7 +86,7 @@ After the Worker is working on its `workers.dev` URL:
 4. Use a domain that is already managed in the same Cloudflare account.
 5. Verify HTTPS and open the game from the custom domain.
 
-Do not change application code for a normal root-domain/subdomain deployment; Vite assets are emitted with root-relative URLs suitable for this deployment.
+Do not change application code for a normal root-domain/subdomain deployment; Vite assets are emitted for root-hosted deployment.
 
 ## Git integration policy for Phase 1
 
@@ -96,7 +99,8 @@ After Phase 1 is stable, Cloudflare Builds/Git integration can be considered sep
 Before the first public deployment:
 
 ```bash
-npm install          # first time only; creates package-lock.json
+npm install                   # first time only; creates package-lock.json
+npm run test:e2e:install      # first time per machine/browser cache
 npm run verify:full
 npm run preview
 ```
@@ -117,5 +121,6 @@ Then manually check:
 Finally:
 
 ```bash
+npx wrangler login            # first time / when auth has expired
 npm run deploy
 ```
