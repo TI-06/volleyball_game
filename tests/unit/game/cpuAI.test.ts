@@ -22,6 +22,7 @@ describe('CPU AI', () => {
         ...base.ball,
         inPlay: true,
         lastTouchedBy: 'away-2',
+        lastContact: 'SET' as const,
         position: { x: 0, y: 2, z: 3 },
         velocity: { x: 0, y: 3, z: -0.2 },
       },
@@ -43,6 +44,7 @@ describe('CPU AI', () => {
         ...base.ball,
         inPlay: true,
         lastTouchedBy: 'away-2',
+        lastContact: 'SET' as const,
         position: { x: -2, y: 2.5, z: 2.2 },
         velocity: { x: 0, y: 3, z: -0.1 },
       },
@@ -71,6 +73,7 @@ describe('CPU AI', () => {
         ...base.ball,
         inPlay: true,
         lastTouchedBy: 'home-0',
+        lastContact: 'SPIKE' as const,
         position: { x: 0.6, y: 2.8, z: -0.6 },
         velocity: { x: 0, y: 0.5, z: 4.5 },
       },
@@ -101,6 +104,7 @@ describe('CPU AI', () => {
         ...base.ball,
         inPlay: true,
         lastTouchedBy: 'home-0',
+        lastContact: 'SPIKE' as const,
         position: { x: 0.7, y: 2.9, z: -0.5 },
         velocity: { x: 0, y: 0.3, z: 4.2 },
       },
@@ -125,6 +129,7 @@ describe('CPU AI', () => {
         ...base.ball,
         inPlay: true,
         lastTouchedBy: 'away-2',
+        lastContact: 'SET' as const,
         position: { x: -2, y: 2.9, z: 0.9 },
         velocity: { x: -1, y: -1.1, z: -0.2 },
       },
@@ -133,6 +138,26 @@ describe('CPU AI', () => {
     expect(
       decideCpuIntent(state, 'away-0', DIFFICULTY_PROFILES.HARD, createTendencyHistory()).state,
     ).toBe('APPROACH');
+  });
+
+  it('assigns SHIN as the emergency setter when YU took the first touch', () => {
+    const base = createMatch(123);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'away-2',
+        lastContact: 'RECEIVE' as const,
+        position: { x: 0.2, y: 2, z: 2.1 },
+        velocity: { x: 0.1, y: 2.1, z: -0.2 },
+      },
+    };
+
+    expect(
+      decideCpuIntent(state, 'away-0', DIFFICULTY_PROFILES.HARD, createTendencyHistory()).state,
+    ).toBe('SET');
   });
 
   it('gives higher levels tighter receive prediction error than beginner', () => {
