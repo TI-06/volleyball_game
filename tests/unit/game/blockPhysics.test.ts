@@ -9,6 +9,7 @@ const incoming: BallState = {
   spin: { x: 4, y: 0, z: 0 },
   inPlay: true,
   lastTouchedBy: 'away-0',
+  lastContact: 'SPIKE',
 };
 
 describe('block rebound physics', () => {
