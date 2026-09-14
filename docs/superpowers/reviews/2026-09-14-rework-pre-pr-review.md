@@ -70,7 +70,7 @@ This branch replaces the Phase 1 match presentation and control surface while pr
 
 - Static review of Rework runtime / AI / rendering / React integration.
 - Pure TypeScript spot checks performed during implementation for isolated movement/action/runtime helpers where dependencies were not required.
-- Existing and new Vitest/Playwright regression cases have been written around the rework flow, including REMATCH lifecycle and symmetric court-boundary behavior.
+- Existing and new Vitest/Playwright regression cases have been written around the rework flow, including REMATCH lifecycle, receive ownership, attack/block contact range, and symmetric court-boundary behavior.
 - Branch contains no `.github/workflows` directory.
 - Latest checked PR-head Workflow run list is empty.
 
