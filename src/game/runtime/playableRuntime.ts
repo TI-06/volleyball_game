@@ -15,6 +15,7 @@ import {
 const PLAYER_GRAVITY = 22;
 const CPU_CONTACT_DELAY_AFTER_JUMP = 0.075;
 const CPU_BLOCK_READY_Z = 1.8;
+const PLAYER_CONTACT_READ_RESET = 0.05;
 
 interface CpuMemoryShape {
   intent: CpuIntent;
@@ -41,23 +42,30 @@ function cpuMemories(runtime: MatchRuntimeState): Record<string, CpuMemoryShape>
   return runtime.cpuDecisions as Record<string, CpuMemoryShape>;
 }
 
-function playerActionEndsIncomingAttack(
+function playerReceivingContact(
   runtime: MatchRuntimeState,
   input: RuntimeInput,
 ): boolean {
   if (!input.actionPressed) return false;
   const action = getCurrentAction(runtime);
-  return action === 'RECEIVE' || action === 'DIVE' || action === 'SET' || action === 'BLOCK';
+  return action === 'RECEIVE' || action === 'DIVE';
+}
+
+function coverIntent(player: PlayerState): CpuIntent {
+  return {
+    state: 'COVER',
+    target: { x: player.position.x, y: 0, z: player.position.z },
+    attackIntent: null,
+    reactionDelay: PLAYER_CONTACT_READ_RESET,
+  };
 }
 
 function clearStaleBlockIntent(
   runtime: MatchRuntimeState,
   input: RuntimeInput,
 ): MatchRuntimeState {
-  if (
-    runtime.match.ball.lastContact === 'SPIKE' &&
-    !playerActionEndsIncomingAttack(runtime, input)
-  ) {
+  const receivingNow = playerReceivingContact(runtime, input);
+  if (runtime.match.ball.lastContact === 'SPIKE' && !receivingNow) {
     return runtime;
   }
 
@@ -65,10 +73,27 @@ function clearStaleBlockIntent(
   const next: Record<string, CpuMemoryShape> = { ...memories };
   let changed = false;
 
-  for (const [playerId, memory] of Object.entries(memories)) {
-    if (memory.intent.state !== 'BLOCK') continue;
-    delete next[playerId];
-    changed = true;
+  if (receivingNow) {
+    for (const player of runtime.match.players) {
+      if (
+        player.side !== 'away' ||
+        (player.role !== 'ACE' && player.role !== 'MIDDLE')
+      ) {
+        continue;
+      }
+      next[player.id] = {
+        intent: coverIntent(player),
+        nextDecisionAt: runtime.match.time + PLAYER_CONTACT_READ_RESET,
+        actionReadyAt: runtime.match.time + PLAYER_CONTACT_READ_RESET,
+      };
+      changed = true;
+    }
+  } else {
+    for (const [playerId, memory] of Object.entries(memories)) {
+      if (memory.intent.state !== 'BLOCK') continue;
+      delete next[playerId];
+      changed = true;
+    }
   }
 
   return changed
