@@ -133,6 +133,7 @@ export function decideCpuIntent(
   const ballOnAwaySide = state.ball.position.z >= 0;
   const landing = predictLanding(state.ball);
   const teammateTouched = state.ball.lastTouchedBy?.startsWith('away-') ?? false;
+  const opponentTouched = state.ball.lastTouchedBy?.startsWith('home-') ?? false;
 
   if (ballOnAwaySide && state.ball.velocity.y < 0 && !teammateTouched) {
     const receiver = closestAwayPlayer(state, landing);
@@ -181,7 +182,7 @@ export function decideCpuIntent(
   }
 
   if (!ballOnAwaySide && (player.role === 'ACE' || player.role === 'MIDDLE')) {
-    if (state.ball.lastContact === 'SERVE') {
+    if (!opponentTouched || state.ball.lastContact === 'SERVE') {
       return { state: 'COVER', target: basePosition(player), attackIntent: null, reactionDelay: delay };
     }
     const target = { x: state.ball.position.x, y: 0, z: BLOCK_TARGET_Z };
