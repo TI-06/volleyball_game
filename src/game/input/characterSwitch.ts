@@ -134,6 +134,10 @@ export function getSwitchCandidate(
     return { playerId: null, warningLead: 0, reason: 'NO_CANDIDATE' };
   }
 
+  if (state.rally.phase === 'SERVE_READY' && state.rally.servingSide === 'away') {
+    return { playerId: null, warningLead: AUTO_WARNING_LEAD, reason: 'NO_CANDIDATE' };
+  }
+
   const serve = serveCandidate(state);
   const offense = offensiveCandidate(state);
   const candidate = serve ?? offense ?? targetCandidate(state);
