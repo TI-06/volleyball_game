@@ -1,5 +1,6 @@
 import { predictLanding } from '../../ball/ballPhysics';
 import type { MatchState, Vec3 } from '../../core/types';
+import { chooseHomeReceiveOwner } from '../receiveOwnership';
 
 export interface ReworkMarkerState {
   receiveLanding: Vec3 | null;
@@ -25,9 +26,11 @@ function opponentSet(state: MatchState): boolean {
 }
 
 function incomingOpponentBall(state: MatchState): boolean {
-  if (!(state.ball.lastTouchedBy?.startsWith('away-') ?? false)) return false;
-  const landing = predictLanding(state.ball);
-  return landing.z < 0 && state.ball.inPlay;
+  return (
+    state.ball.inPlay &&
+    (state.ball.lastTouchedBy?.startsWith('away-') ?? false) &&
+    (state.ball.lastContact === 'SERVE' || state.ball.lastContact === 'SPIKE')
+  );
 }
 
 function blockTarget(state: MatchState): Vec3 | null {
@@ -58,7 +61,7 @@ export function getReworkMarkerState(
     return { receiveLanding: null, approach: null, attackLanes: [], blockTarget: null };
   }
 
-  if (incomingOpponentBall(state)) {
+  if (incomingOpponentBall(state) && chooseHomeReceiveOwner(state) === focusPlayerId) {
     const landing = predictLanding(state.ball);
     return {
       receiveLanding: { x: landing.x, y: 0.025, z: landing.z },
