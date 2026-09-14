@@ -28,6 +28,7 @@ import type {
 const FOCUS_PLAYER_ID = 'home-0' as const;
 const PLAYER_GRAVITY = 22;
 const MIN_BLOCK_PLAYER_HEIGHT = 0.28;
+const MAX_BLOCK_DEPTH_DISTANCE = 1.35;
 const SETTER_TARGET: Vec3 = { x: 0, y: 2.2, z: -1.6 };
 const ATTACK_CONTACT_Z = -0.72;
 const MATCH_INPUT_IDLE: MatchInput = {
@@ -271,6 +272,7 @@ function tryFocusBlock(match: MatchState): { match: MatchState; event: ReworkEve
     ball.velocity.z >= -0.05 ||
     focus.position.z < -1.8 ||
     Math.abs(ball.position.z) > 1.8 ||
+    Math.abs(focus.position.z - ball.position.z) > MAX_BLOCK_DEPTH_DISTANCE ||
     ball.position.y < 1.65 ||
     Math.abs(focus.position.x - ball.position.x) > 1.4
   ) {
