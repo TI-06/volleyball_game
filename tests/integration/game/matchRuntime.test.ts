@@ -140,6 +140,7 @@ describe('match runtime', () => {
           ...runtime.match.ball,
           inPlay: true,
           lastTouchedBy: 'home-2',
+          lastContact: 'RECEIVE' as const,
           position: { x: 0, y: 2.05, z: -1.2 },
           velocity: { x: 0, y: 0.2, z: 0 },
         },
