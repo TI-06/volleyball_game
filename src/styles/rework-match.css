@@ -216,6 +216,26 @@
   white-space: nowrap;
 }
 
+.rework-action__hint {
+  position: absolute;
+  top: -23px;
+  left: 50%;
+  width: max-content;
+  padding: 3px 7px;
+  border: 1px solid rgba(255, 224, 115, .34);
+  border-radius: 999px;
+  color: rgba(255, 244, 199, .92);
+  background: rgba(7, 12, 16, .72);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .24);
+  font-size: .46rem;
+  font-style: normal;
+  font-weight: 950;
+  letter-spacing: .08em;
+  pointer-events: none;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
 .rework-action--play {
   width: clamp(88px, 10vw, 104px);
   height: clamp(88px, 10vw, 104px);
@@ -239,6 +259,11 @@
   color: #fffdf2;
   background: radial-gradient(circle at 40% 30%, rgba(255, 221, 103, .34), rgba(74, 48, 17, .9));
   box-shadow: 0 12px 38px rgba(0, 0, 0, .34), 0 0 25px rgba(255, 207, 76, .18);
+}
+
+.rework-action--power.is-active {
+  box-shadow: 0 12px 38px rgba(0, 0, 0, .34), 0 0 34px rgba(255, 207, 76, .32);
+  transform: scale(.97);
 }
 
 .rework-action.is-ready:active { transform: scale(.95); }
