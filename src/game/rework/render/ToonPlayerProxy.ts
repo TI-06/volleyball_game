@@ -4,6 +4,8 @@ import type { PlayerState, TeamSide } from '../../core/types';
 import type { ReworkEvent } from '../types';
 import { poseForEvent, poseForPlayerState, type ToonPose } from './toonPresentation';
 
+export const REWORK_PLAYER_PRESENTATION = 'TOON_PROXY_2_5D' as const;
+
 const HEIGHT_BY_CLASS: Record<HeightClass, number> = {
   SHORT: 1.9,
   MEDIUM: 2.02,
@@ -37,6 +39,13 @@ const ACTION_DURATION_MS: Partial<Record<ToonPose, number>> = {
   SERVE: 420,
   CELEBRATE: 650,
 };
+
+export function getToonProxyScale(character: CharacterDefinition): { width: number; height: number } {
+  const baseHeight = HEIGHT_BY_CLASS[character.heightClass];
+  const height = baseHeight * 1.28;
+  const widthFactor = character.archetype === 'BLOCK' ? 0.82 : character.archetype === 'POWER' ? 0.79 : 0.74;
+  return { width: height * widthFactor, height };
+}
 
 interface PoseRig {
   hip: [number, number];
@@ -256,14 +265,15 @@ export class ToonPlayerProxy {
   private actionPose: ToonPose | null = null;
   private actionUntil = 0;
   private currentPose: ToonPose = 'IDLE';
-  private readonly height: number;
+  private readonly visualHeight: number;
   private lastGroundPosition: { x: number; z: number } | null = null;
 
   constructor(
     private readonly character: CharacterDefinition,
     private readonly side: TeamSide,
   ) {
-    this.height = HEIGHT_BY_CLASS[character.heightClass];
+    const scale = getToonProxyScale(character);
+    this.visualHeight = scale.height;
     for (const pose of ['IDLE', 'MOVE', 'RECEIVE', 'SET', 'JUMP', 'SPIKE', 'BLOCK', 'SERVE', 'CELEBRATE'] as const) {
       this.textures.set(pose, makeTexture(character, side, pose));
     }
@@ -274,8 +284,8 @@ export class ToonPlayerProxy {
       depthWrite: false,
       alphaTest: 0.08,
     }));
-    this.sprite.scale.set(this.height * 0.9, this.height, 1);
-    this.sprite.position.y = this.height / 2;
+    this.sprite.scale.set(scale.width, scale.height, 1);
+    this.sprite.position.y = scale.height / 2;
     this.group.add(this.sprite);
 
     this.shadow = new THREE.Mesh(
@@ -337,7 +347,7 @@ export class ToonPlayerProxy {
     }
 
     this.group.position.set(player.position.x, 0, player.position.z);
-    this.sprite.position.y = player.position.y + this.height / 2;
+    this.sprite.position.y = player.position.y + this.visualHeight / 2;
     const airborne = Math.max(0, player.position.y);
     const shadowScale = Math.max(0.62, 1 - airborne * 0.16);
     this.shadow.scale.set(1.2 * shadowScale, 0.72 * shadowScale, 1);
