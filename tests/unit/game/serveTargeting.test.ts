@@ -14,6 +14,12 @@ describe('cpu serve targeting', () => {
     expect(second).toEqual(first);
   });
 
+  it('feeds the tutorial opening serve to the strongest receiver deterministically', () => {
+    const target = chooseCpuServeTarget('HARD', 1, 0, receivers);
+    expect(target.x).toBeCloseTo(receivers[2].x, 4);
+    expect(target.z).toBeLessThan(receivers[2].z);
+  });
+
   it('keeps beginner serves in a forgiving central band', () => {
     for (let rally = 0; rally < 12; rally += 1) {
       const target = chooseCpuServeTarget('BEGINNER', 99, rally, receivers);
