@@ -1,8 +1,9 @@
 import { performSet } from '../actions/set';
+import { performSpike, type AttackIntent } from '../actions/spike';
 import { DIFFICULTY_PROFILES } from '../ai/difficulty';
 import { getMovementProfile } from '../characters/abilities';
 import { STARTER_ROSTER, type CharacterId } from '../characters/roster';
-import type { PlayerState } from '../core/types';
+import type { PlayerState, Vec3 } from '../core/types';
 import type { CpuIntent } from '../ai/cpuAI';
 import {
   createMatchRuntime,
@@ -114,6 +115,17 @@ function horizontalDistance(player: PlayerState, x: number, z: number): number {
 function cpuTimingError(runtime: MatchRuntimeState): number {
   const profile = DIFFICULTY_PROFILES[runtime.difficulty];
   return (profile.predictionError + profile.decisionNoise) * 0.055;
+}
+
+function cpuAttackTarget(intent: AttackIntent): Vec3 {
+  const x = intent === 'CROSS'
+    ? -2.8
+    : intent === 'LINE'
+      ? 2.8
+      : intent === 'BLOCK_OUT'
+        ? 3.8
+        : 0;
+  return { x, y: 0.05, z: -6.6 };
 }
 
 function chooseSetAttacker(
@@ -367,6 +379,83 @@ function prepareCpuJump(runtime: MatchRuntimeState): {
   return { runtime, jumperId: null };
 }
 
+function performEmergencyCpuSpike(runtime: MatchRuntimeState): {
+  runtime: MatchRuntimeState;
+  event: RuntimeEvent | null;
+} {
+  const { match } = runtime;
+  const { ball } = match;
+  if (
+    match.rally.phase !== 'RALLY' ||
+    ball.lastContact !== 'SET' ||
+    !(ball.lastTouchedBy?.startsWith('away-') ?? false) ||
+    ball.position.z < 0 ||
+    ball.position.y < 2.05
+  ) {
+    return { runtime, event: null };
+  }
+
+  const emergencySetter = match.players.find((player) => player.id === ball.lastTouchedBy);
+  if (!emergencySetter || emergencySetter.role === 'SETTER') {
+    return { runtime, event: null };
+  }
+
+  const memories = cpuMemories(runtime);
+  const attacker = (
+    [...match.players]
+      .filter((player) => {
+        const memory = memories[player.id];
+        return (
+          player.side === 'away' &&
+          player.id !== emergencySetter.id &&
+          (player.role === 'ACE' || player.role === 'MIDDLE') &&
+          player.isAirborne &&
+          memory?.intent.state === 'APPROACH' &&
+          match.time >= memory.actionReadyAt &&
+          horizontalDistance(player, ball.position.x, ball.position.z) <= 2.45
+        );
+      })
+      .sort(
+        (a, b) =>
+          horizontalDistance(a, ball.position.x, ball.position.z) -
+          horizontalDistance(b, ball.position.x, ball.position.z),
+      )[0] ?? null
+  );
+  if (!attacker) return { runtime, event: null };
+
+  const memory = memories[attacker.id];
+  if (!memory) return { runtime, event: null };
+  const intent = memory.intent.attackIntent ?? 'POWER';
+  const result = performSpike(
+    ball,
+    characterFor(attacker),
+    attacker.id,
+    cpuAttackTarget(intent),
+    cpuTimingError(runtime),
+    intent,
+  );
+
+  return {
+    runtime: {
+      ...runtime,
+      match: { ...match, ball: result.ball },
+      cpuDecisions: {
+        ...runtime.cpuDecisions,
+        [attacker.id]: {
+          ...memory,
+          actionReadyAt: match.time + memory.intent.reactionDelay,
+        },
+      },
+    },
+    event: {
+      type: 'SPIKE',
+      actorId: attacker.id,
+      quality: result.quality,
+      value: result.speedMetersPerSecond * 3.6,
+    },
+  };
+}
+
 export function stepMatchRuntime(
   source: MatchRuntimeState,
   input: RuntimeInput,
@@ -375,9 +464,13 @@ export function stepMatchRuntime(
   const guarded = clearStaleBlockIntent(source, input);
   const setAssist = performCpuSetAssist(guarded);
   const prepared = prepareCpuJump(setAssist.runtime);
-  const stepped = stepBaseRuntime(prepared.runtime, input, dt);
+  const emergencySpike = performEmergencyCpuSpike(prepared.runtime);
+  const stepped = stepBaseRuntime(emergencySpike.runtime, input, dt);
 
   if (stepped.lastEvent === null) {
+    if (emergencySpike.event) {
+      return { ...stepped, lastEvent: emergencySpike.event };
+    }
     if (prepared.jumperId) {
       return {
         ...stepped,
