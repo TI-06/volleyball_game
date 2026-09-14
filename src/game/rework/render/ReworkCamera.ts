@@ -26,9 +26,9 @@ export function getReworkCameraFrame(
 
   return {
     mode: REWORK_CAMERA_MODE,
-    position: { x: 19.5, y: 7.4, z: -0.65 },
-    lookAt: { x: 0, y: 1.65, z: 0 },
-    fov: 36 + extraFov - impactZoom * 35,
+    position: { x: 20.5, y: 8.0, z: -6.2 },
+    lookAt: { x: 0, y: 1.55, z: 0 },
+    fov: 37 + extraFov - impactZoom * 35,
     impactZoom,
   };
 }
