@@ -15,11 +15,13 @@ jobs:
           node-version: '22.12.0'
           cache: npm
       - run: npm ci
-      - name: Run verification without failing workflow
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run full verification without failing workflow
         shell: bash
         run: |
           set +e
-          npm run verify > verify.log 2>&1
+          npm run verify:full > verify.log 2>&1
           verify_code=$?
           cat verify.log
           echo "VERIFY_EXIT=$verify_code"
