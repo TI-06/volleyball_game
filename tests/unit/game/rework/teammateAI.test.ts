@@ -79,4 +79,24 @@ describe('rework teammate roles', () => {
     expect(decisions).toContainEqual(expect.objectContaining({ playerId: 'home-1', role: 'RECEIVE' }));
     expect(decisions).toContainEqual(expect.objectContaining({ playerId: 'home-2', role: 'COVER' }));
   });
+
+  it('keeps both teammates in cover when KAI owns the incoming ball', () => {
+    const base = createMatch(24);
+    const state = {
+      ...base,
+      rally: { ...base.rally, phase: 'RALLY' as const },
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'away-0',
+        lastContact: 'SPIKE' as const,
+        position: { x: -2.5, y: 1.0, z: -5.0 },
+        velocity: { x: 0, y: -1.2, z: -0.8 },
+      },
+    };
+
+    const decisions = decideTeammateRoles(state);
+    expect(decisions.every((item) => item.role === 'COVER')).toBe(true);
+    expect(decisions.some((item) => item.role === 'RECEIVE')).toBe(false);
+  });
 });
