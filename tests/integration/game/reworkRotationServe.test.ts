@@ -31,12 +31,13 @@ function withHomeServer(index: number) {
   };
 }
 
-function stepFrames(runtime: ReturnType<typeof createReworkRuntime>, count: number) {
+function stepUntilServe(runtime: ReturnType<typeof createReworkRuntime>) {
   let next = runtime;
-  for (let frame = 0; frame < count; frame += 1) {
+  for (let frame = 0; frame < 45; frame += 1) {
     next = stepReworkRuntime(next, idle(), 1 / 60);
+    if (next.lastEvent?.type === 'SERVE') return { runtime: next, frame: frame + 1 };
   }
-  return next;
+  return { runtime: next, frame: null };
 }
 
 describe('rework home serve rotation', () => {
@@ -47,12 +48,14 @@ describe('rework home serve rotation', () => {
     expect(runtime.match.rally.phase).toBe('SERVE_READY');
     expect(runtime.lastEvent).toBeNull();
 
-    runtime = stepFrames(runtime, 30);
+    const served = stepUntilServe(runtime);
 
-    expect(runtime.lastEvent).toMatchObject({ type: 'SERVE', actorId: 'home-1' });
-    expect(runtime.match.rally.phase).toBe('RALLY');
-    expect(runtime.match.ball.lastTouchedBy).toBe('home-1');
-    expect(runtime.focusPlayerId).toBe('home-0');
+    expect(served.frame).not.toBeNull();
+    expect(served.frame ?? 0).toBeGreaterThanOrEqual(25);
+    expect(served.runtime.lastEvent).toMatchObject({ type: 'SERVE', actorId: 'home-1' });
+    expect(served.runtime.match.rally.phase).toBe('RALLY');
+    expect(served.runtime.match.ball.lastTouchedBy).toBe('home-1');
+    expect(served.runtime.focusPlayerId).toBe('home-0');
   });
 
   it('shows HINA in a short service windup before auto serving', () => {
@@ -62,17 +65,21 @@ describe('rework home serve rotation', () => {
     expect(runtime.match.rally.phase).toBe('SERVE_READY');
     expect(runtime.lastEvent).toBeNull();
 
-    runtime = stepFrames(runtime, 30);
+    const served = stepUntilServe(runtime);
 
-    expect(runtime.lastEvent).toMatchObject({ type: 'SERVE', actorId: 'home-2' });
-    expect(runtime.match.rally.phase).toBe('RALLY');
-    expect(runtime.match.ball.lastTouchedBy).toBe('home-2');
+    expect(served.frame).not.toBeNull();
+    expect(served.frame ?? 0).toBeGreaterThanOrEqual(25);
+    expect(served.runtime.lastEvent).toMatchObject({ type: 'SERVE', actorId: 'home-2' });
+    expect(served.runtime.match.rally.phase).toBe('RALLY');
+    expect(served.runtime.match.ball.lastTouchedBy).toBe('home-2');
   });
 
   it('keeps KAI serve manual when rotation returns to index zero', () => {
     let runtime = withHomeServer(0);
 
-    runtime = stepFrames(runtime, 35);
+    for (let frame = 0; frame < 45; frame += 1) {
+      runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
+    }
 
     expect(runtime.lastEvent).toBeNull();
     expect(runtime.match.rally.phase).toBe('SERVE_READY');
