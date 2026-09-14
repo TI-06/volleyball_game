@@ -189,7 +189,7 @@ describe('playable cpu runtime', () => {
     expect(next.match.players.find((player) => player.id === 'away-0')?.isAirborne).toBe(false);
   });
 
-  it('lets SHIN execute the emergency set when YU made the first touch', () => {
+  it('completes RECEIVE -> emergency SHIN SET -> GOU SPIKE when YU took first touch', () => {
     let runtime = withRally(createMatchRuntime(184, 'NORMAL', 'MANUAL'));
     runtime = {
       ...runtime,
@@ -228,10 +228,26 @@ describe('playable cpu runtime', () => {
       } as unknown as MatchRuntimeState['cpuDecisions'],
     };
 
-    const next = stepMatchRuntime(runtime, idleInput(), 1 / 60);
+    runtime = stepMatchRuntime(runtime, idleInput(), 1 / 60);
+    expect(runtime.match.ball.lastTouchedBy).toBe('away-0');
+    expect(runtime.match.ball.lastContact).toBe('SET');
+    expect(runtime.lastEvent?.type).toBe('SET');
 
-    expect(next.match.ball.lastTouchedBy).toBe('away-0');
-    expect(next.match.ball.lastContact).toBe('SET');
-    expect(next.lastEvent?.type).toBe('SET');
+    let sawGouJump = false;
+    let sawGouSpike = false;
+    for (let frame = 0; frame < 75 && !sawGouSpike; frame += 1) {
+      runtime = stepMatchRuntime(runtime, idleInput(), 1 / 60);
+      const gou = runtime.match.players.find((player) => player.id === 'away-1')!;
+      if (gou.isAirborne && runtime.match.ball.lastContact === 'SET') {
+        sawGouJump = true;
+      }
+      if (runtime.lastEvent?.type === 'SPIKE' && runtime.lastEvent.actorId === 'away-1') {
+        sawGouSpike = true;
+        expect(runtime.match.ball.lastContact).toBe('SPIKE');
+      }
+    }
+
+    expect(sawGouJump).toBe(true);
+    expect(sawGouSpike).toBe(true);
   });
 });
