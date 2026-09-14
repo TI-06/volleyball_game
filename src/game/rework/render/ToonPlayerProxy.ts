@@ -257,6 +257,7 @@ export class ToonPlayerProxy {
   private actionUntil = 0;
   private currentPose: ToonPose = 'IDLE';
   private readonly height: number;
+  private lastGroundPosition: { x: number; z: number } | null = null;
 
   constructor(
     private readonly character: CharacterDefinition,
@@ -312,7 +313,23 @@ export class ToonPlayerProxy {
     if (this.actionPose && now >= this.actionUntil) {
       this.actionPose = null;
     }
-    const pose = this.actionPose ?? poseForPlayerState(player);
+
+    let moved = false;
+    if (this.lastGroundPosition && !player.isAirborne) {
+      const distance = Math.hypot(
+        player.position.x - this.lastGroundPosition.x,
+        player.position.z - this.lastGroundPosition.z,
+      );
+      moved = distance > 0.006 && distance < 0.75;
+    }
+    this.lastGroundPosition = { x: player.position.x, z: player.position.z };
+
+    const statePose = player.isAirborne
+      ? 'JUMP'
+      : moved
+        ? 'MOVE'
+        : poseForPlayerState(player);
+    const pose = this.actionPose ?? statePose;
     if (pose !== this.currentPose) {
       this.currentPose = pose;
       this.sprite.material.map = this.textures.get(pose) ?? this.textures.get('IDLE')!;
