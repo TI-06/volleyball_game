@@ -47,6 +47,13 @@ const CONTACT_CLIPS: readonly MotionClipId[] = [
   'block_press',
 ];
 
+function samplePose(id: MotionClipId, normalizedTime: number) {
+  const clip = MOTION_CLIPS[id];
+  const player = new MotionPlayer();
+  player.play(clip, 0);
+  return player.sample(clip.durationMs * normalizedTime).pose;
+}
+
 describe('MOTION_CLIPS', () => {
   it('contains the complete 29-motion volleyball library', () => {
     expect(MOTION_CLIP_IDS).toEqual(EXPECTED_IDS);
@@ -125,5 +132,40 @@ describe('MOTION_CLIPS', () => {
     expect(spike.some((frame) => (frame.joints.shoulderR?.rotation ?? 0) < -1)).toBe(true);
     expect(block.some((frame) => (frame.joints.shoulderL?.rotation ?? 0) > 1)).toBe(true);
     expect(block.some((frame) => (frame.joints.shoulderR?.rotation ?? 0) < -1)).toBe(true);
+  });
+
+  it('renders a readable approach-to-contact spike silhouette sequence', () => {
+    const approachStart = samplePose('spike_approach_2', 0);
+    const approach = samplePose('spike_approach_2', 1);
+    const plant = samplePose('spike_plant', 0.65);
+    const takeoff = samplePose('spike_takeoff', 0.6);
+    const cock = samplePose('spike_airborne_cock', 0.55);
+    const contact = samplePose('spike_contact', 0.45);
+
+    // The running entry must keep its natural arm swing; it must not inherit
+    // the compact point-reaction pose before the dedicated arm sweep begins.
+    expect(approachStart.shoulderL.rotation).toBeLessThan(0);
+    expect(approachStart.shoulderR.rotation).toBeGreaterThan(0);
+
+    // Final approach step: arms sweep behind and legs stop reading as crossed.
+    expect(approach.shoulderL.rotation).toBeLessThanOrEqual(-1.1);
+    expect(approach.shoulderR.rotation).toBeGreaterThanOrEqual(1.1);
+    expect(Math.abs(approach.hipL.rotation)).toBeLessThanOrEqual(0.14);
+    expect(Math.abs(approach.hipR.rotation)).toBeLessThanOrEqual(0.14);
+
+    // Plant: both feet square under the torso before launch.
+    expect(Math.abs(plant.hipL.rotation)).toBeLessThanOrEqual(0.12);
+    expect(Math.abs(plant.hipR.rotation)).toBeLessThanOrEqual(0.12);
+
+    // Takeoff: both arms whip overhead as the body rises.
+    expect(takeoff.shoulderL.rotation).toBeGreaterThanOrEqual(1.45);
+    expect(takeoff.shoulderR.rotation).toBeLessThanOrEqual(-1.45);
+
+    // Airborne cock: guide arm stays high while the hitting elbow loads back.
+    expect(cock.shoulderL.rotation).toBeGreaterThanOrEqual(1.0);
+    expect(cock.elbowR.rotation).toBeGreaterThanOrEqual(1.25);
+
+    // Contact: hitting elbow is almost fully extended at the ball.
+    expect(Math.abs(contact.elbowR.rotation)).toBeLessThanOrEqual(0.12);
   });
 });
