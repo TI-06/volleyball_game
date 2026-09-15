@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { advanceRallyPhase } from '../../../../src/game/v3/core/rallyFlow';
+import { advanceRallyPhase, type V3RallyPhase } from '../../../../src/game/v3/core/rallyFlow';
 
 describe('V3 rally flow', () => {
   it('supports the first readable receive-to-attack sequence', () => {
-    let phase = 'DEFENSE_READ' as const;
+    let phase: V3RallyPhase = 'DEFENSE_READ';
     phase = advanceRallyPhase(phase, 'PREPARE_RECEIVE');
     expect(phase).toBe('RECEIVE_PREP');
     phase = advanceRallyPhase(phase, 'RECEIVE_CONTACT');

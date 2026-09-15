@@ -8,12 +8,17 @@ export interface V3Vec3 extends V3Vec2 {
 }
 
 export type V3TeamSide = 'home' | 'away';
+export type V3ContactQuality = 'PERFECT' | 'GOOD' | 'BAD' | 'MISS';
 
-export type V3PrototypePhase =
+export type V3RallyPhase =
   | 'DEFENSE_READ'
   | 'RECEIVE_PREP'
   | 'SET_BUILDUP'
-  | 'ATTACK_APPROACH';
+  | 'ATTACK_APPROACH'
+  | 'ATTACK_AIRBORNE'
+  | 'OPPONENT_DEFENSE';
+
+export type V3PrototypePhase = V3RallyPhase;
 
 export interface V3PlayerState {
   id: string;
