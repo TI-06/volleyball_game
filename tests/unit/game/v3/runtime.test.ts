@@ -77,7 +77,10 @@ describe('V3 playable rally runtime', () => {
 
     state = stepFor(state, 0.38);
     expect(state.lastEvent?.type).toBe('RECEIVE');
-    expect(state.lastEvent?.quality).not.toBe('MISS');
+    if (state.lastEvent?.type !== 'RECEIVE') {
+      throw new Error('expected RECEIVE event to remain visible after contact');
+    }
+    expect(state.lastEvent.quality).not.toBe('MISS');
     expect(state.phase).toBe('SET_BUILDUP');
     expect(state.score).toEqual({ home: 0, away: 0 });
   });
