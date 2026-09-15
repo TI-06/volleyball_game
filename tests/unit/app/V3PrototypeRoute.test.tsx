@@ -17,6 +17,6 @@ describe('Gameplay V3 prototype route', () => {
     window.history.replaceState({}, '', '/');
     render(<App />);
     expect(screen.queryByTestId('v3-match-screen')).not.toBeInTheDocument();
-    expect(screen.getByText('勝ちバレー')).toBeInTheDocument();
+    expect(screen.getByText('VOLLEYBALL')).toBeInTheDocument();
   });
 });
