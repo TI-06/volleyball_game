@@ -78,6 +78,43 @@ test('smartphone landscape enters the 2.5d match with fixed PLAY and POWER contr
   }
 });
 
+test('visual audit captures KAI receive into setter route and approach prep', async ({ page }, testInfo) => {
+  await seedTutorialComplete(page);
+  await page.goto('/?e2e=1');
+  await enterNormalMatch(page);
+
+  await page.evaluate(() => {
+    const bridge = (window as typeof window & {
+      __VOLLEYBALL_MATCH_E2E__?: { stageSetTransition: () => void };
+    }).__VOLLEYBALL_MATCH_E2E__;
+    if (!bridge) throw new Error('missing match E2E bridge');
+    bridge.stageSetTransition();
+  });
+
+  await page.waitForTimeout(320);
+  const transitionAuditState = await page.evaluate(() => {
+    const bridge = (window as typeof window & {
+      __VOLLEYBALL_MATCH_E2E__?: {
+        getTransitionAuditState?: () => {
+          lastContact: string | null;
+          lastTouchedBy: string | null;
+        };
+      };
+    }).__VOLLEYBALL_MATCH_E2E__;
+    return bridge?.getTransitionAuditState?.() ?? null;
+  });
+  expect(transitionAuditState).toEqual({
+    lastContact: 'RECEIVE',
+    lastTouchedBy: 'home-0',
+  });
+
+  await expect(page.getByTestId('rework-match-screen')).toBeVisible();
+  await page.screenshot({
+    path: `test-results/visual-audit/${testInfo.project.name}-set-transition.png`,
+    fullPage: true,
+  });
+});
+
 test('mobile match serves, receives a real CPU return, reaches result, and rematches', async ({ page }, testInfo) => {
   // This intentionally combines a real rally, three full-page visual-audit
   // screenshots, result transition, and rematch. Keep the extra budget local

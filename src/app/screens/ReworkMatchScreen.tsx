@@ -44,6 +44,24 @@ interface HudState {
   cpuReturnSeen: boolean;
 }
 
+interface MatchE2eBridgeWindow extends Window {
+  __VOLLEYBALL_MATCH_E2E__?: {
+    stageSetTransition: () => void;
+    getTransitionAuditState: () => {
+      lastContact: string | null;
+      lastTouchedBy: string | null;
+    };
+  };
+}
+
+function localMatchE2eEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+  const isLocalhost =
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === 'localhost';
+  return isLocalhost && new URLSearchParams(window.location.search).get('e2e') === '1';
+}
+
 function createInput(): ReworkInput {
   return {
     moveAxis: 0,
@@ -106,6 +124,48 @@ export function ReworkMatchScreen({
     if (!host || typeof WebGLRenderingContext === 'undefined') return undefined;
 
     const scene = new ReworkScene(host, runtime.match, runtime.focusPlayerId);
+    const e2eWindow = window as MatchE2eBridgeWindow;
+    let transitionAuditHold = false;
+    if (localMatchE2eEnabled()) {
+      e2eWindow.__VOLLEYBALL_MATCH_E2E__ = {
+        stageSetTransition: () => {
+          const receiveEvent: ReworkEvent = { type: 'RECEIVE', actorId: runtime.focusPlayerId };
+          transitionAuditHold = true;
+          runtime = {
+            ...runtime,
+            match: {
+              ...runtime.match,
+              rally: {
+                ...runtime.match.rally,
+                phase: 'RALLY',
+              },
+              ball: {
+                ...runtime.match.ball,
+                inPlay: true,
+                lastTouchedBy: runtime.focusPlayerId,
+                lastContact: 'RECEIVE',
+                position: { x: 0.9, y: 2.4, z: -2.55 },
+                velocity: { x: 0.1, y: 1.5, z: 0.2 },
+              },
+            },
+            playLabel: 'NONE',
+            powerLabel: 'NONE',
+            lastEvent: receiveEvent,
+          };
+          runtimeRef.current = runtime;
+          inputRef.current = createInput();
+          serveAimRef.current = null;
+          scene.playEvent(receiveEvent);
+          scene.update(runtime.match, 0, null);
+          updateHud(runtime, receiveEvent);
+        },
+        getTransitionAuditState: () => ({
+          lastContact: runtime.match.ball.lastContact ?? null,
+          lastTouchedBy: runtime.match.ball.lastTouchedBy ?? null,
+        }),
+      };
+    }
+
     let animationFrame = 0;
     let finishTimer: number | null = null;
     let lastTime = performance.now();
@@ -133,7 +193,7 @@ export function ReworkMatchScreen({
       hudAccumulator += delta;
       let latestEvent: ReworkEvent | null = null;
 
-      while (accumulator >= FIXED_STEP_SECONDS) {
+      while (!transitionAuditHold && accumulator >= FIXED_STEP_SECONDS) {
         runtime = stepReworkRuntime(runtime, inputRef.current, FIXED_STEP_SECONDS);
         if (
           runtime.match.ball.inPlay &&
@@ -160,6 +220,7 @@ export function ReworkMatchScreen({
         inputRef.current.powerCancelled = false;
         accumulator -= FIXED_STEP_SECONDS;
       }
+      if (transitionAuditHold) accumulator = 0;
 
       runtimeRef.current = runtime;
       scene.update(
@@ -204,6 +265,9 @@ export function ReworkMatchScreen({
     return () => {
       window.cancelAnimationFrame(animationFrame);
       if (finishTimer !== null) window.clearTimeout(finishTimer);
+      if (e2eWindow.__VOLLEYBALL_MATCH_E2E__) {
+        delete e2eWindow.__VOLLEYBALL_MATCH_E2E__;
+      }
       scene.dispose();
     };
   }, [difficulty, onFinished, seed, updateHud]);
