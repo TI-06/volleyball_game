@@ -29,7 +29,7 @@ function floorRouteStrip(
   opacity: number,
 ): THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> {
   const mesh = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 0.018, 0.12),
+    new THREE.BoxGeometry(1, 0.018, 0.32),
     new THREE.MeshBasicMaterial({
       color,
       transparent: true,
@@ -82,7 +82,7 @@ export class ReworkMarkers {
   private readonly setterOwner = floorRing(0.42, 0.56, 0x63c7ff, 0.8);
   private readonly setterTarget = floorRing(0.62, 0.78, 0x63c7ff, 0.82);
   private readonly setterTargetCore = floorRing(0.12, 0.21, 0xffffff, 0.9);
-  private readonly setterRoute = floorRouteStrip(0x63c7ff, 0.54);
+  private readonly setterRoute = floorRouteStrip(0x63c7ff, 0.74);
   private readonly approach = floorRing(0.62, 0.78, 0xf6d35c, 0.7);
   private readonly block = floorRing(0.52, 0.68, 0xff7b78, 0.76);
   private readonly attackLanes = [
@@ -130,7 +130,7 @@ export class ReworkMarkers {
     const setterTargetPulse = 0.94 + Math.sin(timeSeconds * 5.6) * 0.06;
     this.setterTarget.scale.setScalar(setterTargetPulse);
     this.setterTargetCore.scale.setScalar(0.94 + Math.sin(timeSeconds * 5.6 + 0.8) * 0.06);
-    this.setterRoute.material.opacity = 0.46 + (Math.sin(timeSeconds * 5.2) + 1) * 0.08;
+    this.setterRoute.material.opacity = 0.68 + (Math.sin(timeSeconds * 5.2) + 1) * 0.07;
 
     const prepApproach = markers.approachStage === 'PREP';
     this.approach.material.color.setHex(prepApproach ? 0xffa95e : 0xf6d35c);
