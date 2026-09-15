@@ -415,10 +415,7 @@ export function stepV3Runtime(
   }
 
   if (input.divePressed && (phase === 'DEFENSE_READ' || phase === 'RECEIVE_PREP')) {
-    const defender = players.find((player) => player.id === source.controlledPlayerId);
-    const direction =
-      normalizeDirection(input.move) ??
-      (defender ? directionToward(defender.position, source.rally.landingTarget) : undefined);
+    const direction = normalizeDirection(input.move);
     bufferedAction = bufferAction('DIVE', source.time, direction);
     phase = 'RECEIVE_PREP';
   }
