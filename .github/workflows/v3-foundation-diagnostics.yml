@@ -21,23 +21,24 @@ jobs:
         id: install
         continue-on-error: true
         run: npm ci
-      - name: Run non-failing review diagnostics
+      - name: Install Chromium
+        id: browser
+        continue-on-error: true
+        run: npx playwright install --with-deps chromium
+      - name: Run non-failing full regression gate
         if: always()
         shell: bash
         run: |
           set +e
-          if [ "${{ steps.install.outcome }}" != "success" ]; then
+          if [ "${{ steps.install.outcome }}" != "success" ] || [ "${{ steps.browser.outcome }}" != "success" ]; then
             echo "INSTALL_EXIT=1"
             echo "DIAGNOSTIC_STATUS=RED"
             exit 0
           fi
-          npm test -- tests/unit/game/v3/runtime.test.ts
-          TEST_EXIT=$?
-          npm run typecheck
-          TYPECHECK_EXIT=$?
-          echo "TEST_EXIT=$TEST_EXIT"
-          echo "TYPECHECK_EXIT=$TYPECHECK_EXIT"
-          if [ "$TEST_EXIT" -eq 0 ] && [ "$TYPECHECK_EXIT" -eq 0 ]; then
+          npm run verify:full
+          VERIFY_EXIT=$?
+          echo "VERIFY_EXIT=$VERIFY_EXIT"
+          if [ "$VERIFY_EXIT" -eq 0 ]; then
             echo "DIAGNOSTIC_STATUS=GREEN"
           else
             echo "DIAGNOSTIC_STATUS=RED"
