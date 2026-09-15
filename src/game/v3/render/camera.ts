@@ -27,7 +27,7 @@ export function getV3CameraPose({
   const safeAspect = Number.isFinite(aspect) && aspect > 0 ? aspect : 16 / 9;
   const compactBackoff = clamp((1.72 - safeAspect) * 2.5, 0, 1.6);
   const backDistance = (attacking ? 5.05 : 6.25) + compactBackoff;
-  const touchControlLaneOffset = attacking ? 0 : 0.65;
+  const touchControlLaneOffset = attacking ? 0 : 1.0;
 
   return {
     position: {
