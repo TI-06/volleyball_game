@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('gameplay v3 stays readable and separated on smartphone landscape', async ({ page }, testInfo) => {
-  await page.goto('/?v3=1');
+  await page.goto('/?v3=1&v3audit=1');
 
   const screen = page.getByTestId('v3-match-screen');
   const scene = page.locator('.v3-scene-host canvas');
@@ -10,6 +10,7 @@ test('gameplay v3 stays readable and separated on smartphone landscape', async (
   const dive = page.getByRole('button', { name: 'DIVE' });
   const jump = page.getByRole('button', { name: 'JUMP' });
   const attack = page.getByTestId('v3-attack-pad');
+  const score = page.locator('.v3-score');
 
   await expect(screen).toBeVisible();
   await expect(scene).toBeVisible();
@@ -19,9 +20,12 @@ test('gameplay v3 stays readable and separated on smartphone landscape', async (
   await expect(jump).toBeVisible();
   await expect(attack).toBeVisible();
   await expect(page.getByText('GAMEPLAY V3')).toBeVisible();
-  await expect(page.getByText(/DEFENSE READ|RECEIVE PREP/)).toBeVisible();
+  await expect(page.getByText('DEFENSE READ')).toBeVisible();
+  await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
 
-  await page.waitForTimeout(220);
+  await page.waitForTimeout(2400);
+  await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
+  await expect(page.getByText('DEFENSE READ')).toBeVisible();
 
   const hasHorizontalOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth + 1,
