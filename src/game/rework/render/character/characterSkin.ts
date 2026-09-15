@@ -53,6 +53,11 @@ const CELL = 128;
 const DEFAULT_CHARACTER_ATLAS_REVISION = 'athletic-v2';
 const CHARACTER_ATLAS_REVISIONS: Partial<Record<CharacterId, string>> = {
   kai: 'kai-v6',
+  ren: 'ren-v3',
+  hina: 'hina-v3',
+  shin: 'shin-v3',
+  gou: 'gou-v3',
+  yu: 'yu-v3',
 };
 
 const ATLAS_RECTS: Record<CharacterPartName, AtlasRect> = {
