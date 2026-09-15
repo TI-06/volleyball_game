@@ -38,6 +38,13 @@ function createInput(): V3RuntimeInput {
   return emptyV3RuntimeInput();
 }
 
+function isLocalVisualAudit(): boolean {
+  if (typeof window === 'undefined') return false;
+  const localHost = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+  if (!localHost) return false;
+  return new URLSearchParams(window.location.search).get('v3audit') === '1';
+}
+
 export function V3MatchScreen({ seed }: V3MatchScreenProps) {
   const sceneHostRef = useRef<HTMLDivElement | null>(null);
   const runtimeRef = useRef<V3RuntimeState>(createV3Runtime(seed));
@@ -67,6 +74,7 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
 
   useEffect(() => {
     let runtime = createV3Runtime(seed);
+    const visualAudit = isLocalVisualAudit();
     runtimeRef.current = runtime;
     inputRef.current = createInput();
     syncHud(runtime);
@@ -83,21 +91,24 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
     const frame = (now: number) => {
       const delta = Math.min(0.05, Math.max(0, (now - lastTime) / 1000));
       lastTime = now;
-      accumulator += delta;
-      hudAccumulator += delta;
 
-      while (accumulator >= FIXED_STEP_SECONDS) {
-        runtime = stepV3Runtime(runtime, inputRef.current, FIXED_STEP_SECONDS);
-        inputRef.current.actionPressed = false;
-        inputRef.current.divePressed = false;
-        inputRef.current.jumpPressed = false;
-        inputRef.current.attackGesture = null;
-        accumulator -= FIXED_STEP_SECONDS;
+      if (!visualAudit) {
+        accumulator += delta;
+        hudAccumulator += delta;
+
+        while (accumulator >= FIXED_STEP_SECONDS) {
+          runtime = stepV3Runtime(runtime, inputRef.current, FIXED_STEP_SECONDS);
+          inputRef.current.actionPressed = false;
+          inputRef.current.divePressed = false;
+          inputRef.current.jumpPressed = false;
+          inputRef.current.attackGesture = null;
+          accumulator -= FIXED_STEP_SECONDS;
+        }
       }
 
       runtimeRef.current = runtime;
-      scene.update(runtime, delta);
-      if (hudAccumulator >= 0.08) {
+      scene.update(runtime, visualAudit ? 0 : delta);
+      if (!visualAudit && hudAccumulator >= 0.08) {
         syncHud(runtime);
         hudAccumulator = 0;
       }
