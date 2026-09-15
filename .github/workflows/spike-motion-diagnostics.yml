@@ -15,18 +15,22 @@ jobs:
           node-version: '22.12.0'
           cache: npm
       - run: npm ci
-      - name: Run focused spike motion verification without failing workflow
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run full verification without failing workflow
         shell: bash
         run: |
           set +e
-          npx vitest run tests/unit/render/motionClips.test.ts
+          npm run verify:full > verify.log 2>&1
           code=$?
-          npm run typecheck
-          type_code=$?
-          if [ "$code" -ne 0 ] || [ "$type_code" -ne 0 ]; then
-            final=1
-          else
-            final=0
-          fi
-          echo "VERIFY_EXIT=$final"
+          cat verify.log
+          echo "VERIFY_EXIT=$code"
           exit 0
+      - name: Upload mobile visual audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spike-motion-visual-audit
+          path: test-results/visual-audit
+          if-no-files-found: ignore
+          retention-days: 3
