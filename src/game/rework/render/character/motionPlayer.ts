@@ -197,6 +197,13 @@ function applyPresentationPose(
     return styled;
   }
 
+  // Spike presentation clips keep their authored pose outside the dedicated
+  // emphasis windows. Do not let the point-reaction fallback pull their arms
+  // into a raised compact stance during the approach or takeoff transitions.
+  if (isSpikePresentationClip(clip)) {
+    return styled;
+  }
+
   styled.shoulderL.rotation = Math.max(
     styled.shoulderL.rotation,
     POINT_REACTION_MIN_SHOULDER_ROTATION,
