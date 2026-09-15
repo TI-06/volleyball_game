@@ -31,8 +31,8 @@ describe('CHARACTER_SKINS', () => {
     }
   });
 
-  it('uses an isolated KAI v5 quality revision without pretending the other five are finished', () => {
-    expect(CHARACTER_SKINS.kai.atlasUrl).toContain('?rev=kai-v5');
+  it('uses an isolated KAI v6 quality revision without pretending the other five are finished', () => {
+    expect(CHARACTER_SKINS.kai.atlasUrl).toContain('?rev=kai-v6');
     for (const id of CHARACTER_IDS.filter((candidate) => candidate !== 'kai')) {
       expect(CHARACTER_SKINS[id].atlasUrl).toContain('?rev=athletic-v2');
     }
