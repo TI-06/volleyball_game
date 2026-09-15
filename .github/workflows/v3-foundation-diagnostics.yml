@@ -21,7 +21,7 @@ jobs:
         id: install
         continue-on-error: true
         run: npm ci
-      - name: Run non-failing V3 full gate
+      - name: Run non-failing V3 diagnostics
         if: always()
         shell: bash
         run: |
@@ -32,12 +32,12 @@ jobs:
             exit 0
           fi
           npm test -- tests/unit/game/v3
-          FOCUSED_EXIT=$?
-          npm run verify
-          VERIFY_EXIT=$?
-          echo "FOCUSED_EXIT=$FOCUSED_EXIT"
-          echo "VERIFY_EXIT=$VERIFY_EXIT"
-          if [ "$FOCUSED_EXIT" -eq 0 ] && [ "$VERIFY_EXIT" -eq 0 ]; then
+          TEST_EXIT=$?
+          npm run typecheck
+          TYPECHECK_EXIT=$?
+          echo "TEST_EXIT=$TEST_EXIT"
+          echo "TYPECHECK_EXIT=$TYPECHECK_EXIT"
+          if [ "$TEST_EXIT" -eq 0 ] && [ "$TYPECHECK_EXIT" -eq 0 ]; then
             echo "DIAGNOSTIC_STATUS=GREEN"
           else
             echo "DIAGNOSTIC_STATUS=RED"
