@@ -28,7 +28,7 @@ describe('V3 third-person camera', () => {
       aspect: 844 / 390,
     });
 
-    expect(pose.position.x - neutralCameraX).toBeGreaterThanOrEqual(0.45);
+    expect(pose.position.x - neutralCameraX).toBeGreaterThanOrEqual(0.9);
   });
 
   it('backs up slightly on compact landscape screens instead of cropping the rally', () => {
