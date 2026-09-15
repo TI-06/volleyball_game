@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { ReworkMarkers } from '../../../src/game/rework/render/ReworkMarkers';
 import type { ReworkMarkerState } from '../../../src/game/rework/render/markerState';
@@ -29,6 +30,12 @@ describe('ReworkMarkers transition guidance', () => {
 
     const visible = view.group.children.filter((child) => child.visible);
     expect(visible.length).toBeGreaterThanOrEqual(4);
+
+    const routeStrip = visible.find(
+      (child) => child instanceof THREE.Mesh && child.geometry instanceof THREE.BoxGeometry,
+    ) as THREE.Mesh<THREE.BoxGeometry> | undefined;
+    expect(routeStrip).toBeDefined();
+    expect(routeStrip?.scale.x ?? 0).toBeGreaterThan(0.8);
 
     view.dispose();
   });
