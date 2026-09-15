@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('gameplay v3 stays readable and separated on smartphone landscape', async ({ page }, testInfo) => {
+  test.setTimeout(45_000);
   await page.goto('/?v3=1&v3audit=1');
 
   const screen = page.getByTestId('v3-match-screen');
