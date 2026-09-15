@@ -15,6 +15,8 @@ jobs:
           node-version: '22.12.0'
           cache: npm
       - run: npm ci
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
       - name: Run focused diagnostics without failing workflow
         shell: bash
         run: |
@@ -23,10 +25,20 @@ jobs:
           test_code=$?
           npm run typecheck >> verify.log 2>&1
           type_code=$?
+          npx playwright test tests/e2e/mobile-match.spec.ts --grep "visual audit captures KAI receive" >> verify.log 2>&1
+          e2e_code=$?
           cat verify.log
-          if [ "$test_code" -ne 0 ] || [ "$type_code" -ne 0 ]; then
+          if [ "$test_code" -ne 0 ] || [ "$type_code" -ne 0 ] || [ "$e2e_code" -ne 0 ]; then
             echo "VERIFY_EXIT=1"
           else
             echo "VERIFY_EXIT=0"
           fi
           exit 0
+      - name: Upload transition visual audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rally-transition-visual-audit
+          path: test-results/visual-audit
+          if-no-files-found: ignore
+          retention-days: 3
