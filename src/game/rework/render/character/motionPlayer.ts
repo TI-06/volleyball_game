@@ -22,6 +22,15 @@ const IDLE_ELBOW_BEND = 0.24;
 const SERVE_READY_MIN_SHOULDER_ROTATION = 0.9;
 const SERVE_READY_MIN_ELBOW_BEND = 0.55;
 const POINT_REACTION_MIN_SHOULDER_ROTATION = 0.9;
+const SPIKE_APPROACH_ARM_SWEEP = 1.18;
+const SPIKE_APPROACH_HIP_SQUARE = 0.1;
+const SPIKE_PLANT_HIP_SQUARE = 0.06;
+const SPIKE_TAKEOFF_ARM_LIFT = 1.52;
+const SPIKE_COCK_GUIDE_ARM = 1.08;
+const SPIKE_COCK_HITTING_ARM = 1.58;
+const SPIKE_COCK_HITTING_ELBOW = 1.4;
+const SPIKE_CONTACT_HITTING_ARM = 1.95;
+const SPIKE_CONTACT_ELBOW_EXTENSION = 0.02;
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
@@ -63,6 +72,16 @@ function blendPoses(
   ) as Record<JointName, JointTransform>;
 }
 
+function isSpikePresentationClip(clip: MotionClip): boolean {
+  return (
+    clip.id === 'spike_approach_2' ||
+    clip.id === 'spike_plant' ||
+    clip.id === 'spike_takeoff' ||
+    clip.id === 'spike_airborne_cock' ||
+    clip.id === 'spike_contact'
+  );
+}
+
 function applyPresentationPose(
   clip: MotionClip,
   pose: Record<JointName, JointTransform>,
@@ -73,6 +92,7 @@ function applyPresentationPose(
   if (
     clip.id !== 'idle_ready' &&
     clip.id !== 'serve_ready' &&
+    !isSpikePresentationClip(clip) &&
     !(isPointReaction && keyframeAt >= 1)
   ) {
     return pose;
@@ -105,6 +125,75 @@ function applyPresentationPose(
       styled.elbowR.rotation,
       SERVE_READY_MIN_ELBOW_BEND,
     );
+    return styled;
+  }
+
+  if (clip.id === 'spike_approach_2' && keyframeAt >= 1) {
+    styled.shoulderL.rotation = Math.min(
+      styled.shoulderL.rotation,
+      -SPIKE_APPROACH_ARM_SWEEP,
+    );
+    styled.shoulderR.rotation = Math.max(
+      styled.shoulderR.rotation,
+      SPIKE_APPROACH_ARM_SWEEP,
+    );
+    styled.elbowL.rotation = Math.min(styled.elbowL.rotation, -0.28);
+    styled.elbowR.rotation = Math.max(styled.elbowR.rotation, 0.28);
+    styled.hipL.rotation = SPIKE_APPROACH_HIP_SQUARE;
+    styled.hipR.rotation = -SPIKE_APPROACH_HIP_SQUARE;
+    styled.kneeL.rotation = 0.24;
+    styled.kneeR.rotation = -0.24;
+    return styled;
+  }
+
+  if (clip.id === 'spike_plant' && keyframeAt >= 0.65) {
+    styled.hipL.rotation = SPIKE_PLANT_HIP_SQUARE;
+    styled.hipR.rotation = -SPIKE_PLANT_HIP_SQUARE;
+    styled.shoulderL.rotation = Math.min(styled.shoulderL.rotation, -1.24);
+    styled.shoulderR.rotation = Math.max(styled.shoulderR.rotation, 1.24);
+    return styled;
+  }
+
+  if (clip.id === 'spike_takeoff' && keyframeAt >= 0.6) {
+    styled.shoulderL.rotation = Math.max(
+      styled.shoulderL.rotation,
+      SPIKE_TAKEOFF_ARM_LIFT,
+    );
+    styled.shoulderR.rotation = Math.min(
+      styled.shoulderR.rotation,
+      -SPIKE_TAKEOFF_ARM_LIFT,
+    );
+    styled.elbowL.rotation = Math.min(styled.elbowL.rotation, -0.12);
+    styled.elbowR.rotation = Math.max(styled.elbowR.rotation, 0.12);
+    return styled;
+  }
+
+  if (clip.id === 'spike_airborne_cock' && keyframeAt >= 0.55) {
+    styled.shoulderL.rotation = Math.max(
+      styled.shoulderL.rotation,
+      SPIKE_COCK_GUIDE_ARM,
+    );
+    styled.shoulderR.rotation = Math.min(
+      styled.shoulderR.rotation,
+      -SPIKE_COCK_HITTING_ARM,
+    );
+    styled.elbowR.rotation = Math.max(
+      styled.elbowR.rotation,
+      SPIKE_COCK_HITTING_ELBOW,
+    );
+    return styled;
+  }
+
+  if (
+    clip.id === 'spike_contact' &&
+    keyframeAt >= 0.4 &&
+    keyframeAt <= 0.6
+  ) {
+    styled.shoulderR.rotation = Math.min(
+      styled.shoulderR.rotation,
+      -SPIKE_CONTACT_HITTING_ARM,
+    );
+    styled.elbowR.rotation = SPIKE_CONTACT_ELBOW_EXTENSION;
     return styled;
   }
 
