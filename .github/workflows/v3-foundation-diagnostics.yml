@@ -25,7 +25,7 @@ jobs:
         id: browser
         continue-on-error: true
         run: npx playwright install --with-deps chromium
-      - name: Run non-failing V3 visual audit
+      - name: Run non-failing V3 focused gate
         if: always()
         shell: bash
         run: |
@@ -35,16 +35,19 @@ jobs:
             echo "DIAGNOSTIC_STATUS=RED"
             exit 0
           fi
-          npm test -- tests/unit/game/v3/camera.test.ts
+          npm test -- tests/unit/game/v3 tests/unit/ui/v3 tests/unit/app/V3MatchScreen.test.tsx tests/unit/app/V3PrototypeRoute.test.tsx
           UNIT_EXIT=$?
+          npm run typecheck
+          TYPECHECK_EXIT=$?
           npm run build
           BUILD_EXIT=$?
           npx playwright test tests/e2e/v3-prototype.spec.ts
           E2E_EXIT=$?
           echo "UNIT_EXIT=$UNIT_EXIT"
+          echo "TYPECHECK_EXIT=$TYPECHECK_EXIT"
           echo "BUILD_EXIT=$BUILD_EXIT"
           echo "E2E_EXIT=$E2E_EXIT"
-          if [ "$UNIT_EXIT" -eq 0 ] && [ "$BUILD_EXIT" -eq 0 ] && [ "$E2E_EXIT" -eq 0 ]; then
+          if [ "$UNIT_EXIT" -eq 0 ] && [ "$TYPECHECK_EXIT" -eq 0 ] && [ "$BUILD_EXIT" -eq 0 ] && [ "$E2E_EXIT" -eq 0 ]; then
             echo "DIAGNOSTIC_STATUS=GREEN"
           else
             echo "DIAGNOSTIC_STATUS=RED"
