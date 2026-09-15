@@ -23,7 +23,7 @@ export interface ReworkMarkerState {
 }
 
 const ATTACK_ZONE_Z = -2.2;
-const APPROACH_PREP_Z = -2.65;
+const APPROACH_PREP_Z = -3.65;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
