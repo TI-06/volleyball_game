@@ -11,6 +11,7 @@ import { DifficultyScreen } from './screens/DifficultyScreen';
 import { ReworkMatchScreen } from './screens/ReworkMatchScreen';
 import { ResultScreen, type MatchResultView } from './screens/ResultScreen';
 import { TitleScreen } from './screens/TitleScreen';
+import { V3MatchScreen } from './screens/V3MatchScreen';
 
 declare global {
   interface Window {
@@ -30,7 +31,13 @@ function localE2eEnabled(): boolean {
   return isLocalhost && new URLSearchParams(window.location.search).get('e2e') === '1';
 }
 
+function v3PrototypeEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('v3') === '1';
+}
+
 export function App() {
+  const v3Prototype = v3PrototypeEnabled();
   const [screen, setScreen] = useState<AppScreen>('TITLE');
   const [settings, setSettings] = useState(() => loadSettings());
   const [difficulty, setDifficulty] = useState<CpuDifficulty>('NORMAL');
@@ -101,6 +108,10 @@ export function App() {
       delete window.__VOLLEYBALL_E2E__;
     };
   }, [difficulty, finishMatch]);
+
+  if (v3Prototype) {
+    return <V3MatchScreen seed={73} />;
+  }
 
   if (screen === 'DIFFICULTY') {
     return (
