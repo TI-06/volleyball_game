@@ -24,6 +24,8 @@ const ATTACKER_SWITCH_DELAY = 0.15;
 const JUMP_LEAD_AFTER_SET = 0.45;
 const ATTACK_CONTACT_AFTER_JUMP = 0.34;
 const RECEIVE_PREP_IDEAL_LEAD = 0.24;
+const DIVE_EXTRA_REACH_METERS = 1.2;
+const DIVE_ALIGNMENT_MIN = 0.35;
 
 export interface V3Score {
   home: number;
@@ -96,6 +98,16 @@ function lerp(from: number, to: number, amount: number): number {
   return from + (to - from) * amount;
 }
 
+function normalizeDirection(direction: V3Vec2): V3Vec2 | undefined {
+  const length = Math.hypot(direction.x, direction.z);
+  if (!Number.isFinite(length) || length < 0.01) return undefined;
+  return { x: direction.x / length, z: direction.z / length };
+}
+
+function directionToward(from: V3Vec2, to: V3Vec2): V3Vec2 | undefined {
+  return normalizeDirection({ x: to.x - from.x, z: to.z - from.z });
+}
+
 function sample01(seed: number, rallyIndex: number, salt: number): number {
   let value = (seed ^ Math.imul(rallyIndex + 1, 0x9e3779b1) ^ salt) >>> 0;
   value = Math.imul(value ^ (value >>> 16), 0x21f0aaad) >>> 0;
@@ -106,8 +118,6 @@ function sample01(seed: number, rallyIndex: number, salt: number): number {
 
 function landingTarget(seed: number, rallyIndex: number): V3Vec2 {
   return {
-    // The first playable slice intentionally targets HINA's defensive lane so
-    // the player can learn anticipation before later rallies use full-court targeting.
     x: 1.55 + sample01(seed, rallyIndex, 0x51ed270b) * 1.35,
     z: -5.25 - sample01(seed, rallyIndex, 0x68bc21eb) * 1.7,
   };
@@ -224,6 +234,21 @@ function moveControlled(state: V3RuntimeState, input: V3RuntimeInput, dt: number
   );
 }
 
+function diveAdjustedDistance(
+  action: V3BufferedAction,
+  defenderPosition: V3Vec2,
+  landing: V3Vec2,
+  distance: number,
+): number {
+  if (action.kind !== 'DIVE' || !action.direction || distance <= 0.001) return distance;
+  const toward = directionToward(defenderPosition, landing);
+  const diveDirection = normalizeDirection(action.direction);
+  if (!toward || !diveDirection) return distance;
+  const alignment = toward.x * diveDirection.x + toward.z * diveDirection.z;
+  if (alignment < DIVE_ALIGNMENT_MIN) return distance;
+  return Math.max(0, distance - DIVE_EXTRA_REACH_METERS * alignment);
+}
+
 function resetForNextRally(
   source: V3RuntimeState,
   score: V3Score,
@@ -259,7 +284,8 @@ function resolveReceiveContact(
   const action = source.bufferedAction;
   const defender = players.find((player) => player.id === source.controlledPlayerId);
   const active = action ? isBufferedActionActive(action, source.rally.receiveContactAt) : false;
-  if (!active || !defender || action?.kind !== 'ACTION') {
+  const receiveAction = action?.kind === 'ACTION' || action?.kind === 'DIVE';
+  if (!active || !defender || !action || !receiveAction) {
     return resetForNextRally(
       source,
       { home: source.score.home, away: source.score.away + 1 },
@@ -267,9 +293,15 @@ function resolveReceiveContact(
     );
   }
 
-  const distance = Math.hypot(
+  const rawDistance = Math.hypot(
     defender.position.x - source.rally.landingTarget.x,
     defender.position.z - source.rally.landingTarget.z,
+  );
+  const distance = diveAdjustedDistance(
+    action,
+    defender.position,
+    source.rally.landingTarget,
+    rawDistance,
   );
   const preparationLead = source.rally.receiveContactAt - action.createdAt;
   const timingOffset = Math.max(0, Math.abs(preparationLead - RECEIVE_PREP_IDEAL_LEAD));
@@ -379,6 +411,15 @@ export function stepV3Runtime(
 
   if (input.actionPressed && (phase === 'DEFENSE_READ' || phase === 'RECEIVE_PREP')) {
     bufferedAction = bufferAction('ACTION', source.time);
+    phase = 'RECEIVE_PREP';
+  }
+
+  if (input.divePressed && (phase === 'DEFENSE_READ' || phase === 'RECEIVE_PREP')) {
+    const defender = players.find((player) => player.id === source.controlledPlayerId);
+    const direction =
+      normalizeDirection(input.move) ??
+      (defender ? directionToward(defender.position, source.rally.landingTarget) : undefined);
+    bufferedAction = bufferAction('DIVE', source.time, direction);
     phase = 'RECEIVE_PREP';
   }
 
