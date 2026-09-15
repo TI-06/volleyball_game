@@ -126,4 +126,31 @@ describe('MOTION_CLIPS', () => {
     expect(block.some((frame) => (frame.joints.shoulderL?.rotation ?? 0) > 1)).toBe(true);
     expect(block.some((frame) => (frame.joints.shoulderR?.rotation ?? 0) < -1)).toBe(true);
   });
+
+  it('separates spike approach, plant, takeoff, cock, and contact silhouettes clearly', () => {
+    const approachEnd = MOTION_CLIPS.spike_approach_2.keyframes.at(-1)!;
+    const plantCompression = MOTION_CLIPS.spike_plant.keyframes.find((frame) => frame.at === 0.65)!;
+    const takeoffSwing = MOTION_CLIPS.spike_takeoff.keyframes.find((frame) => frame.at === 0.6)!;
+    const cockFrames = MOTION_CLIPS.spike_airborne_cock.keyframes;
+    const contactFrame = MOTION_CLIPS.spike_contact.keyframes.find((frame) => frame.at === 0.45)!;
+
+    // Last approach step: both arms are visibly swept behind the torso.
+    expect(approachEnd.joints.shoulderL?.rotation ?? 0).toBeLessThanOrEqual(-1.1);
+    expect(approachEnd.joints.shoulderR?.rotation ?? 0).toBeGreaterThanOrEqual(1.1);
+
+    // Plant: feet square under the body rather than reading as crossed legs.
+    expect(Math.abs(plantCompression.joints.hipL?.rotation ?? 0)).toBeLessThanOrEqual(0.12);
+    expect(Math.abs(plantCompression.joints.hipR?.rotation ?? 0)).toBeLessThanOrEqual(0.12);
+
+    // Takeoff: both arms whip overhead as the body rises.
+    expect(takeoffSwing.joints.shoulderL?.rotation ?? 0).toBeGreaterThanOrEqual(1.45);
+    expect(takeoffSwing.joints.shoulderR?.rotation ?? 0).toBeLessThanOrEqual(-1.45);
+
+    // Airborne cock: guide arm stays high while the hitting elbow is loaded back.
+    expect(cockFrames.some((frame) => (frame.joints.shoulderL?.rotation ?? 0) >= 1.0)).toBe(true);
+    expect(cockFrames.some((frame) => (frame.joints.elbowR?.rotation ?? 0) >= 1.25)).toBe(true);
+
+    // Contact: hitting elbow is nearly straight at the ball.
+    expect(Math.abs(contactFrame.joints.elbowR?.rotation ?? 1)).toBeLessThanOrEqual(0.12);
+  });
 });
