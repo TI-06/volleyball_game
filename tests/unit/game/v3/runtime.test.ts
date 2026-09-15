@@ -141,6 +141,26 @@ describe('V3 playable rally runtime', () => {
     expect(state.rallyIndex).toBe(1);
   });
 
+  it('does not auto-aim DIVE when the movement stick is neutral', () => {
+    let state = placeControlledLeftOfLanding(createV3Runtime(73));
+    state = stepFor(state, state.rally.receiveContactAt - 0.28);
+    state = stepV3Runtime(
+      state,
+      {
+        ...emptyV3RuntimeInput(),
+        divePressed: true,
+      },
+      1 / 60,
+    );
+
+    expect(state.bufferedAction?.kind).toBe('DIVE');
+    expect(state.bufferedAction?.direction).toBeUndefined();
+
+    state = stepFor(state, 0.34);
+    expect(state.score.away).toBe(1);
+    expect(state.rallyIndex).toBe(1);
+  });
+
   it('awards the CPU point and starts a new readable rally when receive is missed', () => {
     const source = createV3Runtime(73);
     const next = stepFor(source, source.rally.receiveContactAt + 0.12);
