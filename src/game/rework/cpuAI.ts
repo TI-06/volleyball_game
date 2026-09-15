@@ -18,6 +18,13 @@ export interface ReworkCpuDecision {
 const EMPTY_HISTORY = createTendencyHistory();
 const AWAY_ATTACK_CONTACT_Z = 0.72;
 const CPU_BLOCK_READY_Z = 1.8;
+const NET_DEFENDER_SPACING = 1.2;
+const NET_DEFENDER_MIN_X = -3.6;
+const NET_DEFENDER_MAX_X = 3.6;
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
 
 function mapRole(state: ReturnType<typeof decideCpuIntent>['state']): ReworkCpuRole {
   return state === 'RECOVER' ? 'COVER' : state;
@@ -55,6 +62,55 @@ function keepSetTargetAttacker(
   return decisions.filter(
     (decision) => decision.role !== 'APPROACH' || decision.playerId === selected?.playerId,
   );
+}
+
+function spreadNetDefenders(
+  state: MatchState,
+  decisions: ReworkCpuDecision[],
+): ReworkCpuDecision[] {
+  const defendingHomeAttack =
+    state.ball.position.z < 0 &&
+    (state.ball.lastTouchedBy?.startsWith('home-') ?? false) &&
+    state.ball.lastContact !== 'SERVE';
+  if (!defendingHomeAttack) return decisions;
+
+  const netDefenders = decisions
+    .filter((decision) => {
+      if (decision.role !== 'APPROACH' && decision.role !== 'BLOCK') return false;
+      const player = state.players.find((candidate) => candidate.id === decision.playerId);
+      return (
+        player?.side === 'away' &&
+        (player.role === 'ACE' || player.role === 'MIDDLE')
+      );
+    })
+    .sort((a, b) => {
+      const aPlayer = state.players.find((player) => player.id === a.playerId);
+      const bPlayer = state.players.find((player) => player.id === b.playerId);
+      const positionDelta = (aPlayer?.position.x ?? 0) - (bPlayer?.position.x ?? 0);
+      return positionDelta !== 0 ? positionDelta : a.playerId.localeCompare(b.playerId);
+    });
+
+  if (netDefenders.length < 2) return decisions;
+
+  const halfSpan = (NET_DEFENDER_SPACING * (netDefenders.length - 1)) / 2;
+  const centerX = clamp(
+    state.ball.position.x,
+    NET_DEFENDER_MIN_X + halfSpan,
+    NET_DEFENDER_MAX_X - halfSpan,
+  );
+  const targetXByPlayer = new Map(
+    netDefenders.map((decision, index) => [
+      decision.playerId,
+      centerX + (index - (netDefenders.length - 1) / 2) * NET_DEFENDER_SPACING,
+    ]),
+  );
+
+  return decisions.map((decision) => {
+    const targetX = targetXByPlayer.get(decision.playerId);
+    return targetX === undefined
+      ? decision
+      : { ...decision, target: { ...decision.target, x: targetX } };
+  });
 }
 
 function requireNetApproachBeforeBlock(
@@ -118,5 +174,5 @@ export function decideCpuRoles(
       return leavePredictedOutBall(state, decision);
     });
 
-  return keepSetTargetAttacker(state, decisions);
+  return spreadNetDefenders(state, keepSetTargetAttacker(state, decisions));
 }
