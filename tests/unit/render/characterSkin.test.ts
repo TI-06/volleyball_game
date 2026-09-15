@@ -7,6 +7,15 @@ import {
 
 const CHARACTER_IDS: readonly CharacterId[] = ['kai', 'ren', 'hina', 'shin', 'gou', 'yu'];
 
+const EXPECTED_ATLAS_REVISIONS: Record<CharacterId, string> = {
+  kai: 'kai-v6',
+  ren: 'ren-v3',
+  hina: 'hina-v3',
+  shin: 'shin-v3',
+  gou: 'gou-v3',
+  yu: 'yu-v3',
+};
+
 const PROFILE_FIELDS = [
   'heightScale',
   'shoulderScale',
@@ -31,10 +40,10 @@ describe('CHARACTER_SKINS', () => {
     }
   });
 
-  it('uses an isolated KAI v6 quality revision without pretending the other five are finished', () => {
-    expect(CHARACTER_SKINS.kai.atlasUrl).toContain('?rev=kai-v6');
-    for (const id of CHARACTER_IDS.filter((candidate) => candidate !== 'kai')) {
-      expect(CHARACTER_SKINS[id].atlasUrl).toContain('?rev=athletic-v2');
+  it('uses per-character quality revisions instead of the legacy athletic-v2 atlas generation', () => {
+    for (const id of CHARACTER_IDS) {
+      expect(CHARACTER_SKINS[id].atlasUrl).toContain(`?rev=${EXPECTED_ATLAS_REVISIONS[id]}`);
+      expect(CHARACTER_SKINS[id].atlasUrl).not.toContain('?rev=athletic-v2');
     }
   });
 
