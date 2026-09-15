@@ -7,6 +7,15 @@ import {
 
 const CHARACTER_IDS: readonly CharacterId[] = ['kai', 'ren', 'hina', 'shin', 'gou', 'yu'];
 
+const EXPECTED_ATLAS_REVISIONS: Record<CharacterId, string> = {
+  kai: 'kai-v6',
+  ren: 'ren-v3',
+  hina: 'hina-v3',
+  shin: 'shin-v3',
+  gou: 'gou-v3',
+  yu: 'yu-v3',
+};
+
 const PROFILE_FIELDS = [
   'heightScale',
   'shoulderScale',
@@ -31,9 +40,10 @@ describe('CHARACTER_SKINS', () => {
     }
   });
 
-  it('cache-busts every character atlas when switching to the athletic limb art revision', () => {
+  it('uses per-character quality revisions instead of the legacy athletic-v2 atlas generation', () => {
     for (const id of CHARACTER_IDS) {
-      expect(CHARACTER_SKINS[id].atlasUrl).toContain('?rev=athletic-v2');
+      expect(CHARACTER_SKINS[id].atlasUrl).toContain(`?rev=${EXPECTED_ATLAS_REVISIONS[id]}`);
+      expect(CHARACTER_SKINS[id].atlasUrl).not.toContain('?rev=athletic-v2');
     }
   });
 
@@ -57,6 +67,11 @@ describe('CHARACTER_SKINS', () => {
       expect(visual.headScale).toBeLessThan(1);
       expect(visual.legScale).toBeGreaterThan(1);
     }
+
+    const kai = CHARACTER_SKINS.kai.visual;
+    expect(kai.headScale).toBeLessThanOrEqual(0.84);
+    expect(kai.armScale).toBeGreaterThanOrEqual(1.14);
+    expect(kai.legScale).toBeGreaterThanOrEqual(1.14);
 
     expect(CHARACTER_SKINS.hina.visual.heightScale).toBeLessThan(CHARACTER_SKINS.kai.visual.heightScale);
     expect(CHARACTER_SKINS.hina.visual.motionSpeed).toBeGreaterThan(CHARACTER_SKINS.kai.visual.motionSpeed);

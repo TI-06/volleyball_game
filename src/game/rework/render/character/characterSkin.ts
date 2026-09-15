@@ -50,7 +50,15 @@ export interface CharacterSkin {
 }
 
 const CELL = 128;
-const CHARACTER_ATLAS_REVISION = 'athletic-v2';
+const DEFAULT_CHARACTER_ATLAS_REVISION = 'athletic-v2';
+const CHARACTER_ATLAS_REVISIONS: Partial<Record<CharacterId, string>> = {
+  kai: 'kai-v6',
+  ren: 'ren-v3',
+  hina: 'hina-v3',
+  shin: 'shin-v3',
+  gou: 'gou-v3',
+  yu: 'yu-v3',
+};
 
 const ATLAS_RECTS: Record<CharacterPartName, AtlasRect> = {
   head: { x: 0, y: 0, width: CELL, height: CELL },
@@ -72,8 +80,21 @@ const ATLAS_RECTS: Record<CharacterPartName, AtlasRect> = {
   shoeR: { x: CELL, y: CELL * 3, width: CELL, height: CELL },
 };
 
+const KAI_ATLAS_RECTS: Record<CharacterPartName, AtlasRect> = {
+  ...ATLAS_RECTS,
+  // KAI's arm cells are mirrored in the authored atlas: swapping them puts
+  // the jersey sleeve against the shoulder joint and skin toward the elbow.
+  upperArmL: ATLAS_RECTS.upperArmR,
+  upperArmR: ATLAS_RECTS.upperArmL,
+};
+
+function atlasRectsFor(id: CharacterId): Record<CharacterPartName, AtlasRect> {
+  return id === 'kai' ? KAI_ATLAS_RECTS : ATLAS_RECTS;
+}
+
 function atlasUrlFor(id: CharacterId): string {
-  return `/assets/characters/${id}/parts.svg?rev=${CHARACTER_ATLAS_REVISION}`;
+  const revision = CHARACTER_ATLAS_REVISIONS[id] ?? DEFAULT_CHARACTER_ATLAS_REVISION;
+  return `/assets/characters/${id}/parts.svg?rev=${revision}`;
 }
 
 function partsFor(id: CharacterId): Record<CharacterPartName, string> {
@@ -89,17 +110,17 @@ function skin(id: CharacterId, visual: CharacterVisualProfile): CharacterSkin {
     visual,
     atlasUrl: atlasUrlFor(id),
     parts: partsFor(id),
-    atlasRects: ATLAS_RECTS,
+    atlasRects: atlasRectsFor(id),
   };
 }
 
 export const CHARACTER_SKINS: Record<CharacterId, CharacterSkin> = {
   kai: skin('kai', {
-    heightScale: 1.08,
-    shoulderScale: 0.9,
-    legScale: 1.12,
-    armScale: 1.05,
-    headScale: 0.88,
+    heightScale: 1.1,
+    shoulderScale: 0.88,
+    legScale: 1.15,
+    armScale: 1.15,
+    headScale: 0.84,
     motionSpeed: 1,
     approachStride: 1,
     jumpVisualScale: 1,

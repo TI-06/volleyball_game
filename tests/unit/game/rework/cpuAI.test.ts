@@ -105,4 +105,26 @@ describe('rework cpu roles', () => {
     const gou = decideCpuRoles(state, 'MASTER').find((decision) => decision.playerId === 'away-1');
     expect(gou?.role).not.toBe('BLOCK');
   });
+
+  it('keeps simultaneous CPU net defenders separated during a home attack build-up', () => {
+    const base = rallyState();
+    const state = {
+      ...base,
+      ball: {
+        ...base.ball,
+        inPlay: true,
+        lastTouchedBy: 'home-1',
+        lastContact: 'SET' as const,
+        position: { x: 0.2, y: 3.0, z: -0.8 },
+        velocity: { x: 0.1, y: 0.8, z: 0.2 },
+      },
+    };
+
+    const netDefenders = decideCpuRoles(state, 'HARD')
+      .filter((decision) => decision.role === 'APPROACH' || decision.role === 'BLOCK')
+      .sort((a, b) => a.target.x - b.target.x);
+
+    expect(netDefenders).toHaveLength(2);
+    expect(netDefenders[1].target.x - netDefenders[0].target.x).toBeGreaterThanOrEqual(1.1);
+  });
 });

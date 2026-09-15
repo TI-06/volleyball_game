@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 import type { BallState } from '../core/types';
 
+export const BALL_RENDER_RADIUS = 0.17;
+
 export class BallView {
   readonly mesh: THREE.Mesh;
 
   constructor() {
     const material = new THREE.MeshToonMaterial({ color: 0xf6f4df });
-    this.mesh = new THREE.Mesh(new THREE.SphereGeometry(0.105, 18, 12), material);
+    this.mesh = new THREE.Mesh(new THREE.SphereGeometry(BALL_RENDER_RADIUS, 24, 16), material);
     this.mesh.castShadow = true;
   }
 

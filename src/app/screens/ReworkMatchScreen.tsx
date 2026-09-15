@@ -41,6 +41,7 @@ interface HudState {
   playLabel: ReworkActionLabel;
   powerLabel: ReworkActionLabel;
   event: ReworkEvent | null;
+  cpuReturnSeen: boolean;
 }
 
 function createInput(): ReworkInput {
@@ -67,6 +68,7 @@ export function ReworkMatchScreen({
   const inputRef = useRef<ReworkInput>(createInput());
   const serveAimRef = useRef<ReworkSwipe | null>(null);
   const finishSentRef = useRef(false);
+  const cpuReturnSeenRef = useRef(false);
   const statsRef = useRef(createReworkMatchStats());
   const [tutorialActive, setTutorialActive] = useState(tutorial);
   const [hud, setHud] = useState<HudState>(() => ({
@@ -75,6 +77,7 @@ export function ReworkMatchScreen({
     playLabel: runtimeRef.current.playLabel,
     powerLabel: runtimeRef.current.powerLabel,
     event: null,
+    cpuReturnSeen: false,
   }));
 
   const updateHud = useCallback((runtime: ReworkRuntimeState, event: ReworkEvent | null) => {
@@ -84,6 +87,7 @@ export function ReworkMatchScreen({
       playLabel: runtime.playLabel,
       powerLabel: runtime.powerLabel,
       event,
+      cpuReturnSeen: cpuReturnSeenRef.current,
     });
   }, []);
 
@@ -94,6 +98,7 @@ export function ReworkMatchScreen({
     inputRef.current = createInput();
     serveAimRef.current = null;
     finishSentRef.current = false;
+    cpuReturnSeenRef.current = false;
     statsRef.current = createReworkMatchStats();
     updateHud(runtime, null);
 
@@ -130,6 +135,15 @@ export function ReworkMatchScreen({
 
       while (accumulator >= FIXED_STEP_SECONDS) {
         runtime = stepReworkRuntime(runtime, inputRef.current, FIXED_STEP_SECONDS);
+        if (
+          runtime.match.ball.inPlay &&
+          runtime.match.ball.lastTouchedBy?.startsWith('away-') &&
+          runtime.match.ball.position.z < -0.05 &&
+          runtime.match.ball.velocity.z < 0
+        ) {
+          cpuReturnSeenRef.current = true;
+        }
+
         const event = runtime.lastEvent;
         if (event) {
           statsRef.current = recordReworkEvent(statsRef.current, event);
@@ -206,7 +220,11 @@ export function ReworkMatchScreen({
   }, []);
 
   return (
-    <main className="rework-match-screen" data-testid="rework-match-screen">
+    <main
+      className="rework-match-screen"
+      data-testid="rework-match-screen"
+      data-cpu-return-seen={hud.cpuReturnSeen ? 'true' : 'false'}
+    >
       <div ref={sceneHostRef} className="rework-match-scene" />
       <ReworkHud
         homeScore={hud.homeScore}

@@ -78,14 +78,21 @@ test('smartphone landscape enters the 2.5d match with fixed PLAY and POWER contr
   }
 });
 
-test('mobile match serves, scores, reaches result, and rematches without replaying tutorial', async ({ page }, testInfo) => {
+test('mobile match serves, receives a real CPU return, reaches result, and rematches', async ({ page }, testInfo) => {
+  // This intentionally combines a real rally, three full-page visual-audit
+  // screenshots, result transition, and rematch. Keep the extra budget local
+  // to this lifecycle gate rather than weakening the suite-wide timeout.
+  test.setTimeout(45_000);
+
   await seedTutorialComplete(page);
   await page.goto('/?e2e=1');
   await enterNormalMatch(page);
 
   await expect(page.getByText(/QUICK START/)).toHaveCount(0);
+  const matchScreen = page.getByTestId('rework-match-screen');
   const score = page.locator('.rework-score');
   await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
+  await expect(matchScreen).toHaveAttribute('data-cpu-return-seen', 'false');
 
   await page.screenshot({
     path: `test-results/visual-audit/${testInfo.project.name}-serve-ready.png`,
@@ -102,11 +109,11 @@ test('mobile match serves, scores, reaches result, and rematches without replayi
     fullPage: true,
   });
 
-  await expect(score).not.toHaveAttribute('aria-label', 'PLAYER 0 CPU 0', { timeout: 12_000 });
-  await expect(page.getByTestId('rework-match-screen')).toBeVisible();
+  await expect(matchScreen).toHaveAttribute('data-cpu-return-seen', 'true', { timeout: 12_000 });
+  await expect(matchScreen).toBeVisible();
 
   await page.screenshot({
-    path: `test-results/visual-audit/${testInfo.project.name}-after-point.png`,
+    path: `test-results/visual-audit/${testInfo.project.name}-cpu-return.png`,
     fullPage: true,
   });
 

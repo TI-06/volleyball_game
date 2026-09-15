@@ -17,6 +17,7 @@ import type { ReworkCpuMemory, ReworkEvent } from './types';
 const PLAYER_GRAVITY = 22;
 const HOME_SETTER_TARGET: Vec3 = { x: 0, y: 2.2, z: -1.6 };
 const AWAY_SETTER_TARGET: Vec3 = { x: 0, y: 2.2, z: 1.6 };
+const CPU_ATTACK_CONTACT_MAX_Z = 1.05;
 
 function characterFor(player: PlayerState) {
   return STARTER_ROSTER[player.characterId as CharacterId] ?? STARTER_ROSTER.shin;
@@ -413,6 +414,8 @@ function tryCpuBlockOrAttack(
   if (
     attacker.isAirborne &&
     attacker.position.y >= 0.28 &&
+    match.ball.position.z <= CPU_ATTACK_CONTACT_MAX_Z &&
+    match.ball.position.z >= 0 &&
     match.ball.position.y >= 2.0 &&
     distanceXZ(attacker, match.ball.position) <= 2.5
   ) {

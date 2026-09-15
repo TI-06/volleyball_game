@@ -26,6 +26,81 @@ function rally(runtime: ReworkRuntimeState): ReworkRuntimeState {
 }
 
 describe('rework rally AI', () => {
+  it('returns a real KAI float serve back across the net', () => {
+    let runtime = createReworkRuntime(6001, 'NORMAL');
+    const initialScore = { ...runtime.match.score };
+
+    runtime = stepReworkRuntime(runtime, { ...idle(), powerPressed: true }, 1 / 60);
+    for (let frame = 0; frame < 18; frame += 1) {
+      runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
+    }
+    runtime = stepReworkRuntime(
+      runtime,
+      { ...idle(), powerReleased: true, powerSwipe: null },
+      1 / 60,
+    );
+
+    expect(runtime.lastEvent).toMatchObject({ type: 'SERVE', actorId: 'home-0' });
+
+    const awayEvents = new Set<string>();
+    let returnedAcrossNet = false;
+    let spikeContact: {
+      actorId: string | null;
+      quality: string | null;
+      position: { x: number; y: number; z: number };
+      velocity: { x: number; y: number; z: number };
+    } | null = null;
+
+    for (let frame = 0; frame < 600 && !runtime.match.winner; frame += 1) {
+      runtime = stepReworkRuntime(runtime, idle(), 1 / 60);
+      if (runtime.lastEvent?.actorId?.startsWith('away-')) {
+        awayEvents.add(runtime.lastEvent.type);
+        if (runtime.lastEvent.type === 'SPIKE' && spikeContact === null) {
+          spikeContact = {
+            actorId: runtime.lastEvent.actorId ?? null,
+            quality: runtime.lastEvent.quality ?? null,
+            position: { ...runtime.match.ball.position },
+            velocity: { ...runtime.match.ball.velocity },
+          };
+        }
+      }
+      if (
+        runtime.match.ball.inPlay &&
+        runtime.match.ball.lastTouchedBy?.startsWith('away-') &&
+        runtime.match.ball.position.z < -0.05 &&
+        runtime.match.ball.velocity.z < 0
+      ) {
+        returnedAcrossNet = true;
+        break;
+      }
+      if (
+        runtime.match.score.home !== initialScore.home ||
+        runtime.match.score.away !== initialScore.away
+      ) {
+        break;
+      }
+    }
+
+    if (!returnedAcrossNet) {
+      console.info('CPU_RETURN_DIAGNOSTIC', JSON.stringify({
+        awayEvents: [...awayEvents],
+        spikeContact,
+        score: runtime.match.score,
+        phase: runtime.match.rally.phase,
+        ball: runtime.match.ball,
+        awayPlayers: runtime.match.players
+          .filter((player) => player.side === 'away')
+          .map((player) => ({ id: player.id, role: player.role, position: player.position })),
+        cpuMemory: runtime.cpuMemory,
+      }));
+    }
+
+    expect([...awayEvents]).toContain('RECEIVE');
+    expect([...awayEvents]).toContain('SET');
+    expect([...awayEvents]).toContain('SPIKE');
+    expect(returnedAcrossNet).toBe(true);
+  });
+
   it('lets HINA take an assigned ball without switching user control away from KAI', () => {
     let runtime = rally(createReworkRuntime(80, 'NORMAL'));
     runtime = {
