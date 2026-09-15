@@ -375,7 +375,7 @@ export function stepV3Runtime(
   const players = moveControlled(source, input, safeDt);
   let bufferedAction = source.bufferedAction;
   let phase = source.phase;
-  let lastEvent: V3RuntimeEvent | null = null;
+  let lastEvent: V3RuntimeEvent | null = source.lastEvent;
 
   if (input.actionPressed && (phase === 'DEFENSE_READ' || phase === 'RECEIVE_PREP')) {
     bufferedAction = bufferAction('ACTION', source.time);
