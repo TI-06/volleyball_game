@@ -7,6 +7,7 @@ import './styles/rework-menu.css';
 import './styles/rework-match.css';
 import './styles/feedback.css';
 import './styles/orientation.css';
+import './styles/v3-match.css';
 
 const root = document.getElementById('root');
 
