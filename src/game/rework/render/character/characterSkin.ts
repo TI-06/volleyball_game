@@ -52,7 +52,7 @@ export interface CharacterSkin {
 const CELL = 128;
 const DEFAULT_CHARACTER_ATLAS_REVISION = 'athletic-v2';
 const CHARACTER_ATLAS_REVISIONS: Partial<Record<CharacterId, string>> = {
-  kai: 'kai-v5',
+  kai: 'kai-v6',
 };
 
 const ATLAS_RECTS: Record<CharacterPartName, AtlasRect> = {
@@ -75,6 +75,18 @@ const ATLAS_RECTS: Record<CharacterPartName, AtlasRect> = {
   shoeR: { x: CELL, y: CELL * 3, width: CELL, height: CELL },
 };
 
+const KAI_ATLAS_RECTS: Record<CharacterPartName, AtlasRect> = {
+  ...ATLAS_RECTS,
+  // KAI's arm cells are mirrored in the authored atlas: swapping them puts
+  // the jersey sleeve against the shoulder joint and skin toward the elbow.
+  upperArmL: ATLAS_RECTS.upperArmR,
+  upperArmR: ATLAS_RECTS.upperArmL,
+};
+
+function atlasRectsFor(id: CharacterId): Record<CharacterPartName, AtlasRect> {
+  return id === 'kai' ? KAI_ATLAS_RECTS : ATLAS_RECTS;
+}
+
 function atlasUrlFor(id: CharacterId): string {
   const revision = CHARACTER_ATLAS_REVISIONS[id] ?? DEFAULT_CHARACTER_ATLAS_REVISION;
   return `/assets/characters/${id}/parts.svg?rev=${revision}`;
@@ -93,7 +105,7 @@ function skin(id: CharacterId, visual: CharacterVisualProfile): CharacterSkin {
     visual,
     atlasUrl: atlasUrlFor(id),
     parts: partsFor(id),
-    atlasRects: ATLAS_RECTS,
+    atlasRects: atlasRectsFor(id),
   };
 }
 
