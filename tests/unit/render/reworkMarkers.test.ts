@@ -33,9 +33,11 @@ describe('ReworkMarkers transition guidance', () => {
 
     const routeStrip = visible.find(
       (child) => child instanceof THREE.Mesh && child.geometry instanceof THREE.BoxGeometry,
-    ) as THREE.Mesh<THREE.BoxGeometry> | undefined;
+    ) as THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> | undefined;
     expect(routeStrip).toBeDefined();
     expect(routeStrip?.scale.x ?? 0).toBeGreaterThan(0.8);
+    expect(routeStrip?.geometry.parameters.depth ?? 0).toBeGreaterThanOrEqual(0.28);
+    expect(routeStrip?.material.opacity ?? 0).toBeGreaterThanOrEqual(0.68);
 
     view.dispose();
   });
