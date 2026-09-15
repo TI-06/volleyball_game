@@ -17,6 +17,20 @@ describe('V3 third-person camera', () => {
     expect(pose.fov).toBeLessThanOrEqual(60);
   });
 
+  it('reserves the right side of the frame for touch controls during defense', () => {
+    const controlledPosition = { x: 2.6, z: -6.15 };
+    const ballPosition = { x: -1.1, y: 3.05, z: 1.2 };
+    const neutralCameraX = controlledPosition.x * 0.72 + ballPosition.x * 0.08;
+    const pose = getV3CameraPose({
+      controlledPosition,
+      ballPosition,
+      phase: 'DEFENSE_READ',
+      aspect: 844 / 390,
+    });
+
+    expect(pose.position.x - neutralCameraX).toBeGreaterThanOrEqual(0.45);
+  });
+
   it('backs up slightly on compact landscape screens instead of cropping the rally', () => {
     const wide = getV3CameraPose({
       controlledPosition: { x: 0, z: -5 },
