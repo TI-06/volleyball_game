@@ -38,6 +38,19 @@ describe('DEFAULT_VISUAL_RIG', () => {
     expect(pose.elbowR.x).toBeGreaterThan(0.25);
   });
 
+  it('seats the visible head and shoulder pivots into the jersey silhouette', () => {
+    const pose = DEFAULT_VISUAL_RIG.bindPose;
+
+    // Character atlases keep transparent padding inside their 128px cells.
+    // These limits intentionally compensate for that padding so the visible
+    // artwork overlaps at the neck/shoulders instead of becoming a paper doll.
+    expect(pose.neck.y).toBeLessThanOrEqual(0.12);
+    expect(Math.abs(pose.shoulderL.x)).toBeLessThanOrEqual(0.19);
+    expect(Math.abs(pose.shoulderR.x)).toBeLessThanOrEqual(0.19);
+    expect(pose.shoulderL.y).toBeLessThanOrEqual(0.13);
+    expect(pose.shoulderR.y).toBeLessThanOrEqual(0.13);
+  });
+
   it('uses readable athletic proportions at smartphone match scale', () => {
     const pose = DEFAULT_VISUAL_RIG.bindPose;
     expect(ARTICULATED_PLAYER_DISPLAY_SCALE).toBeGreaterThanOrEqual(1.1);

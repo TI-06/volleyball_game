@@ -58,13 +58,16 @@ export const DEFAULT_VISUAL_RIG: VisualRigDefinition = {
     root: transform(0, 0),
     hips: transform(0, 0.93),
     chest: transform(0, 0.56),
-    // Keep the head seated into the jersey silhouette instead of floating
-    // above it. The layered head artwork slightly overlaps the torso top so
-    // the neck reads naturally at phone landscape scale.
-    neck: transform(0, 0.3),
+    // The atlas cells intentionally keep transparent padding around the art.
+    // Seat the neck lower than the raw plane bounds so the visible chin/neck
+    // overlaps the jersey collar instead of reading as a floating head.
+    neck: transform(0, 0.1),
     head: transform(0, 0.22),
-    shoulderL: transform(-0.23, 0.2),
-    shoulderR: transform(0.23, 0.2),
+    // Shoulder pivots must sit inside the visible jersey silhouette, not merely
+    // inside the padded torso plane. This keeps rotated serve/spike arms
+    // connected to the body at phone-landscape scale.
+    shoulderL: transform(-0.18, 0.12),
+    shoulderR: transform(0.18, 0.12),
     // Limb sprites are authored along the local X axis. Keep the articulated
     // chain aligned with that geometry; athletic arm drop comes from shoulder
     // rotation in the motion clips rather than disconnecting child joints.
