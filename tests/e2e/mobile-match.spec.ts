@@ -91,7 +91,23 @@ test('visual audit captures KAI receive into setter route and approach prep', as
     bridge.stageSetTransition();
   });
 
-  await page.waitForTimeout(120);
+  await page.waitForTimeout(320);
+  const transitionAuditState = await page.evaluate(() => {
+    const bridge = (window as typeof window & {
+      __VOLLEYBALL_MATCH_E2E__?: {
+        getTransitionAuditState?: () => {
+          lastContact: string | null;
+          lastTouchedBy: string | null;
+        };
+      };
+    }).__VOLLEYBALL_MATCH_E2E__;
+    return bridge?.getTransitionAuditState?.() ?? null;
+  });
+  expect(transitionAuditState).toEqual({
+    lastContact: 'RECEIVE',
+    lastTouchedBy: 'home-0',
+  });
+
   await expect(page.getByTestId('rework-match-screen')).toBeVisible();
   await page.screenshot({
     path: `test-results/visual-audit/${testInfo.project.name}-set-transition.png`,
