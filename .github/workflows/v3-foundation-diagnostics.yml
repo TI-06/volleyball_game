@@ -31,7 +31,7 @@ jobs:
             echo "DIAGNOSTIC_STATUS=RED"
             exit 0
           fi
-          npm test -- tests/unit/game/v3
+          npm test -- tests/unit/game/v3 tests/unit/ui/v3
           TEST_EXIT=$?
           npm run typecheck
           TYPECHECK_EXIT=$?
