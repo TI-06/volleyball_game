@@ -31,6 +31,23 @@ function placeControlledAtLanding(state: V3RuntimeState): V3RuntimeState {
   };
 }
 
+function placeControlledLeftOfLanding(state: V3RuntimeState, distance = 2.2): V3RuntimeState {
+  return {
+    ...state,
+    players: state.players.map((player) =>
+      player.id === state.controlledPlayerId
+        ? {
+            ...player,
+            position: {
+              x: state.rally.landingTarget.x - distance,
+              z: state.rally.landingTarget.z,
+            },
+          }
+        : player,
+    ),
+  };
+}
+
 describe('V3 playable rally runtime', () => {
   it('creates deterministic opponent attack timing, landing, and early forecast', () => {
     const first = createV3Runtime(73);
@@ -83,6 +100,45 @@ describe('V3 playable rally runtime', () => {
     expect(state.lastEvent.quality).not.toBe('MISS');
     expect(state.phase).toBe('SET_BUILDUP');
     expect(state.score).toEqual({ home: 0, away: 0 });
+  });
+
+  it('extends receive reach when DIVE is buffered toward the landing point', () => {
+    let state = placeControlledLeftOfLanding(createV3Runtime(73));
+    state = stepFor(state, state.rally.receiveContactAt - 0.28);
+    state = stepV3Runtime(
+      state,
+      {
+        ...emptyV3RuntimeInput(),
+        move: { x: 1, z: 0 },
+        divePressed: true,
+      },
+      1 / 60,
+    );
+
+    expect(state.bufferedAction?.kind).toBe('DIVE');
+    expect(state.phase).toBe('RECEIVE_PREP');
+
+    state = stepFor(state, 0.34);
+    expect(state.lastEvent?.type).toBe('RECEIVE');
+    expect(state.score).toEqual({ home: 0, away: 0 });
+  });
+
+  it('does not grant dive reach when the dive direction points away from the landing point', () => {
+    let state = placeControlledLeftOfLanding(createV3Runtime(73));
+    state = stepFor(state, state.rally.receiveContactAt - 0.28);
+    state = stepV3Runtime(
+      state,
+      {
+        ...emptyV3RuntimeInput(),
+        move: { x: -1, z: 0 },
+        divePressed: true,
+      },
+      1 / 60,
+    );
+    state = stepFor(state, 0.34);
+
+    expect(state.score.away).toBe(1);
+    expect(state.rallyIndex).toBe(1);
   });
 
   it('awards the CPU point and starts a new readable rally when receive is missed', () => {
