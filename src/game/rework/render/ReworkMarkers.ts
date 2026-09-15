@@ -24,27 +24,22 @@ function floorRing(
   return mesh;
 }
 
-function floorRoute(
+function floorRouteStrip(
   color: number,
   opacity: number,
-): THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial> {
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    'position',
-    new THREE.Float32BufferAttribute([0, 0.05, 0, 0, 0.05, 0], 3),
-  );
-  const line = new THREE.Line(
-    geometry,
-    new THREE.LineBasicMaterial({
+): THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial> {
+  const mesh = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 0.018, 0.12),
+    new THREE.MeshBasicMaterial({
       color,
       transparent: true,
       opacity,
       depthWrite: false,
     }),
   );
-  line.renderOrder = 2;
-  line.visible = false;
-  return line;
+  mesh.renderOrder = 2;
+  mesh.visible = false;
+  return mesh;
 }
 
 function place(mesh: THREE.Object3D, point: Vec3 | null): void {
@@ -52,19 +47,29 @@ function place(mesh: THREE.Object3D, point: Vec3 | null): void {
   if (point) mesh.position.set(point.x, point.y, point.z);
 }
 
-function placeRoute(
-  line: THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial>,
+function placeRouteStrip(
+  strip: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>,
   from: Vec3 | null,
   to: Vec3 | null,
 ): void {
-  line.visible = Boolean(from && to);
+  strip.visible = Boolean(from && to);
   if (!from || !to) return;
 
-  const position = line.geometry.getAttribute('position') as THREE.BufferAttribute;
-  position.setXYZ(0, from.x, Math.max(0.05, from.y), from.z);
-  position.setXYZ(1, to.x, Math.max(0.05, to.y), to.z);
-  position.needsUpdate = true;
-  line.geometry.computeBoundingSphere();
+  const dx = to.x - from.x;
+  const dz = to.z - from.z;
+  const length = Math.hypot(dx, dz);
+  if (length < 0.05) {
+    strip.visible = false;
+    return;
+  }
+
+  strip.position.set(
+    (from.x + to.x) / 2,
+    Math.max(0.045, (from.y + to.y) / 2),
+    (from.z + to.z) / 2,
+  );
+  strip.scale.set(length, 1, 1);
+  strip.rotation.set(0, -Math.atan2(dz, dx), 0);
 }
 
 export class ReworkMarkers {
@@ -74,9 +79,10 @@ export class ReworkMarkers {
   private readonly receiveInner = floorRing(0.28, 0.36, 0xffffff, 0.82);
   private readonly serveOuter = floorRing(0.63, 0.8, 0xffdf70, 0.7);
   private readonly serveInner = floorRing(0.12, 0.19, 0xffffff, 0.84);
-  private readonly setterOwner = floorRing(0.42, 0.56, 0x63c7ff, 0.72);
-  private readonly setterTarget = floorRing(0.62, 0.76, 0x63c7ff, 0.7);
-  private readonly setterRoute = floorRoute(0x63c7ff, 0.42);
+  private readonly setterOwner = floorRing(0.42, 0.56, 0x63c7ff, 0.8);
+  private readonly setterTarget = floorRing(0.62, 0.78, 0x63c7ff, 0.82);
+  private readonly setterTargetCore = floorRing(0.12, 0.21, 0xffffff, 0.9);
+  private readonly setterRoute = floorRouteStrip(0x63c7ff, 0.54);
   private readonly approach = floorRing(0.62, 0.78, 0xf6d35c, 0.7);
   private readonly block = floorRing(0.52, 0.68, 0xff7b78, 0.76);
   private readonly attackLanes = [
@@ -95,6 +101,7 @@ export class ReworkMarkers {
       this.setterRoute,
       this.setterOwner,
       this.setterTarget,
+      this.setterTargetCore,
       this.approach,
       this.block,
       ...this.attackLanes,
@@ -109,7 +116,8 @@ export class ReworkMarkers {
     place(this.serveInner, markers.serveTarget);
     place(this.setterOwner, markers.setterPosition);
     place(this.setterTarget, markers.setterTarget);
-    placeRoute(this.setterRoute, markers.setterPosition, markers.setterTarget);
+    place(this.setterTargetCore, markers.setterTarget);
+    placeRouteStrip(this.setterRoute, markers.setterPosition, markers.setterTarget);
     place(this.approach, markers.approach);
     place(this.block, markers.blockTarget);
 
@@ -119,12 +127,14 @@ export class ReworkMarkers {
 
     const setterPulse = 0.96 + Math.sin(timeSeconds * 6.4) * 0.04;
     this.setterOwner.scale.setScalar(setterPulse);
-    this.setterTarget.scale.setScalar(0.94 + Math.sin(timeSeconds * 5.6) * 0.06);
-    this.setterRoute.material.opacity = 0.34 + (Math.sin(timeSeconds * 5.2) + 1) * 0.08;
+    const setterTargetPulse = 0.94 + Math.sin(timeSeconds * 5.6) * 0.06;
+    this.setterTarget.scale.setScalar(setterTargetPulse);
+    this.setterTargetCore.scale.setScalar(0.94 + Math.sin(timeSeconds * 5.6 + 0.8) * 0.06);
+    this.setterRoute.material.opacity = 0.46 + (Math.sin(timeSeconds * 5.2) + 1) * 0.08;
 
     const prepApproach = markers.approachStage === 'PREP';
     this.approach.material.color.setHex(prepApproach ? 0xffa95e : 0xf6d35c);
-    this.approach.material.opacity = prepApproach ? 0.5 : 0.78;
+    this.approach.material.opacity = prepApproach ? 0.58 : 0.78;
     this.approach.scale.setScalar(
       prepApproach
         ? 0.97 + Math.sin(timeSeconds * 4.4) * 0.03
@@ -152,6 +162,7 @@ export class ReworkMarkers {
       this.serveInner,
       this.setterOwner,
       this.setterTarget,
+      this.setterTargetCore,
       this.approach,
       this.block,
       ...this.attackLanes,
