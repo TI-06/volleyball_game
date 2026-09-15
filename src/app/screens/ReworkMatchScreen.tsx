@@ -47,6 +47,10 @@ interface HudState {
 interface MatchE2eBridgeWindow extends Window {
   __VOLLEYBALL_MATCH_E2E__?: {
     stageSetTransition: () => void;
+    getTransitionAuditState: () => {
+      lastContact: string | null;
+      lastTouchedBy: string | null;
+    };
   };
 }
 
@@ -121,10 +125,12 @@ export function ReworkMatchScreen({
 
     const scene = new ReworkScene(host, runtime.match, runtime.focusPlayerId);
     const e2eWindow = window as MatchE2eBridgeWindow;
+    let transitionAuditHold = false;
     if (localMatchE2eEnabled()) {
       e2eWindow.__VOLLEYBALL_MATCH_E2E__ = {
         stageSetTransition: () => {
           const receiveEvent: ReworkEvent = { type: 'RECEIVE', actorId: runtime.focusPlayerId };
+          transitionAuditHold = true;
           runtime = {
             ...runtime,
             match: {
@@ -153,6 +159,10 @@ export function ReworkMatchScreen({
           scene.update(runtime.match, 0, null);
           updateHud(runtime, receiveEvent);
         },
+        getTransitionAuditState: () => ({
+          lastContact: runtime.match.ball.lastContact ?? null,
+          lastTouchedBy: runtime.match.ball.lastTouchedBy ?? null,
+        }),
       };
     }
 
@@ -183,7 +193,7 @@ export function ReworkMatchScreen({
       hudAccumulator += delta;
       let latestEvent: ReworkEvent | null = null;
 
-      while (accumulator >= FIXED_STEP_SECONDS) {
+      while (!transitionAuditHold && accumulator >= FIXED_STEP_SECONDS) {
         runtime = stepReworkRuntime(runtime, inputRef.current, FIXED_STEP_SECONDS);
         if (
           runtime.match.ball.inPlay &&
@@ -210,6 +220,7 @@ export function ReworkMatchScreen({
         inputRef.current.powerCancelled = false;
         accumulator -= FIXED_STEP_SECONDS;
       }
+      if (transitionAuditHold) accumulator = 0;
 
       runtimeRef.current = runtime;
       scene.update(
