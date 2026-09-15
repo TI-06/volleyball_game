@@ -1,0 +1,322 @@
+.v3-match {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #07111a;
+  color: #f4fbff;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.v3-scene-host {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(68, 120, 142, 0.2), transparent 44%),
+    #07111a;
+}
+
+.v3-scene-host canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.v3-topbar {
+  position: absolute;
+  z-index: 20;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(14px, env(safe-area-inset-left));
+  right: max(14px, env(safe-area-inset-right));
+  display: grid;
+  grid-template-columns: minmax(118px, 1fr) auto minmax(150px, 1fr);
+  align-items: start;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.v3-prototype-badge,
+.v3-phase,
+.v3-score {
+  border: 1px solid rgba(184, 238, 255, 0.22);
+  background: rgba(5, 15, 23, 0.72);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+}
+
+.v3-prototype-badge {
+  justify-self: start;
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: #7dffe3;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+}
+
+.v3-score {
+  min-width: 112px;
+  padding: 7px 18px;
+  border-radius: 14px;
+  text-align: center;
+  font-size: clamp(18px, 4.6vh, 30px);
+  line-height: 1;
+  letter-spacing: 0.08em;
+}
+
+.v3-phase {
+  justify-self: end;
+  display: flex;
+  min-width: 142px;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 7px 10px;
+  border-radius: 12px;
+  text-align: right;
+}
+
+.v3-phase strong {
+  color: #f8fcff;
+  font-size: 11px;
+  letter-spacing: 0.09em;
+}
+
+.v3-phase small {
+  margin-top: 2px;
+  color: #8de9f5;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+}
+
+.v3-control-layer {
+  position: absolute;
+  z-index: 30;
+  inset: 0;
+  pointer-events: none;
+}
+
+.v3-movement-pad {
+  position: absolute;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  left: max(20px, env(safe-area-inset-left));
+  width: 132px;
+  height: 132px;
+  border: 1px solid rgba(190, 240, 255, 0.3);
+  border-radius: 50%;
+  background:
+    linear-gradient(rgba(123, 241, 255, 0.1), rgba(20, 39, 51, 0.28)),
+    rgba(4, 13, 20, 0.58);
+  box-shadow:
+    inset 0 0 0 20px rgba(83, 215, 227, 0.035),
+    0 10px 32px rgba(0, 0, 0, 0.32);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.v3-movement-pad::before,
+.v3-movement-pad::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  background: rgba(154, 232, 245, 0.13);
+}
+
+.v3-movement-pad::before {
+  top: 18px;
+  bottom: 18px;
+  left: 50%;
+  width: 1px;
+}
+
+.v3-movement-pad::after {
+  top: 50%;
+  left: 18px;
+  right: 18px;
+  height: 1px;
+}
+
+.v3-movement-pad.is-active {
+  border-color: rgba(112, 255, 224, 0.72);
+  box-shadow:
+    inset 0 0 0 20px rgba(83, 215, 227, 0.055),
+    0 0 28px rgba(68, 255, 218, 0.16);
+}
+
+.v3-movement-pad__thumb {
+  position: absolute;
+  z-index: 3;
+  top: calc(50% - 24px);
+  left: calc(50% - 24px);
+  width: 48px;
+  height: 48px;
+  border: 2px solid rgba(222, 255, 250, 0.78);
+  border-radius: 50%;
+  background: rgba(53, 220, 195, 0.48);
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.v3-movement-pad__label,
+.v3-movement-pad__net {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(216, 248, 255, 0.66);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  pointer-events: none;
+}
+
+.v3-movement-pad__label {
+  bottom: 9px;
+}
+
+.v3-movement-pad__net {
+  top: 9px;
+  color: rgba(126, 255, 226, 0.82);
+}
+
+.v3-actions {
+  position: absolute;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: 66px 66px 154px;
+  grid-template-rows: 56px 56px;
+  grid-template-areas:
+    'action jump attack'
+    'dive jump attack';
+  gap: 8px;
+  align-items: stretch;
+  pointer-events: auto;
+}
+
+.v3-action-button {
+  border: 1px solid rgba(234, 250, 255, 0.28);
+  border-radius: 18px;
+  background: rgba(9, 24, 34, 0.82);
+  color: #f6fdff;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  box-shadow: 0 9px 22px rgba(0, 0, 0, 0.3);
+  touch-action: none;
+}
+
+.v3-action-button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+}
+
+.v3-action-button:disabled {
+  opacity: 0.28;
+}
+
+.v3-action-button--action {
+  grid-area: action;
+  border-color: rgba(93, 255, 219, 0.5);
+  background: rgba(26, 111, 101, 0.78);
+}
+
+.v3-action-button--dive {
+  grid-area: dive;
+  border-color: rgba(105, 193, 255, 0.45);
+}
+
+.v3-action-button--jump {
+  grid-area: jump;
+  border-color: rgba(255, 200, 92, 0.54);
+  background: rgba(111, 73, 21, 0.72);
+}
+
+.v3-attack-pad {
+  grid-area: attack;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  border: 1px solid rgba(255, 134, 107, 0.4);
+  border-radius: 24px;
+  background: rgba(74, 29, 25, 0.68);
+  color: rgba(255, 242, 237, 0.52);
+  box-shadow: 0 9px 24px rgba(0, 0, 0, 0.32);
+  touch-action: none;
+}
+
+.v3-attack-pad.is-ready {
+  border-color: rgba(255, 154, 109, 0.92);
+  background: rgba(146, 52, 32, 0.82);
+  color: #fff9f4;
+  box-shadow: 0 0 24px rgba(255, 105, 67, 0.24);
+}
+
+.v3-attack-pad.is-active {
+  transform: scale(0.985);
+}
+
+.v3-attack-pad strong {
+  font-size: 16px;
+  letter-spacing: 0.11em;
+}
+
+.v3-attack-pad span {
+  margin-top: 6px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+@media (max-height: 430px) {
+  .v3-topbar {
+    top: max(6px, env(safe-area-inset-top));
+  }
+
+  .v3-movement-pad {
+    bottom: max(10px, env(safe-area-inset-bottom));
+    width: 116px;
+    height: 116px;
+  }
+
+  .v3-actions {
+    bottom: max(10px, env(safe-area-inset-bottom));
+    grid-template-columns: 58px 58px 138px;
+    grid-template-rows: 50px 50px;
+    gap: 6px;
+  }
+
+  .v3-action-button {
+    border-radius: 15px;
+    font-size: 9px;
+  }
+
+  .v3-attack-pad {
+    border-radius: 20px;
+  }
+
+  .v3-attack-pad strong {
+    font-size: 14px;
+  }
+
+  .v3-attack-pad span {
+    font-size: 7px;
+  }
+}
+
+@media (orientation: portrait) {
+  .v3-match::after {
+    content: '横向きでプレイ';
+    position: absolute;
+    z-index: 50;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(3, 10, 16, 0.9);
+    color: #f5fbff;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+}
