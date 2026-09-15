@@ -19,7 +19,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          npx vitest run tests/unit/game/rework/markerState.test.ts > verify.log 2>&1
+          npx vitest run tests/unit/game/rework/markerState.test.ts tests/unit/render/reworkMarkers.test.ts > verify.log 2>&1
           test_code=$?
           npm run typecheck >> verify.log 2>&1
           type_code=$?
