@@ -76,7 +76,7 @@ describe('rework marker state', () => {
     );
     expect(markers.approachStage).toBe('PREP');
     expect(markers.approach).not.toBeNull();
-    expect(markers.approach?.z).toBeLessThanOrEqual(-2.4);
+    expect(markers.approach?.z).toBeLessThanOrEqual(-3.4);
     expect(markers.attackLanes).toHaveLength(0);
   });
 
