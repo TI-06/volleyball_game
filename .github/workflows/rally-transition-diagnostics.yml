@@ -1,0 +1,32 @@
+name: rally-transition-diagnostics
+
+on:
+  push:
+    branches:
+      - feat/rally-transition-readability
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.12.0'
+          cache: npm
+      - run: npm ci
+      - name: Run focused diagnostics without failing workflow
+        shell: bash
+        run: |
+          set +e
+          npx vitest run tests/unit/game/rework/markerState.test.ts > verify.log 2>&1
+          test_code=$?
+          npm run typecheck >> verify.log 2>&1
+          type_code=$?
+          cat verify.log
+          if [ "$test_code" -ne 0 ] || [ "$type_code" -ne 0 ]; then
+            echo "VERIFY_EXIT=1"
+          else
+            echo "VERIFY_EXIT=0"
+          fi
+          exit 0
