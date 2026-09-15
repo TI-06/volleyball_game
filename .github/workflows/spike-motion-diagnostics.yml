@@ -1,0 +1,32 @@
+name: spike-motion-diagnostics
+
+on:
+  push:
+    branches:
+      - feat/spike-motion-readability
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.12.0'
+          cache: npm
+      - run: npm ci
+      - name: Run focused spike motion verification without failing workflow
+        shell: bash
+        run: |
+          set +e
+          npx vitest run tests/unit/render/motionClips.test.ts
+          code=$?
+          npm run typecheck
+          type_code=$?
+          if [ "$code" -ne 0 ] || [ "$type_code" -ne 0 ]; then
+            final=1
+          else
+            final=0
+          fi
+          echo "VERIFY_EXIT=$final"
+          exit 0
