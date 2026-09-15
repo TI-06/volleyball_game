@@ -135,11 +135,17 @@ describe('MOTION_CLIPS', () => {
   });
 
   it('renders a readable approach-to-contact spike silhouette sequence', () => {
+    const approachStart = samplePose('spike_approach_2', 0);
     const approach = samplePose('spike_approach_2', 1);
     const plant = samplePose('spike_plant', 0.65);
     const takeoff = samplePose('spike_takeoff', 0.6);
     const cock = samplePose('spike_airborne_cock', 0.55);
     const contact = samplePose('spike_contact', 0.45);
+
+    // The running entry must keep its natural arm swing; it must not inherit
+    // the compact point-reaction pose before the dedicated arm sweep begins.
+    expect(approachStart.shoulderL.rotation).toBeLessThan(0);
+    expect(approachStart.shoulderR.rotation).toBeGreaterThan(0);
 
     // Final approach step: arms sweep behind and legs stop reading as crossed.
     expect(approach.shoulderL.rotation).toBeLessThanOrEqual(-1.1);
