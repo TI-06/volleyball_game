@@ -28,6 +28,11 @@ export function parseV3VisualAuditScenario(
   return value as V3VisualAuditScenario;
 }
 
+export function isV3ManualE2EMode(hostname: string, search: string): boolean {
+  if (!LOCAL_AUDIT_HOSTS.has(hostname)) return false;
+  return new URLSearchParams(search).get('v3e2e') === 'manual';
+}
+
 const advanceTo = (source: V3RuntimeState, targetTime: number): V3RuntimeState => {
   let state = source;
   while (state.time + 0.000001 < targetTime) {
