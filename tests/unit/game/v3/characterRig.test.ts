@@ -46,6 +46,23 @@ describe('V3CharacterRig', () => {
     rig.dispose();
   });
 
+  it('defines positive local z as the visual front of the character', () => {
+    const rig = createV3CharacterRig(profileFor('kai'));
+    const leftEye = rig.root.getObjectByName('kai-left-eye');
+    const rightEye = rig.root.getObjectByName('kai-right-eye');
+    const leftStripe = rig.root.getObjectByName('kai-chest-stripe--1');
+    const rightStripe = rig.root.getObjectByName('kai-chest-stripe-1');
+
+    expect(leftEye).toBeInstanceOf(THREE.Mesh);
+    expect(rightEye).toBeInstanceOf(THREE.Mesh);
+    expect(leftEye?.position.z).toBeGreaterThan(0);
+    expect(rightEye?.position.z).toBeGreaterThan(0);
+    expect(leftStripe?.position.z).toBeGreaterThan(0);
+    expect(rightStripe?.position.z).toBeGreaterThan(0);
+
+    rig.dispose();
+  });
+
   it('applies volleyball poses to independent joints', () => {
     const rig = createV3CharacterRig(profileFor('kai'));
     const spike = sampleV3Pose('SPIKE', 0.72, 'home');
