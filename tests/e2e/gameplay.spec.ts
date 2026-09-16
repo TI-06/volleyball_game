@@ -43,13 +43,6 @@ async function readRuntimeDebug(page: Page) {
   }));
 }
 
-async function waitForGameTime(page: Page, minimum: number, timeout = 2_000) {
-  const screen = page.getByTestId('v3-match-screen');
-  await expect
-    .poll(async () => Number(await screen.getAttribute('data-v3-time')), { timeout })
-    .toBeGreaterThanOrEqual(minimum);
-}
-
 async function readLiveControlCenters(page: Page) {
   return page.evaluate(() => {
     const center = (selector: string) => {
@@ -158,6 +151,11 @@ for (const scenario of actionAuditCases) {
 
 test('live controls complete a full receive-set-jump-spike rally', async ({ page }) => {
   test.setTimeout(45_000);
+
+  // The runtime is driven by performance.now() + requestAnimationFrame. Install
+  // Playwright's browser clock before navigation so game time is deterministic
+  // even when software-rendered Three.js is slow on CI.
+  await page.clock.install({ time: new Date('2026-09-16T00:00:00.000Z') });
   await page.goto('/');
 
   const screen = page.getByTestId('v3-match-screen');
@@ -168,27 +166,32 @@ test('live controls complete a full receive-set-jump-spike rally', async ({ page
   await expect(page.getByText('DEFENSE READ')).toBeVisible();
   await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
 
-  // Resolve all hit points in one synchronous browser call while the startup
-  // hold is active. This keeps the full-rally test focused on rally timing;
-  // 2D movement already has runtime and pointer-pad coverage elsewhere.
   const controls = await readLiveControlCenters(page);
   expect((await readRuntimeDebug(page)).lastEvent).not.toBe('POINT');
 
-  // Contact is t=1.95. Tapping at t≈1.62 leaves the 450ms receive buffer active
-  // through contact while still giving a forgiving GOOD/PERFECT preparation.
-  await waitForGameTime(page, 1.62, 3_000);
-  await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
+  // First consume the intentional 1.25 s startup hold, then advance the actual
+  // simulation to the receive preparation window around t=1.62.
+  await page.clock.runFor(1_250);
+  await page.clock.runFor(1_620);
+  expect(Number((await readRuntimeDebug(page)).time)).toBeGreaterThanOrEqual(1.55);
   await page.touchscreen.tap(controls.action.x, controls.action.y);
-  await expect(page.getByText('RECEIVE PREP')).toBeVisible({ timeout: 300 });
-  await expect(page.getByText('SET BUILDUP')).toBeVisible({ timeout: 700 });
+  await page.clock.runFor(90);
+  await expect(page.getByText('RECEIVE PREP')).toBeVisible();
+
+  // Cross receive contact at t=1.95 and allow the HUD to observe the transition.
+  await page.clock.runFor(300);
+  await expect(page.getByText('SET BUILDUP')).toBeVisible();
   expect((await readRuntimeDebug(page)).lastEvent).toBe('RECEIVE');
 
-  // REN sets automatically, then control moves to KAI. Ideal jump is t=2.95.
-  await expect(page.getByText('ATTACK APPROACH')).toBeVisible({ timeout: 900 });
+  // REN sets at t=2.50, then KAI owns the attack. Advance close to the ideal
+  // jump t=2.95 and tap inside the GOOD/PERFECT window.
+  await page.clock.runFor(560);
+  await expect(page.getByText('ATTACK APPROACH')).toBeVisible();
   await expect(jump).toBeEnabled();
-  await waitForGameTime(page, 2.84, 900);
+  await page.clock.runFor(250);
   await page.touchscreen.tap(controls.jump.x, controls.jump.y);
-  await expect(page.getByText('ATTACK AIRBORNE')).toBeVisible({ timeout: 350 });
+  await page.clock.runFor(100);
+  await expect(page.getByText('ATTACK AIRBORNE')).toBeVisible();
   await expect(attack).toHaveClass(/is-ready/);
 
   // Upward drag = POWER. Seed 73 with a successful jump deterministically wins.
@@ -197,8 +200,9 @@ test('live controls complete a full receive-set-jump-spike rally', async ({ page
   await page.mouse.down();
   await page.mouse.move(controls.attack.x, attackStartY - 90);
   await page.mouse.up();
+  await page.clock.runFor(100);
 
-  await expect(score).toHaveAttribute('aria-label', 'PLAYER 1 CPU 0', { timeout: 500 });
+  await expect(score).toHaveAttribute('aria-label', 'PLAYER 1 CPU 0');
   await expect(page.getByText('DEFENSE READ')).toBeVisible();
   await expect(screen).toHaveAttribute('data-v3-last-event', 'ATTACK');
 });
