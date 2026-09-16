@@ -29,9 +29,22 @@ export function getV3CameraPose({
   const backDistance = (attacking ? 5.05 : 6.25) + compactBackoff;
   const touchControlLaneOffset = attacking ? 0 : 1.0;
 
+  // A straight rear camera flattens the spike silhouette: the hitting-arm
+  // windup and tucked legs overlap the torso. Start orbiting during approach
+  // and move farther toward the attacker's outside shoulder once airborne.
+  // This remains behind the player and keeps the ball/net in front while
+  // making the volleyball-specific pose readable on a phone.
+  const attackSide = controlledPosition.x >= 0 ? 1 : -1;
+  const attackOrbitOffset =
+    phase === 'ATTACK_AIRBORNE' ? attackSide * 2.15 : phase === 'ATTACK_APPROACH' ? attackSide * 0.9 : 0;
+
   return {
     position: {
-      x: controlledPosition.x * 0.72 + ballPosition.x * 0.08 + touchControlLaneOffset,
+      x:
+        controlledPosition.x * 0.72 +
+        ballPosition.x * 0.08 +
+        touchControlLaneOffset +
+        attackOrbitOffset,
       y: attacking ? 4.15 : 4.65,
       z: controlledPosition.z - backDistance,
     },
