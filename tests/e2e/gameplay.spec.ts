@@ -126,6 +126,10 @@ test('live touch controls complete a full receive-set-jump-spike rally', async (
   await expect(page.getByText('DEFENSE READ')).toBeVisible();
   await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
 
+  // Synchronize against the deterministic read stages rather than wall-clock
+  // time from page.goto(), which includes device-dependent WebGL startup.
+  await expect(page.getByText('APPROACH_READ')).toBeVisible({ timeout: 1_000 });
+
   // Seed 73 lands just in front of HINA. Move toward the forecast using the
   // actual virtual stick so this verifies direct 2D touch movement as part of
   // the rally instead of relying on a static starting position.
@@ -140,9 +144,12 @@ test('live touch controls complete a full receive-set-jump-spike rally', async (
   await page.waitForTimeout(150);
   await page.mouse.up();
 
-  // ACTION is buffered before contact. The timing is deliberately early enough
-  // to feel human rather than requiring a last-frame reaction.
-  await page.waitForTimeout(1_350);
+  await expect(page.getByText('FLIGHT_CONFIRMED')).toBeVisible({ timeout: 1_000 });
+
+  // FLIGHT_CONFIRMED begins around opponent contact. Waiting ~600 ms puts the
+  // buffered receive inside the forgiving GOOD/PERFECT timing window while
+  // still leaving the normal 450 ms input buffer active through contact.
+  await page.waitForTimeout(600);
   await action.click();
   await expect(page.getByText('SET BUILDUP')).toBeVisible({ timeout: 1_000 });
 
