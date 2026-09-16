@@ -183,19 +183,24 @@ test('live controls complete a full receive-set-jump-spike rally', async ({ page
   await expect(page.getByText('SET BUILDUP')).toBeVisible();
   expect((await readRuntimeDebug(page)).lastEvent).toBe('RECEIVE');
 
-  // REN sets at t=2.50, then KAI becomes the controlled attacker.
-  await advanceManualRally(page, 0.55);
-  await expect(page.getByText('ATTACK APPROACH')).toBeVisible();
+  // KAI takes control before REN contacts the set. Move into the 450 ms input
+  // buffer window, tap JUMP while SET BUILDUP is still active, and verify the
+  // input is retained instead of requiring a last-frame reaction.
+  await advanceManualRally(page, 0.45);
+  await expect(page.getByText('SET BUILDUP')).toBeVisible();
   await expect(jump).toBeEnabled();
-
-  // Ideal jump is t=2.95. Tap at about t=2.84 for a forgiving GOOD timing.
-  await advanceManualRally(page, 0.32);
   await page.touchscreen.tap(controls.jump.x, controls.jump.y);
   await advanceManualRally(page, 0.02);
+  await expect(screen).toHaveAttribute('data-v3-buffered-action', 'JUMP_BLOCK');
+  await expect(page.getByText('SET BUILDUP')).toBeVisible();
+
+  // The buffered early press resolves at the BAD edge, then the same swipe
+  // attack flow remains available. Seed 73 still wins deterministically.
+  await advanceManualRally(page, 0.25);
   await expect(page.getByText('ATTACK AIRBORNE')).toBeVisible();
+  await expect(screen).toHaveAttribute('data-v3-last-event', 'JUMP');
   await expect(attack).toHaveClass(/is-ready/);
 
-  // Upward drag = POWER. Seed 73 with a successful jump deterministically wins.
   const attackStartY = controls.attack.top + controls.attack.height * 0.72;
   await page.mouse.move(controls.attack.x, attackStartY);
   await page.mouse.down();
