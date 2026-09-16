@@ -30,6 +30,8 @@ export interface V3CharacterPresentationInput {
   bufferedAction: V3PresentationBufferedAction | null;
   previousMotion: V3CharacterMotionState;
   previousMotionAge: number;
+  runtimeTime?: number;
+  attackContactAt?: number | null;
 }
 
 export interface V3CharacterPresentation {
@@ -53,6 +55,7 @@ const MOTION_DURATION: Record<V3CharacterMotionState, number> = {
 };
 
 const LOOPING = new Set<V3CharacterMotionState>(['READY', 'RUN', 'APPROACH']);
+const SPIKE_WINDUP_SECONDS = 0.22;
 
 function finitePositive(value: number): number {
   return Number.isFinite(value) && value > 0 ? value : 0;
@@ -67,9 +70,11 @@ function speedMetersPerSecond(current: V3Vec2, previous: V3Vec2, dt: number): nu
 function actorEventForPlayer(
   event: V3PresentationEvent | null,
   playerId: string,
+  phase: V3RallyPhase,
 ): { type: V3PresentationEventType } | null {
   if (!event || event.type === 'POINT') return null;
   if (event.actorId !== playerId) return null;
+  if (event.type === 'ATTACK' && phase !== 'ATTACK_AIRBORNE') return null;
   return { type: event.type };
 }
 
@@ -92,13 +97,20 @@ function normalizePoseTime(motion: V3CharacterMotionState, age: number): number 
   return Math.min(1, age / duration);
 }
 
+function isSpikeWindup(input: V3CharacterPresentationInput): boolean {
+  if (input.playerId !== 'home-0' || input.phase !== 'ATTACK_AIRBORNE') return false;
+  if (!Number.isFinite(input.runtimeTime) || !Number.isFinite(input.attackContactAt)) return false;
+  const untilContact = (input.attackContactAt as number) - (input.runtimeTime as number);
+  return untilContact >= 0 && untilContact <= SPIKE_WINDUP_SECONDS;
+}
+
 export function deriveV3CharacterPresentation(
   input: V3CharacterPresentationInput,
 ): V3CharacterPresentation {
   const dt = finitePositive(input.dt);
   const speed = speedMetersPerSecond(input.currentPosition, input.previousPosition, dt);
   const controlled = input.playerId === input.controlledPlayerId;
-  const actorEvent = actorEventForPlayer(input.lastEvent, input.playerId);
+  const actorEvent = actorEventForPlayer(input.lastEvent, input.playerId, input.phase);
   const bufferedActionKind = bufferedKindForPlayer(
     input.bufferedAction,
     input.playerId,
@@ -113,12 +125,19 @@ export function deriveV3CharacterPresentation(
     controlled,
   });
 
+  if (isSpikeWindup(input)) {
+    motion = 'SPIKE';
+  }
+
   // Team phase fallbacks belong only to the player with that role. This keeps
   // generic phase rules from making every teammate perform the same action.
   if (motion === 'SET' && input.playerId !== 'home-1' && actorEvent?.type !== 'SET') {
     motion = speed >= 0.25 ? 'RUN' : 'READY';
   }
-  if ((motion === 'APPROACH' || motion === 'JUMP') && input.playerId !== 'home-0') {
+  if ((motion === 'APPROACH' || motion === 'JUMP' || motion === 'SPIKE') && input.playerId !== 'home-0') {
+    motion = speed >= 0.25 ? 'RUN' : 'READY';
+  }
+  if (motion === 'SPIKE' && input.phase !== 'ATTACK_AIRBORNE') {
     motion = speed >= 0.25 ? 'RUN' : 'READY';
   }
 
