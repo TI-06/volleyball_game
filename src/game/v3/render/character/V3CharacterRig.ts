@@ -44,10 +44,61 @@ function mesh(
   geometry: THREE.BufferGeometry,
   material: THREE.Material,
   position: [number, number, number],
+  name?: string,
 ): THREE.Mesh {
   const result = shadow(new THREE.Mesh(geometry, material));
   result.position.set(...position);
+  if (name) result.name = name;
   return result;
+}
+
+function createAthleticTorsoGeometry(profile: V3CharacterProfile): THREE.BufferGeometry {
+  const segments = 12;
+  const yStops = [0, profile.torsoLength * 0.28, profile.torsoLength * 0.72, profile.torsoLength];
+  const xRadii = [0.36, 0.41, 0.5, 0.47].map((ratio) => profile.shoulderWidth * ratio);
+  const zRadii = [0.24, 0.27, 0.31, 0.29].map((ratio) => profile.shoulderWidth * ratio);
+  const vertices: number[] = [];
+  const indices: number[] = [];
+
+  for (let ring = 0; ring < yStops.length; ring += 1) {
+    for (let segment = 0; segment < segments; segment += 1) {
+      const angle = (segment / segments) * Math.PI * 2;
+      vertices.push(
+        Math.cos(angle) * xRadii[ring],
+        yStops[ring],
+        Math.sin(angle) * zRadii[ring],
+      );
+    }
+  }
+
+  for (let ring = 0; ring < yStops.length - 1; ring += 1) {
+    for (let segment = 0; segment < segments; segment += 1) {
+      const next = (segment + 1) % segments;
+      const a = ring * segments + segment;
+      const b = ring * segments + next;
+      const c = (ring + 1) * segments + next;
+      const d = (ring + 1) * segments + segment;
+      indices.push(a, b, d, b, c, d);
+    }
+  }
+
+  const bottomCenter = vertices.length / 3;
+  vertices.push(0, yStops[0], 0);
+  const topCenter = vertices.length / 3;
+  vertices.push(0, yStops[yStops.length - 1], 0);
+  const topRingOffset = (yStops.length - 1) * segments;
+
+  for (let segment = 0; segment < segments; segment += 1) {
+    const next = (segment + 1) % segments;
+    indices.push(bottomCenter, next, segment);
+    indices.push(topCenter, topRingOffset + segment, topRingOffset + next);
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
 }
 
 function addHair(
@@ -58,24 +109,33 @@ function addHair(
   trackMesh: (mesh: THREE.Mesh) => THREE.Mesh,
 ): void {
   const capGeometry = trackGeometry(new THREE.DodecahedronGeometry(profile.headRadius * 1.01, 1));
-  const cap = trackMesh(mesh(capGeometry, hairMaterial, [0, profile.headRadius * 0.42, 0]));
-  cap.scale.set(1.04, 0.66, 1.03);
+  const cap = trackMesh(
+    mesh(capGeometry, hairMaterial, [0, profile.headRadius * 0.42, 0], `${profile.id}-hair-cap`),
+  );
+  cap.scale.set(1.05, 0.68, 1.04);
   parent.add(cap);
 
-  const spikeCount = profile.hairStyle === 'SPIKY' ? 6 : profile.hairStyle === 'MESSY' ? 4 : 0;
+  const spikeCount = profile.hairStyle === 'SPIKY' ? 7 : profile.hairStyle === 'MESSY' ? 5 : 0;
   if (spikeCount > 0) {
     for (let index = 0; index < spikeCount; index += 1) {
       const angle = (index / spikeCount) * Math.PI * 2;
       const coneGeometry = trackGeometry(
-        new THREE.ConeGeometry(profile.headRadius * 0.24, profile.headRadius * 0.72, 5),
+        new THREE.ConeGeometry(profile.headRadius * 0.23, profile.headRadius * 0.76, 6),
       );
-      const cone = trackMesh(mesh(coneGeometry, hairMaterial, [
-        Math.cos(angle) * profile.headRadius * 0.5,
-        profile.headRadius * (0.84 + (index % 2) * 0.14),
-        Math.sin(angle) * profile.headRadius * 0.45,
-      ]));
-      cone.rotation.z = Math.cos(angle) * 0.35;
-      cone.rotation.x = Math.sin(angle) * 0.28;
+      const cone = trackMesh(
+        mesh(
+          coneGeometry,
+          hairMaterial,
+          [
+            Math.cos(angle) * profile.headRadius * 0.5,
+            profile.headRadius * (0.86 + (index % 2) * 0.12),
+            Math.sin(angle) * profile.headRadius * 0.46,
+          ],
+          `${profile.id}-hair-spike-${index}`,
+        ),
+      );
+      cone.rotation.z = Math.cos(angle) * 0.32;
+      cone.rotation.x = Math.sin(angle) * 0.26;
       parent.add(cone);
     }
     return;
@@ -83,29 +143,49 @@ function addHair(
 
   if (profile.hairStyle === 'SWEPT') {
     const fringeGeometry = trackGeometry(
-      new THREE.ConeGeometry(profile.headRadius * 0.3, profile.headRadius * 0.75, 5),
+      new THREE.ConeGeometry(profile.headRadius * 0.29, profile.headRadius * 0.78, 6),
     );
-    const fringe = trackMesh(mesh(fringeGeometry, hairMaterial, [
-      profile.headRadius * 0.48,
-      profile.headRadius * 0.64,
-      -profile.headRadius * 0.16,
-    ]));
-    fringe.rotation.z = -0.72;
+    const fringe = trackMesh(
+      mesh(
+        fringeGeometry,
+        hairMaterial,
+        [profile.headRadius * 0.46, profile.headRadius * 0.66, -profile.headRadius * 0.17],
+        `${profile.id}-hair-fringe`,
+      ),
+    );
+    fringe.rotation.z = -0.7;
     parent.add(fringe);
   } else if (profile.hairStyle === 'BOB') {
     const backGeometry = trackGeometry(
-      new THREE.SphereGeometry(profile.headRadius * 1.05, 10, 7),
+      new THREE.SphereGeometry(profile.headRadius * 1.06, 12, 8),
     );
-    const back = trackMesh(mesh(backGeometry, hairMaterial, [0, profile.headRadius * 0.1, profile.headRadius * 0.28]));
-    back.scale.set(1.08, 1.18, 0.72);
+    const back = trackMesh(
+      mesh(
+        backGeometry,
+        hairMaterial,
+        [0, profile.headRadius * 0.08, profile.headRadius * 0.3],
+        `${profile.id}-hair-bob`,
+      ),
+    );
+    back.scale.set(1.08, 1.2, 0.72);
     parent.add(back);
   } else {
-    const fringeGeometry = trackGeometry(
-      new THREE.BoxGeometry(profile.headRadius * 1.25, profile.headRadius * 0.3, profile.headRadius * 0.5),
-    );
-    const fringe = trackMesh(mesh(fringeGeometry, hairMaterial, [0, profile.headRadius * 0.55, -profile.headRadius * 0.58]));
-    fringe.rotation.x = -0.12;
-    parent.add(fringe);
+    for (const side of [-1, 0, 1] as const) {
+      const tuftGeometry = trackGeometry(
+        new THREE.ConeGeometry(profile.headRadius * 0.23, profile.headRadius * 0.54, 6),
+      );
+      const tuft = trackMesh(
+        mesh(
+          tuftGeometry,
+          hairMaterial,
+          [side * profile.headRadius * 0.34, profile.headRadius * 0.67, -profile.headRadius * 0.36],
+          `${profile.id}-hair-tuft-${side}`,
+        ),
+      );
+      tuft.rotation.z = side * -0.28;
+      tuft.rotation.x = -0.24;
+      parent.add(tuft);
+    }
   }
 }
 
@@ -141,159 +221,300 @@ export function createV3CharacterRig(profile: V3CharacterProfile): V3CharacterRi
   const hairMaterial = trackMaterial(toon(profile.hair));
   const shoeMaterial = trackMaterial(toon(0xf6f8fb));
   const soleMaterial = trackMaterial(toon(0x202a34));
+  const eyeMaterial = trackMaterial(toon(0x17212c));
+  const outlineMaterial = trackMaterial(
+    new THREE.MeshBasicMaterial({ color: 0x101923, side: THREE.BackSide }),
+  );
 
-  const hipHeight = profile.legLength + 0.06;
+  const hipHeight = profile.legLength + 0.07;
   const upperLegLength = profile.legLength * 0.53;
   const lowerLegLength = profile.legLength * 0.47;
   const upperArmLength = profile.armLength * 0.51;
   const forearmLength = profile.armLength * 0.49;
-  const hipWidth = profile.shoulderWidth * 0.56;
+  const hipWidth = profile.shoulderWidth * 0.58;
+  const jointRadius = Math.max(0.055, profile.shoulderWidth * 0.13);
 
   const pelvis = new THREE.Group();
   pelvis.name = `${profile.id}-pelvis`;
   pelvis.position.y = hipHeight;
   poseRoot.add(pelvis);
 
-  const shortsGeometry = trackGeometry(
-    new THREE.BoxGeometry(hipWidth * 1.32, 0.22, hipWidth * 0.76),
+  const waistbandGeometry = trackGeometry(
+    new THREE.CylinderGeometry(hipWidth * 0.58, hipWidth * 0.54, 0.1, 12),
   );
-  pelvis.add(trackMesh(mesh(shortsGeometry, shortsMaterial, [0, 0.02, 0])));
+  const waistband = trackMesh(
+    mesh(waistbandGeometry, shortsMaterial, [0, 0.05, 0], `${profile.id}-waistband`),
+  );
+  waistband.scale.z = 0.78;
+  pelvis.add(waistband);
+
+  for (const side of [-1, 1] as const) {
+    const shortGeometry = trackGeometry(
+      new THREE.CylinderGeometry(hipWidth * 0.3, hipWidth * 0.27, 0.22, 10),
+    );
+    const short = trackMesh(
+      mesh(
+        shortGeometry,
+        shortsMaterial,
+        [side * hipWidth * 0.27, -0.08, 0],
+        `${profile.id}-${side < 0 ? 'left' : 'right'}-short`,
+      ),
+    );
+    short.scale.z = 0.8;
+    pelvis.add(short);
+  }
 
   const torso = new THREE.Group();
   torso.name = `${profile.id}-torso-joint`;
   torso.position.y = 0.08;
   pelvis.add(torso);
 
-  const torsoGeometry = trackGeometry(
-    new THREE.CylinderGeometry(
-      profile.shoulderWidth * 0.5,
-      profile.shoulderWidth * 0.39,
-      profile.torsoLength,
-      8,
-      1,
-      false,
-    ),
+  const torsoGeometry = trackGeometry(createAthleticTorsoGeometry(profile));
+  const torsoShell = trackMesh(
+    mesh(torsoGeometry, jerseyMaterial, [0, 0, 0], `${profile.id}-torso-shell`),
   );
-  const torsoMesh = trackMesh(
-    mesh(torsoGeometry, jerseyMaterial, [0, profile.torsoLength * 0.5, 0]),
-  );
-  torsoMesh.scale.z = 0.62;
-  torso.add(torsoMesh);
+  torso.add(torsoShell);
 
-  const chestBandGeometry = trackGeometry(
-    new THREE.BoxGeometry(profile.shoulderWidth * 0.82, 0.055, profile.shoulderWidth * 0.34),
+  const torsoOutline = trackMesh(
+    mesh(torsoGeometry, outlineMaterial, [0, 0, 0], `${profile.id}-torso-outline`),
   );
+  torsoOutline.scale.set(1.035, 1.018, 1.035);
+  torsoOutline.renderOrder = -1;
+  torso.add(torsoOutline);
+
+  const chestStripeGeometry = trackGeometry(
+    new THREE.CapsuleGeometry(profile.shoulderWidth * 0.018, profile.shoulderWidth * 0.58, 4, 8),
+  );
+  for (const side of [-1, 1] as const) {
+    const stripe = trackMesh(
+      mesh(
+        chestStripeGeometry,
+        accentMaterial,
+        [side * profile.shoulderWidth * 0.17, profile.torsoLength * 0.66, -profile.shoulderWidth * 0.295],
+        `${profile.id}-chest-stripe-${side}`,
+      ),
+    );
+    stripe.rotation.z = side * 0.84;
+    torso.add(stripe);
+  }
+
+  const neckGeometry = trackGeometry(new THREE.CylinderGeometry(0.058, 0.068, 0.12, 10));
   torso.add(
     trackMesh(
-      mesh(chestBandGeometry, accentMaterial, [0, profile.torsoLength * 0.62, -profile.shoulderWidth * 0.28]),
+      mesh(neckGeometry, skinMaterial, [0, profile.torsoLength + 0.055, 0], `${profile.id}-neck`),
     ),
-  );
-
-  const neckGeometry = trackGeometry(new THREE.CylinderGeometry(0.055, 0.065, 0.11, 8));
-  torso.add(
-    trackMesh(mesh(neckGeometry, skinMaterial, [0, profile.torsoLength + 0.05, 0])),
   );
 
   const head = new THREE.Group();
   head.name = `${profile.id}-head-joint`;
-  head.position.set(0, profile.torsoLength + 0.16 + profile.headRadius * 0.58, 0);
+  head.position.set(0, profile.torsoLength + 0.17 + profile.headRadius * 0.6, 0);
   torso.add(head);
 
-  const headGeometry = trackGeometry(
-    new THREE.SphereGeometry(profile.headRadius, 14, 10),
-  );
-  const headMesh = trackMesh(mesh(headGeometry, skinMaterial, [0, 0, 0]));
-  headMesh.scale.set(0.9, 1.08, 0.92);
+  const headGeometry = trackGeometry(new THREE.SphereGeometry(profile.headRadius, 18, 12));
+  const headMesh = trackMesh(mesh(headGeometry, skinMaterial, [0, 0, 0], `${profile.id}-face`));
+  headMesh.scale.set(0.92, 1.08, 0.94);
   head.add(headMesh);
 
-  const earGeometry = trackGeometry(
-    new THREE.SphereGeometry(profile.headRadius * 0.18, 7, 5),
+  const headOutline = trackMesh(
+    mesh(headGeometry, outlineMaterial, [0, 0, 0], `${profile.id}-head-outline`),
   );
-  head.add(trackMesh(mesh(earGeometry, skinMaterial, [-profile.headRadius * 0.92, 0, 0])));
-  head.add(trackMesh(mesh(earGeometry, skinMaterial, [profile.headRadius * 0.92, 0, 0])));
+  headOutline.scale.set(0.955, 1.12, 0.978);
+  headOutline.renderOrder = -1;
+  head.add(headOutline);
 
-  const eyeGeometry = trackGeometry(new THREE.SphereGeometry(profile.headRadius * 0.055, 6, 4));
-  const eyeMaterial = trackMaterial(toon(0x17212c));
+  const earGeometry = trackGeometry(new THREE.SphereGeometry(profile.headRadius * 0.18, 8, 6));
+  head.add(
+    trackMesh(
+      mesh(earGeometry, skinMaterial, [-profile.headRadius * 0.91, 0, 0], `${profile.id}-left-ear`),
+    ),
+  );
+  head.add(
+    trackMesh(
+      mesh(earGeometry, skinMaterial, [profile.headRadius * 0.91, 0, 0], `${profile.id}-right-ear`),
+    ),
+  );
+
+  const eyeGeometry = trackGeometry(new THREE.SphereGeometry(profile.headRadius * 0.052, 7, 5));
+  const browGeometry = trackGeometry(
+    new THREE.CapsuleGeometry(profile.headRadius * 0.013, profile.headRadius * 0.095, 3, 6),
+  );
   for (const side of [-1, 1] as const) {
     const eye = trackMesh(
-      mesh(eyeGeometry, eyeMaterial, [side * profile.headRadius * 0.32, profile.headRadius * 0.06, -profile.headRadius * 0.83]),
+      mesh(
+        eyeGeometry,
+        eyeMaterial,
+        [side * profile.headRadius * 0.31, profile.headRadius * 0.05, -profile.headRadius * 0.84],
+        `${profile.id}-${side < 0 ? 'left' : 'right'}-eye`,
+      ),
     );
-    eye.scale.y = 0.7;
+    eye.scale.y = 0.72;
     head.add(eye);
+
+    const brow = trackMesh(
+      mesh(
+        browGeometry,
+        hairMaterial,
+        [side * profile.headRadius * 0.31, profile.headRadius * 0.2, -profile.headRadius * 0.855],
+        `${profile.id}-${side < 0 ? 'left' : 'right'}-brow`,
+      ),
+    );
+    brow.rotation.z = side * 0.12;
+    head.add(brow);
   }
   addHair(head, profile, hairMaterial, trackGeometry, trackMesh);
 
   function buildArm(side: -1 | 1): { upper: THREE.Group; lower: THREE.Group } {
+    const sideName = side < 0 ? 'left' : 'right';
     const upper = new THREE.Group();
-    upper.name = `${profile.id}-${side < 0 ? 'left' : 'right'}-upper-arm-joint`;
-    upper.position.set(side * profile.shoulderWidth * 0.54, profile.torsoLength * 0.82, 0);
+    upper.name = `${profile.id}-${sideName}-upper-arm-joint`;
+    upper.position.set(side * profile.shoulderWidth * 0.52, profile.torsoLength * 0.82, 0);
     torso.add(upper);
 
-    const upperGeometry = trackGeometry(
-      new THREE.CylinderGeometry(0.058, 0.068, upperArmLength, 8),
+    const shoulderGeometry = trackGeometry(new THREE.SphereGeometry(jointRadius * 1.08, 10, 8));
+    const shoulder = trackMesh(
+      mesh(shoulderGeometry, jerseyMaterial, [0, 0, 0], `${profile.id}-${sideName}-shoulder`),
+    );
+    shoulder.scale.set(1, 0.92, 0.95);
+    upper.add(shoulder);
+
+    const sleeveLength = upperArmLength * 0.3;
+    const sleeveGeometry = trackGeometry(
+      new THREE.CylinderGeometry(jointRadius * 0.92, jointRadius * 0.78, sleeveLength, 10),
     );
     upper.add(
-      trackMesh(mesh(upperGeometry, jerseyMaterial, [0, -upperArmLength * 0.5, 0])),
+      trackMesh(
+        mesh(
+          sleeveGeometry,
+          jerseyMaterial,
+          [0, -sleeveLength * 0.5, 0],
+          `${profile.id}-${sideName}-sleeve`,
+        ),
+      ),
+    );
+
+    const upperSkinLength = upperArmLength - sleeveLength;
+    const upperSkinGeometry = trackGeometry(
+      new THREE.CylinderGeometry(jointRadius * 0.67, jointRadius * 0.79, upperSkinLength, 10),
+    );
+    upper.add(
+      trackMesh(
+        mesh(
+          upperSkinGeometry,
+          skinMaterial,
+          [0, -sleeveLength - upperSkinLength * 0.5, 0],
+          `${profile.id}-${sideName}-upper-arm`,
+        ),
+      ),
     );
 
     const lower = new THREE.Group();
-    lower.name = `${profile.id}-${side < 0 ? 'left' : 'right'}-forearm-joint`;
+    lower.name = `${profile.id}-${sideName}-forearm-joint`;
     lower.position.y = -upperArmLength;
     upper.add(lower);
 
-    const lowerGeometry = trackGeometry(
-      new THREE.CylinderGeometry(0.047, 0.058, forearmLength, 8),
-    );
+    const elbowGeometry = trackGeometry(new THREE.SphereGeometry(jointRadius * 0.72, 9, 7));
     lower.add(
-      trackMesh(mesh(lowerGeometry, skinMaterial, [0, -forearmLength * 0.5, 0])),
+      trackMesh(mesh(elbowGeometry, skinMaterial, [0, 0, 0], `${profile.id}-${sideName}-elbow`)),
     );
 
-    const handGeometry = trackGeometry(
-      new THREE.SphereGeometry(0.064, 8, 6),
+    const forearmGeometry = trackGeometry(
+      new THREE.CylinderGeometry(jointRadius * 0.55, jointRadius * 0.68, forearmLength, 10),
     );
-    const hand = trackMesh(mesh(handGeometry, skinMaterial, [0, -forearmLength - 0.025, 0]));
-    hand.scale.set(0.82, 1.15, 0.55);
+    lower.add(
+      trackMesh(
+        mesh(
+          forearmGeometry,
+          skinMaterial,
+          [0, -forearmLength * 0.5, 0],
+          `${profile.id}-${sideName}-forearm`,
+        ),
+      ),
+    );
+
+    const handGeometry = trackGeometry(new THREE.SphereGeometry(jointRadius * 0.72, 10, 7));
+    const hand = trackMesh(
+      mesh(
+        handGeometry,
+        skinMaterial,
+        [0, -forearmLength - 0.028, 0],
+        `${profile.id}-${sideName}-hand`,
+      ),
+    );
+    hand.scale.set(0.82, 1.18, 0.6);
     lower.add(hand);
     return { upper, lower };
   }
 
   function buildLeg(side: -1 | 1): { upper: THREE.Group; lower: THREE.Group } {
+    const sideName = side < 0 ? 'left' : 'right';
     const upper = new THREE.Group();
-    upper.name = `${profile.id}-${side < 0 ? 'left' : 'right'}-thigh-joint`;
-    upper.position.set(side * hipWidth * 0.32, -0.07, 0);
+    upper.name = `${profile.id}-${sideName}-thigh-joint`;
+    upper.position.set(side * hipWidth * 0.31, -0.17, 0);
     pelvis.add(upper);
 
-    const upperGeometry = trackGeometry(
-      new THREE.CylinderGeometry(0.075, 0.09, upperLegLength, 8),
+    const thighGeometry = trackGeometry(
+      new THREE.CylinderGeometry(jointRadius * 0.83, jointRadius * 1.02, upperLegLength, 11),
     );
     upper.add(
-      trackMesh(mesh(upperGeometry, skinMaterial, [0, -upperLegLength * 0.5, 0])),
+      trackMesh(
+        mesh(
+          thighGeometry,
+          skinMaterial,
+          [0, -upperLegLength * 0.5, 0],
+          `${profile.id}-${sideName}-thigh`,
+        ),
+      ),
     );
 
     const lower = new THREE.Group();
-    lower.name = `${profile.id}-${side < 0 ? 'left' : 'right'}-shin-joint`;
+    lower.name = `${profile.id}-${sideName}-shin-joint`;
     lower.position.y = -upperLegLength;
     upper.add(lower);
 
-    const lowerGeometry = trackGeometry(
-      new THREE.CylinderGeometry(0.055, 0.072, lowerLegLength, 8),
+    const kneeGeometry = trackGeometry(new THREE.SphereGeometry(jointRadius * 0.84, 10, 8));
+    const knee = trackMesh(
+      mesh(kneeGeometry, skinMaterial, [0, 0, 0], `${profile.id}-${sideName}-knee`),
+    );
+    knee.scale.set(0.92, 0.86, 0.94);
+    lower.add(knee);
+
+    const shinGeometry = trackGeometry(
+      new THREE.CylinderGeometry(jointRadius * 0.58, jointRadius * 0.8, lowerLegLength, 11),
     );
     lower.add(
-      trackMesh(mesh(lowerGeometry, skinMaterial, [0, -lowerLegLength * 0.5, 0])),
+      trackMesh(
+        mesh(
+          shinGeometry,
+          skinMaterial,
+          [0, -lowerLegLength * 0.5, 0],
+          `${profile.id}-${sideName}-shin`,
+        ),
+      ),
     );
 
-    const shoeGeometry = trackGeometry(
-      new THREE.BoxGeometry(0.16, 0.1, 0.29),
-    );
+    const shoeGeometry = trackGeometry(new THREE.CapsuleGeometry(0.065, 0.13, 4, 9));
     const shoe = trackMesh(
-      mesh(shoeGeometry, shoeMaterial, [0, -lowerLegLength - 0.03, -0.055]),
+      mesh(
+        shoeGeometry,
+        shoeMaterial,
+        [0, -lowerLegLength - 0.045, -0.055],
+        `${profile.id}-${sideName}-shoe`,
+      ),
     );
-    shoe.rotation.x = -0.04;
+    shoe.rotation.x = Math.PI / 2;
+    shoe.scale.set(1.02, 1, 0.86);
     lower.add(shoe);
 
-    const soleGeometry = trackGeometry(new THREE.BoxGeometry(0.17, 0.025, 0.3));
+    const soleGeometry = trackGeometry(new THREE.BoxGeometry(0.155, 0.022, 0.235));
     lower.add(
-      trackMesh(mesh(soleGeometry, soleMaterial, [0, -lowerLegLength - 0.085, -0.055])),
+      trackMesh(
+        mesh(
+          soleGeometry,
+          soleMaterial,
+          [0, -lowerLegLength - 0.102, -0.055],
+          `${profile.id}-${sideName}-sole`,
+        ),
+      ),
     );
     return { upper, lower };
   }
