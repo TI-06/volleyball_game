@@ -28,6 +28,12 @@ interface V3HudState {
   controlledPlayerId: string;
   forecastStage: string | null;
   lastEvent: V3RuntimeEvent | null;
+  time: number;
+  controlledX: number;
+  controlledZ: number;
+  landingX: number;
+  landingZ: number;
+  bufferedAction: string | null;
 }
 
 const PHASE_LABEL: Record<V3RallyPhase, string> = {
@@ -53,6 +59,24 @@ function createInitialRuntime(seed: number): V3RuntimeState {
   return scenario ? createV3VisualAuditState(scenario, seed) : createV3Runtime(seed);
 }
 
+function toHud(runtime: V3RuntimeState): V3HudState {
+  const controlled = runtime.players.find((player) => player.id === runtime.controlledPlayerId);
+  return {
+    home: runtime.score.home,
+    away: runtime.score.away,
+    phase: runtime.phase,
+    controlledPlayerId: runtime.controlledPlayerId,
+    forecastStage: runtime.forecast?.stage ?? null,
+    lastEvent: runtime.lastEvent,
+    time: runtime.time,
+    controlledX: controlled?.position.x ?? Number.NaN,
+    controlledZ: controlled?.position.z ?? Number.NaN,
+    landingX: runtime.rally.landingTarget.x,
+    landingZ: runtime.rally.landingTarget.z,
+    bufferedAction: runtime.bufferedAction?.kind ?? null,
+  };
+}
+
 export function V3MatchScreen({ seed }: V3MatchScreenProps) {
   const sceneHostRef = useRef<HTMLDivElement | null>(null);
   const runtimeRef = useRef<V3RuntimeState>(createInitialRuntime(seed));
@@ -60,24 +84,10 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
   const attackPointerRef = useRef<number | null>(null);
   const attackOriginRef = useRef({ x: 0, y: 0 });
   const [attackActive, setAttackActive] = useState(false);
-  const [hud, setHud] = useState<V3HudState>(() => ({
-    home: runtimeRef.current.score.home,
-    away: runtimeRef.current.score.away,
-    phase: runtimeRef.current.phase,
-    controlledPlayerId: runtimeRef.current.controlledPlayerId,
-    forecastStage: runtimeRef.current.forecast?.stage ?? null,
-    lastEvent: runtimeRef.current.lastEvent,
-  }));
+  const [hud, setHud] = useState<V3HudState>(() => toHud(runtimeRef.current));
 
   const syncHud = useCallback((runtime: V3RuntimeState) => {
-    setHud({
-      home: runtime.score.home,
-      away: runtime.score.away,
-      phase: runtime.phase,
-      controlledPlayerId: runtime.controlledPlayerId,
-      forecastStage: runtime.forecast?.stage ?? null,
-      lastEvent: runtime.lastEvent,
-    });
+    setHud(toHud(runtime));
   }, []);
 
   useEffect(() => {
@@ -168,7 +178,18 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
   const canAttack = hud.phase === 'ATTACK_AIRBORNE';
 
   return (
-    <main className="v3-match" data-testid="v3-match-screen">
+    <main
+      className="v3-match"
+      data-testid="v3-match-screen"
+      data-v3-time={hud.time.toFixed(3)}
+      data-v3-controlled-x={hud.controlledX.toFixed(3)}
+      data-v3-controlled-z={hud.controlledZ.toFixed(3)}
+      data-v3-landing-x={hud.landingX.toFixed(3)}
+      data-v3-landing-z={hud.landingZ.toFixed(3)}
+      data-v3-buffered-action={hud.bufferedAction ?? ''}
+      data-v3-last-event={hud.lastEvent?.type ?? ''}
+      data-v3-rally-phase={hud.phase}
+    >
       <div className="v3-scene-host" ref={sceneHostRef} aria-label="Volleyball court" />
 
       <header className="v3-topbar">
