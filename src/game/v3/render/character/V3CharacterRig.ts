@@ -149,7 +149,7 @@ function addHair(
       mesh(
         fringeGeometry,
         hairMaterial,
-        [profile.headRadius * 0.46, profile.headRadius * 0.66, -profile.headRadius * 0.17],
+        [profile.headRadius * 0.46, profile.headRadius * 0.66, profile.headRadius * 0.17],
         `${profile.id}-hair-fringe`,
       ),
     );
@@ -163,7 +163,7 @@ function addHair(
       mesh(
         backGeometry,
         hairMaterial,
-        [0, profile.headRadius * 0.08, profile.headRadius * 0.3],
+        [0, profile.headRadius * 0.08, -profile.headRadius * 0.3],
         `${profile.id}-hair-bob`,
       ),
     );
@@ -178,12 +178,12 @@ function addHair(
         mesh(
           tuftGeometry,
           hairMaterial,
-          [side * profile.headRadius * 0.34, profile.headRadius * 0.67, -profile.headRadius * 0.36],
+          [side * profile.headRadius * 0.34, profile.headRadius * 0.67, profile.headRadius * 0.36],
           `${profile.id}-hair-tuft-${side}`,
         ),
       );
       tuft.rotation.z = side * -0.28;
-      tuft.rotation.x = -0.24;
+      tuft.rotation.x = 0.24;
       parent.add(tuft);
     }
   }
@@ -290,7 +290,7 @@ export function createV3CharacterRig(profile: V3CharacterProfile): V3CharacterRi
       mesh(
         chestStripeGeometry,
         accentMaterial,
-        [side * profile.shoulderWidth * 0.17, profile.torsoLength * 0.66, -profile.shoulderWidth * 0.295],
+        [side * profile.shoulderWidth * 0.17, profile.torsoLength * 0.66, profile.shoulderWidth * 0.295],
         `${profile.id}-chest-stripe-${side}`,
       ),
     );
@@ -343,7 +343,7 @@ export function createV3CharacterRig(profile: V3CharacterProfile): V3CharacterRi
       mesh(
         eyeGeometry,
         eyeMaterial,
-        [side * profile.headRadius * 0.31, profile.headRadius * 0.05, -profile.headRadius * 0.84],
+        [side * profile.headRadius * 0.31, profile.headRadius * 0.05, profile.headRadius * 0.84],
         `${profile.id}-${side < 0 ? 'left' : 'right'}-eye`,
       ),
     );
@@ -354,7 +354,7 @@ export function createV3CharacterRig(profile: V3CharacterProfile): V3CharacterRi
       mesh(
         browGeometry,
         hairMaterial,
-        [side * profile.headRadius * 0.31, profile.headRadius * 0.2, -profile.headRadius * 0.855],
+        [side * profile.headRadius * 0.31, profile.headRadius * 0.2, profile.headRadius * 0.855],
         `${profile.id}-${side < 0 ? 'left' : 'right'}-brow`,
       ),
     );
@@ -497,7 +497,7 @@ export function createV3CharacterRig(profile: V3CharacterProfile): V3CharacterRi
       mesh(
         shoeGeometry,
         shoeMaterial,
-        [0, -lowerLegLength - 0.045, -0.055],
+        [0, -lowerLegLength - 0.045, 0.055],
         `${profile.id}-${sideName}-shoe`,
       ),
     );
@@ -511,7 +511,7 @@ export function createV3CharacterRig(profile: V3CharacterProfile): V3CharacterRi
         mesh(
           soleGeometry,
           soleMaterial,
-          [0, -lowerLegLength - 0.102, -0.055],
+          [0, -lowerLegLength - 0.102, 0.055],
           `${profile.id}-${sideName}-sole`,
         ),
       ),
