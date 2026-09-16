@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   V3MatchScreen,
+  getV3PhasePresentation,
   getV3PointFeedback,
   isV3JumpControlEnabled,
 } from '../../../src/app/screens/V3MatchScreen';
@@ -43,6 +44,32 @@ describe('V3MatchScreen', () => {
     expect(screen.getByRole('button', { name: 'DIVE' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'BLOCK' })).toBeEnabled();
     expect(screen.queryByRole('button', { name: 'JUMP' })).not.toBeInTheDocument();
+  });
+
+  it('shows HINA cover guidance after a block gets through without leaking into normal defense', () => {
+    expect(
+      getV3PhasePresentation(
+        'DEFENSE_READ',
+        'RECEIVE',
+        { type: 'BLOCK', result: 'MISS', actorId: 'home-0' },
+        'FLIGHT_CONFIRMED',
+        'home-2',
+      ),
+    ).toEqual({ label: 'COVER READ', detail: 'MISS · HINA COVER' });
+
+    expect(
+      getV3PhasePresentation(
+        'DEFENSE_READ',
+        'RECEIVE',
+        { type: 'BLOCK', result: 'TOUCH', actorId: 'home-0' },
+        'FLIGHT_CONFIRMED',
+        'home-2',
+      ),
+    ).toEqual({ label: 'COVER READ', detail: 'TOUCH · HINA COVER' });
+
+    expect(
+      getV3PhasePresentation('DEFENSE_READ', 'RECEIVE', null, 'SET_READ', 'home-2'),
+    ).toEqual({ label: 'DEFENSE READ', detail: 'SET_READ' });
   });
 
   it('shows a short point beat only for scoring events', () => {
