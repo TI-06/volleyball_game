@@ -43,6 +43,12 @@ async function readRuntimeDebug(page: Page) {
   }));
 }
 
+async function advanceManualRally(page: Page, seconds: number) {
+  await page.evaluate((advanceSeconds) => {
+    window.dispatchEvent(new CustomEvent('v3:e2e-advance', { detail: advanceSeconds }));
+  }, seconds);
+}
+
 async function readLiveControlCenters(page: Page) {
   return page.evaluate(() => {
     const center = (selector: string) => {
@@ -151,12 +157,7 @@ for (const scenario of actionAuditCases) {
 
 test('live controls complete a full receive-set-jump-spike rally', async ({ page }) => {
   test.setTimeout(45_000);
-
-  // The runtime is driven by performance.now() + requestAnimationFrame. Install
-  // Playwright's browser clock before navigation so game time is deterministic
-  // even when software-rendered Three.js is slow on CI.
-  await page.clock.install({ time: new Date('2026-09-16T00:00:00.000Z') });
-  await page.goto('/');
+  await page.goto('/?v3e2e=manual');
 
   const screen = page.getByTestId('v3-match-screen');
   const jump = page.getByRole('button', { name: 'JUMP' });
@@ -169,28 +170,28 @@ test('live controls complete a full receive-set-jump-spike rally', async ({ page
   const controls = await readLiveControlCenters(page);
   expect((await readRuntimeDebug(page)).lastEvent).not.toBe('POINT');
 
-  // First consume the intentional 1.25 s startup hold, then advance the actual
-  // simulation to the receive preparation window around t=1.62.
-  await page.clock.runFor(1_250);
-  await page.clock.runFor(1_620);
-  expect(Number((await readRuntimeDebug(page)).time)).toBeGreaterThanOrEqual(1.55);
+  // Manual mode advances the exact same 1/60 runtime steps without depending
+  // on software-rendered Three.js frame rate. All player actions below still
+  // enter through the real screen controls.
+  await advanceManualRally(page, 1.62);
+  expect(Number((await readRuntimeDebug(page)).time)).toBeGreaterThanOrEqual(1.6);
   await page.touchscreen.tap(controls.action.x, controls.action.y);
-  await page.clock.runFor(90);
+  await advanceManualRally(page, 0.02);
   await expect(page.getByText('RECEIVE PREP')).toBeVisible();
 
-  // Cross receive contact at t=1.95 and allow the HUD to observe the transition.
-  await page.clock.runFor(300);
+  await advanceManualRally(page, 0.33);
   await expect(page.getByText('SET BUILDUP')).toBeVisible();
   expect((await readRuntimeDebug(page)).lastEvent).toBe('RECEIVE');
 
-  // REN sets at t=2.50, then KAI owns the attack. Advance close to the ideal
-  // jump t=2.95 and tap inside the GOOD/PERFECT window.
-  await page.clock.runFor(560);
+  // REN sets at t=2.50, then KAI becomes the controlled attacker.
+  await advanceManualRally(page, 0.55);
   await expect(page.getByText('ATTACK APPROACH')).toBeVisible();
   await expect(jump).toBeEnabled();
-  await page.clock.runFor(250);
+
+  // Ideal jump is t=2.95. Tap at about t=2.84 for a forgiving GOOD timing.
+  await advanceManualRally(page, 0.32);
   await page.touchscreen.tap(controls.jump.x, controls.jump.y);
-  await page.clock.runFor(100);
+  await advanceManualRally(page, 0.02);
   await expect(page.getByText('ATTACK AIRBORNE')).toBeVisible();
   await expect(attack).toHaveClass(/is-ready/);
 
@@ -200,7 +201,7 @@ test('live controls complete a full receive-set-jump-spike rally', async ({ page
   await page.mouse.down();
   await page.mouse.move(controls.attack.x, attackStartY - 90);
   await page.mouse.up();
-  await page.clock.runFor(100);
+  await advanceManualRally(page, 0.02);
 
   await expect(score).toHaveAttribute('aria-label', 'PLAYER 1 CPU 0');
   await expect(page.getByText('DEFENSE READ')).toBeVisible();
