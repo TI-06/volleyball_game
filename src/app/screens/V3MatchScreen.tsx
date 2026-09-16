@@ -8,6 +8,11 @@ import {
   type V3RuntimeInput,
   type V3RuntimeState,
 } from '../../game/v3/core/runtime';
+import {
+  createV3VisualAuditState,
+  parseV3VisualAuditScenario,
+  type V3VisualAuditScenario,
+} from '../../game/v3/presentation/visualAuditScenario';
 import { V3Scene } from '../../game/v3/render/V3Scene';
 import type { V3RallyPhase, V3Vec2 } from '../../game/v3/types';
 import { V3MovementPad } from '../../ui/v3/V3MovementPad';
@@ -38,17 +43,19 @@ function createInput(): V3RuntimeInput {
   return emptyV3RuntimeInput();
 }
 
-function isLocalVisualAudit(): boolean {
-  if (typeof window === 'undefined') return false;
-  const localHost =
-    window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
-  if (!localHost) return false;
-  return new URLSearchParams(window.location.search).get('v3audit') === '1';
+function currentVisualAuditScenario(): V3VisualAuditScenario | null {
+  if (typeof window === 'undefined') return null;
+  return parseV3VisualAuditScenario(window.location.hostname, window.location.search);
+}
+
+function createInitialRuntime(seed: number): V3RuntimeState {
+  const scenario = currentVisualAuditScenario();
+  return scenario ? createV3VisualAuditState(scenario, seed) : createV3Runtime(seed);
 }
 
 export function V3MatchScreen({ seed }: V3MatchScreenProps) {
   const sceneHostRef = useRef<HTMLDivElement | null>(null);
-  const runtimeRef = useRef<V3RuntimeState>(createV3Runtime(seed));
+  const runtimeRef = useRef<V3RuntimeState>(createInitialRuntime(seed));
   const inputRef = useRef<V3RuntimeInput>(createInput());
   const attackPointerRef = useRef<number | null>(null);
   const attackOriginRef = useRef({ x: 0, y: 0 });
@@ -74,8 +81,9 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
   }, []);
 
   useEffect(() => {
-    let runtime = createV3Runtime(seed);
-    const visualAudit = isLocalVisualAudit();
+    const auditScenario = currentVisualAuditScenario();
+    const visualAudit = auditScenario !== null;
+    let runtime = auditScenario ? createV3VisualAuditState(auditScenario, seed) : createV3Runtime(seed);
     runtimeRef.current = runtime;
     inputRef.current = createInput();
     syncHud(runtime);
