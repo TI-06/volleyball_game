@@ -1,3 +1,4 @@
+import type { V3DefenseKind } from '../core/runtime';
 import type { V3BufferedActionKind } from '../controls/inputBuffer';
 import type { V3RallyPhase, V3TeamSide, V3Vec2 } from '../types';
 import {
@@ -25,6 +26,7 @@ export interface V3CharacterPresentationInput {
   previousPosition: V3Vec2;
   dt: number;
   phase: V3RallyPhase;
+  defenseKind?: V3DefenseKind;
   controlledPlayerId: string;
   lastEvent: V3PresentationEvent | null;
   bufferedAction: V3PresentationBufferedAction | null;
@@ -104,6 +106,15 @@ function isSpikeWindup(input: V3CharacterPresentationInput): boolean {
   return untilContact >= 0 && untilContact <= SPIKE_WINDUP_SECONDS;
 }
 
+function isBufferedQuickBlock(input: V3CharacterPresentationInput): boolean {
+  return (
+    input.defenseKind === 'BLOCK' &&
+    input.playerId === input.controlledPlayerId &&
+    input.bufferedAction?.kind === 'JUMP_BLOCK' &&
+    !input.bufferedAction.consumed
+  );
+}
+
 export function deriveV3CharacterPresentation(
   input: V3CharacterPresentationInput,
 ): V3CharacterPresentation {
@@ -123,6 +134,7 @@ export function deriveV3CharacterPresentation(
     lastEvent: actorEvent,
     bufferedActionKind,
     controlled,
+    cue: isBufferedQuickBlock(input) ? 'BLOCK' : null,
   });
 
   if (isSpikeWindup(input)) {
@@ -141,9 +153,8 @@ export function deriveV3CharacterPresentation(
     motion = speed >= 0.25 ? 'RUN' : 'READY';
   }
 
-  const motionAge = motion === input.previousMotion
-    ? Math.max(0, input.previousMotionAge) + dt
-    : 0;
+  const motionAge =
+    motion === input.previousMotion ? Math.max(0, input.previousMotionAge) + dt : 0;
 
   return {
     motion,
