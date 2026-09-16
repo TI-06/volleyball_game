@@ -81,3 +81,46 @@ test('live controls align KAI and stuff a quick attack', async ({ page }, testIn
 
   await captureBlockFrame(page, testInfo, 'stuff-block');
 });
+
+test('a missed quick block hands live control to HINA and the rally continues', async ({ page }, testInfo) => {
+  test.setTimeout(45_000);
+  await page.goto('/?v3e2e=manual&v3seed=72');
+
+  const screen = page.getByTestId('v3-match-screen');
+  const action = page.getByRole('button', { name: 'ACTION' });
+  const dive = page.getByRole('button', { name: 'DIVE' });
+  const score = page.locator('.v3-score');
+
+  await expect(page.getByText('BLOCK READ')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'BLOCK' })).toBeEnabled();
+
+  // Do not press BLOCK. Once the quick attack clears KAI, the same rally must
+  // switch to HINA's cover read instead of awarding the CPU a point.
+  await advanceManualRally(page, 1.0);
+  await expect(screen).toHaveAttribute('data-v3-defense-kind', 'RECEIVE');
+  await expect(screen).toHaveAttribute('data-v3-last-event', 'BLOCK');
+  await expect(page.getByText('COVER READ')).toBeVisible();
+  await expect(page.getByText('MISS · HINA COVER')).toBeVisible();
+  await expect(action).toBeEnabled();
+  await expect(dive).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'JUMP' })).toBeDisabled();
+  await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
+  await captureBlockFrame(page, testInfo, 'block-cover');
+
+  // The follow-up ball is intentionally reachable without hidden auto-aim.
+  // Buffer HINA's receive early and prove that the rally reaches the set.
+  await advanceManualRally(page, 0.61);
+  const actionBox = await action.boundingBox();
+  if (!actionBox) throw new Error('ACTION button has no bounding box');
+  await page.touchscreen.tap(
+    actionBox.x + actionBox.width / 2,
+    actionBox.y + actionBox.height / 2,
+  );
+  await advanceManualRally(page, 0.02);
+  await expect(page.getByText('RECEIVE PREP')).toBeVisible();
+
+  await advanceManualRally(page, 0.36);
+  await expect(screen).toHaveAttribute('data-v3-last-event', 'RECEIVE');
+  await expect(page.getByText('SET BUILDUP')).toBeVisible();
+  await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
+});
