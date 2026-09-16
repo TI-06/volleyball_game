@@ -48,6 +48,28 @@ describe('V3 third-person camera', () => {
     expect(compact.position.z).toBeLessThan(wide.position.z);
   });
 
+  it('moves closer to the net during BLOCK read so KAI and the attacker stay readable', () => {
+    const normalDefense = getV3CameraPose({
+      controlledPosition: { x: 0.4, z: -1.05 },
+      ballPosition: { x: -0.7, y: 2.9, z: 1.2 },
+      phase: 'DEFENSE_READ',
+      aspect: 844 / 390,
+    });
+    const blockRead = getV3CameraPose({
+      controlledPosition: { x: 0.4, z: -1.05 },
+      ballPosition: { x: -0.7, y: 2.9, z: 1.2 },
+      phase: 'DEFENSE_READ',
+      defenseKind: 'BLOCK',
+      aspect: 844 / 390,
+    });
+
+    expect(blockRead.position.z).toBeGreaterThan(normalDefense.position.z + 1.1);
+    expect(blockRead.position.z).toBeLessThan(blockRead.target.z - 3.2);
+    expect(blockRead.position.y).toBeLessThan(normalDefense.position.y);
+    expect(blockRead.target.y).toBeGreaterThanOrEqual(2.15);
+    expect(blockRead.fov).toBeLessThan(normalDefense.fov);
+  });
+
   it('tightens the framing during the attack without crossing in front of KAI', () => {
     const defense = getV3CameraPose({
       controlledPosition: { x: -2.6, z: -4.35 },
