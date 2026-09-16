@@ -1,4 +1,5 @@
 import { attackIntentFromGesture, resolveJumpTiming, type V3AttackIntent } from '../actions/attack';
+import { resolveBlockResult, type V3BlockResult } from '../actions/block';
 import { resolveReceiveQuality } from '../actions/receive';
 import {
   bufferAction,
@@ -27,6 +28,11 @@ const JUMP_EARLY_EDGE_SECONDS = 0.3;
 const RECEIVE_PREP_IDEAL_LEAD = 0.24;
 const DIVE_EXTRA_REACH_METERS = 1.2;
 const DIVE_ALIGNMENT_MIN = 0.35;
+const QUICK_ATTACK_RATE = 0.22;
+const QUICK_ATTACK_KIND_SALT = 0x8899;
+const QUICK_ATTACK_LANE_SALT = 0x74d3;
+const BLOCKER_NET_Z = -1.05;
+const BLOCKER_START_OFFSET_X = 1.25;
 
 export interface V3Score {
   home: number;
@@ -43,6 +49,7 @@ export interface V3RuntimeInput {
 
 export type V3RuntimeEvent =
   | { type: 'RECEIVE'; quality: V3ContactQuality; actorId: string }
+  | { type: 'BLOCK'; result: V3BlockResult; actorId: string }
   | { type: 'SET'; actorId: string }
   | { type: 'JUMP'; quality: V3ContactQuality; actorId: string }
   | {
@@ -54,7 +61,11 @@ export type V3RuntimeEvent =
     }
   | { type: 'POINT'; point: 'home' | 'away' };
 
+export type V3DefenseKind = 'RECEIVE' | 'BLOCK';
+
 export interface V3RallyRuntime {
+  defenseKind: V3DefenseKind;
+  blockLaneX: number | null;
   landingTarget: V3Vec2;
   opponentContactAt: number;
   receiveContactAt: number;
@@ -124,9 +135,26 @@ function landingTarget(seed: number, rallyIndex: number): V3Vec2 {
   };
 }
 
+function defenseKindFor(seed: number, rallyIndex: number): V3DefenseKind {
+  return sample01(seed, rallyIndex, QUICK_ATTACK_KIND_SALT) < QUICK_ATTACK_RATE
+    ? 'BLOCK'
+    : 'RECEIVE';
+}
+
+function blockLaneFor(seed: number, rallyIndex: number): number {
+  return lerp(-2.2, 2.2, sample01(seed, rallyIndex, QUICK_ATTACK_LANE_SALT));
+}
+
 function rallyFor(seed: number, rallyIndex: number): V3RallyRuntime {
+  const defenseKind = defenseKindFor(seed, rallyIndex);
+  const blockLaneX = defenseKind === 'BLOCK' ? blockLaneFor(seed, rallyIndex) : null;
   return {
-    landingTarget: landingTarget(seed, rallyIndex),
+    defenseKind,
+    blockLaneX,
+    landingTarget:
+      defenseKind === 'BLOCK' && blockLaneX !== null
+        ? { x: blockLaneX, z: -0.9 }
+        : landingTarget(seed, rallyIndex),
     opponentContactAt: OPPONENT_CONTACT_AT,
     receiveContactAt: RECEIVE_CONTACT_AT,
     setContactAt: null,
@@ -136,6 +164,25 @@ function rallyFor(seed: number, rallyIndex: number): V3RallyRuntime {
     receivePosition: null,
     jumpQuality: null,
   };
+}
+
+function controlledPlayerForRally(rally: V3RallyRuntime): string {
+  return rally.defenseKind === 'BLOCK' ? 'home-0' : 'home-2';
+}
+
+function playersForRally(players: V3PlayerState[], rally: V3RallyRuntime): V3PlayerState[] {
+  if (rally.defenseKind !== 'BLOCK' || rally.blockLaneX === null) return players;
+  return players.map((player) =>
+    player.id === 'home-0'
+      ? {
+          ...player,
+          position: {
+            x: Math.min(3.55, rally.blockLaneX + BLOCKER_START_OFFSET_X),
+            z: BLOCKER_NET_Z,
+          },
+        }
+      : player,
+  );
 }
 
 function forecastStage(time: number, rally: V3RallyRuntime) {
@@ -258,12 +305,13 @@ function resetForNextRally(
   const rallyIndex = source.rallyIndex + 1;
   const base = createV3PrototypeState(source.seed + rallyIndex);
   const rally = rallyFor(source.seed, rallyIndex);
+  const players = playersForRally(base.players, rally);
   return {
     seed: source.seed,
     time: 0,
     phase: 'DEFENSE_READ',
-    controlledPlayerId: 'home-2',
-    players: base.players,
+    controlledPlayerId: controlledPlayerForRally(rally),
+    players,
     ball: {
       position: opponentBallAt(0, rally),
       velocity: { x: 0, y: 0, z: 0 },
@@ -274,6 +322,64 @@ function resetForNextRally(
     forecast: forecastFor(0, rally, source.seed, rallyIndex),
     bufferedAction: null,
     lastEvent,
+  };
+}
+
+function resolveBlockContact(source: V3RuntimeState, players: V3PlayerState[]): V3RuntimeState {
+  const blocker = players.find((player) => player.id === 'home-0');
+  const action = source.bufferedAction;
+  const active =
+    action?.kind === 'JUMP_BLOCK' &&
+    isBufferedActionActive(action, source.rally.opponentContactAt);
+  const result: V3BlockResult =
+    active && blocker && source.rally.blockLaneX !== null
+      ? resolveBlockResult({
+          timingOffsetSeconds: action.createdAt - source.rally.opponentContactAt,
+          lateralErrorMeters: blocker.position.x - source.rally.blockLaneX,
+        })
+      : 'MISS';
+  const event: V3RuntimeEvent = { type: 'BLOCK', result, actorId: 'home-0' };
+
+  if (result === 'STUFF') {
+    return resetForNextRally(
+      { ...source, players, time: source.rally.opponentContactAt },
+      { home: source.score.home + 1, away: source.score.away },
+      event,
+    );
+  }
+
+  const receiveTarget = landingTarget(source.seed, source.rallyIndex);
+  const rally: V3RallyRuntime = {
+    ...source.rally,
+    defenseKind: 'RECEIVE',
+    blockLaneX: null,
+    landingTarget: receiveTarget,
+    receiveContactAt: Math.max(
+      source.rally.receiveContactAt,
+      source.rally.opponentContactAt + 0.8,
+    ),
+    setContactAt: null,
+    attackerSwitchAt: null,
+    idealJumpAt: null,
+    attackContactAt: null,
+    receivePosition: null,
+    jumpQuality: null,
+  };
+  const contactAt = source.rally.opponentContactAt;
+  return {
+    ...source,
+    time: contactAt,
+    phase: 'DEFENSE_READ',
+    controlledPlayerId: 'home-2',
+    players,
+    ball: {
+      position: opponentBallAt(contactAt, source.rally),
+      velocity: { x: 0, y: 0, z: 0 },
+    },
+    rally,
+    forecast: forecastFor(contactAt, rally, source.seed, source.rallyIndex),
+    bufferedAction: null,
+    lastEvent: event,
   };
 }
 
@@ -378,12 +484,13 @@ function resolveAttack(source: V3RuntimeState, intent: V3AttackIntent): V3Runtim
 export function createV3Runtime(seed = 1): V3RuntimeState {
   const base = createV3PrototypeState(seed);
   const rally = rallyFor(base.seed, 0);
+  const players = playersForRally(base.players, rally);
   return {
     seed: base.seed,
     time: 0,
     phase: base.phase,
-    controlledPlayerId: base.controlledPlayerId,
-    players: base.players,
+    controlledPlayerId: controlledPlayerForRally(rally),
+    players,
     ball: {
       position: opponentBallAt(0, rally),
       velocity: { x: 0, y: 0, z: 0 },
@@ -410,20 +517,46 @@ export function stepV3Runtime(
   let phase = source.phase;
   let lastEvent: V3RuntimeEvent | null = source.lastEvent;
 
-  if (input.actionPressed && (phase === 'DEFENSE_READ' || phase === 'RECEIVE_PREP')) {
+  if (
+    source.rally.defenseKind === 'RECEIVE' &&
+    input.actionPressed &&
+    (phase === 'DEFENSE_READ' || phase === 'RECEIVE_PREP')
+  ) {
     bufferedAction = bufferAction('ACTION', source.time);
     phase = 'RECEIVE_PREP';
   }
 
-  if (input.divePressed && (phase === 'DEFENSE_READ' || phase === 'RECEIVE_PREP')) {
+  if (
+    source.rally.defenseKind === 'RECEIVE' &&
+    input.divePressed &&
+    (phase === 'DEFENSE_READ' || phase === 'RECEIVE_PREP')
+  ) {
     const direction = normalizeDirection(input.move);
     bufferedAction = bufferAction('DIVE', source.time, direction);
     phase = 'RECEIVE_PREP';
   }
 
+  if (
+    source.rally.defenseKind === 'BLOCK' &&
+    input.jumpPressed &&
+    phase === 'DEFENSE_READ'
+  ) {
+    bufferedAction = bufferAction('JUMP_BLOCK', source.time);
+  }
+
   const nextTime = source.time + safeDt;
 
   if (
+    source.rally.defenseKind === 'BLOCK' &&
+    phase === 'DEFENSE_READ' &&
+    source.time < source.rally.opponentContactAt &&
+    nextTime >= source.rally.opponentContactAt
+  ) {
+    return resolveBlockContact({ ...source, phase, bufferedAction }, players);
+  }
+
+  if (
+    source.rally.defenseKind === 'RECEIVE' &&
     (phase === 'DEFENSE_READ' || phase === 'RECEIVE_PREP') &&
     source.time < source.rally.receiveContactAt &&
     nextTime >= source.rally.receiveContactAt
