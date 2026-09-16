@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page, type TestInfo } from '@playwright/test';
+import { expect, test, type Page, type TestInfo } from '@playwright/test';
 
 async function expectCommonGameplaySurface(page: Page) {
   const screen = page.getByTestId('v3-match-screen');
@@ -43,18 +43,33 @@ async function readRuntimeDebug(page: Page) {
   }));
 }
 
-async function locatorCenter(locator: Locator) {
-  const box = await locator.boundingBox();
-  expect(box).not.toBeNull();
-  if (!box) throw new Error('expected control to have a bounding box');
-  return { x: box.x + box.width / 2, y: box.y + box.height / 2, box };
-}
-
 async function waitForGameTime(page: Page, minimum: number, timeout = 2_000) {
   const screen = page.getByTestId('v3-match-screen');
   await expect
     .poll(async () => Number(await screen.getAttribute('data-v3-time')), { timeout })
     .toBeGreaterThanOrEqual(minimum);
+}
+
+async function readLiveControlCenters(page: Page) {
+  return page.evaluate(() => {
+    const center = (selector: string) => {
+      const element = document.querySelector<HTMLElement>(selector);
+      if (!element) throw new Error(`missing live control: ${selector}`);
+      const rect = element.getBoundingClientRect();
+      return {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+        top: rect.top,
+        height: rect.height,
+      };
+    };
+
+    return {
+      action: center('.v3-action-button--action'),
+      jump: center('.v3-action-button--jump'),
+      attack: center('[data-testid="v3-attack-pad"]'),
+    };
+  });
 }
 
 test('production gameplay stays readable and separated on smartphone landscape', async ({ page }, testInfo) => {
@@ -146,8 +161,6 @@ test('live controls complete a full receive-set-jump-spike rally', async ({ page
   await page.goto('/');
 
   const screen = page.getByTestId('v3-match-screen');
-  const movement = page.getByTestId('v3-movement-pad');
-  const action = page.getByRole('button', { name: 'ACTION' });
   const jump = page.getByRole('button', { name: 'JUMP' });
   const attack = page.getByTestId('v3-attack-pad');
   const score = page.locator('.v3-score');
@@ -155,41 +168,18 @@ test('live controls complete a full receive-set-jump-spike rally', async ({ page
   await expect(page.getByText('DEFENSE READ')).toBeVisible();
   await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
 
-  // Cache fixed control coordinates during the first-rally readiness window.
-  // Buttons use raw touchscreen taps later so Playwright actionability waits do
-  // not consume timing windows inside the fixed-step simulation.
-  const movementCenter = await locatorCenter(movement);
-  const actionCenter = await locatorCenter(action);
-  const jumpCenter = await locatorCenter(jump);
-  const attackCenter = await locatorCenter(attack);
-
+  // Resolve all hit points in one synchronous browser call while the startup
+  // hold is active. This keeps the full-rally test focused on rally timing;
+  // 2D movement already has runtime and pointer-pad coverage elsewhere.
+  const controls = await readLiveControlCenters(page);
   expect((await readRuntimeDebug(page)).lastEvent).not.toBe('POINT');
 
-  // Use simulation time instead of transient forecast labels. This remains
-  // deterministic even when WebGL startup or CI scheduling differs by device.
-  await waitForGameTime(page, 0.1, 3_000);
-
-  const beforeMove = await readRuntimeDebug(page);
-  const beforeZ = Number(beforeMove.controlledZ);
-
-  // Browser pointer drag exercises the same React PointerEvent path used by the
-  // touch stick. Unit coverage separately verifies pointer/touch coordinate math.
-  await page.mouse.move(movementCenter.x, movementCenter.y);
-  await page.mouse.down();
-  await page.mouse.move(movementCenter.x, movementCenter.y - 48);
-  await page.waitForTimeout(160);
-  await page.mouse.up();
-  await page.waitForTimeout(120);
-
-  const afterMove = await readRuntimeDebug(page);
-  expect(Number(afterMove.controlledZ)).toBeGreaterThan(beforeZ + 0.25);
-  expect(afterMove.lastEvent).not.toBe('POINT');
-
-  // Contact is t=1.95. Tapping near t=1.62 leaves the 450ms input buffer active
-  // through contact while producing a normal GOOD/PERFECT receive.
-  await waitForGameTime(page, 1.62, 2_000);
-  await page.touchscreen.tap(actionCenter.x, actionCenter.y);
-  await expect(screen).toHaveAttribute('data-v3-buffered-action', 'ACTION', { timeout: 250 });
+  // Contact is t=1.95. Tapping at t≈1.62 leaves the 450ms receive buffer active
+  // through contact while still giving a forgiving GOOD/PERFECT preparation.
+  await waitForGameTime(page, 1.62, 3_000);
+  await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
+  await page.touchscreen.tap(controls.action.x, controls.action.y);
+  await expect(page.getByText('RECEIVE PREP')).toBeVisible({ timeout: 300 });
   await expect(page.getByText('SET BUILDUP')).toBeVisible({ timeout: 700 });
   expect((await readRuntimeDebug(page)).lastEvent).toBe('RECEIVE');
 
@@ -197,15 +187,15 @@ test('live controls complete a full receive-set-jump-spike rally', async ({ page
   await expect(page.getByText('ATTACK APPROACH')).toBeVisible({ timeout: 900 });
   await expect(jump).toBeEnabled();
   await waitForGameTime(page, 2.84, 900);
-  await page.touchscreen.tap(jumpCenter.x, jumpCenter.y);
+  await page.touchscreen.tap(controls.jump.x, controls.jump.y);
   await expect(page.getByText('ATTACK AIRBORNE')).toBeVisible({ timeout: 350 });
   await expect(attack).toHaveClass(/is-ready/);
 
   // Upward drag = POWER. Seed 73 with a successful jump deterministically wins.
-  const attackStartY = attackCenter.box.y + attackCenter.box.height * 0.72;
-  await page.mouse.move(attackCenter.x, attackStartY);
+  const attackStartY = controls.attack.top + controls.attack.height * 0.72;
+  await page.mouse.move(controls.attack.x, attackStartY);
   await page.mouse.down();
-  await page.mouse.move(attackCenter.x, attackStartY - 90);
+  await page.mouse.move(controls.attack.x, attackStartY - 90);
   await page.mouse.up();
 
   await expect(score).toHaveAttribute('aria-label', 'PLAYER 1 CPU 0', { timeout: 500 });
