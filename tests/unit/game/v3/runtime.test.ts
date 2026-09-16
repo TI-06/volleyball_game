@@ -171,6 +171,32 @@ describe('V3 playable rally runtime', () => {
     expect(next.forecast?.stage).toBe('SET_READ');
   });
 
+  it('buffers an early KAI jump but resolves it at the BAD edge instead of granting PERFECT', () => {
+    let state = placeControlledAtLanding(createV3Runtime(73));
+    state = stepFor(state, state.rally.receiveContactAt - 0.28);
+    state = stepV3Runtime(state, { ...emptyV3RuntimeInput(), actionPressed: true }, 1 / 60);
+    state = stepFor(state, 0.38);
+
+    const setContactAt = state.rally.setContactAt;
+    const idealJumpAt = state.rally.idealJumpAt;
+    expect(setContactAt).not.toBeNull();
+    expect(idealJumpAt).not.toBeNull();
+    if (setContactAt === null || idealJumpAt === null) return;
+
+    state = stepFor(state, Math.max(0, setContactAt - state.time - 0.08));
+    expect(state.phase).toBe('SET_BUILDUP');
+    expect(state.controlledPlayerId).toBe('home-0');
+
+    state = stepV3Runtime(state, { ...emptyV3RuntimeInput(), jumpPressed: true }, 1 / 60);
+    expect(state.bufferedAction?.kind).toBe('JUMP_BLOCK');
+    expect(state.phase).toBe('SET_BUILDUP');
+
+    state = stepFor(state, Math.max(0, idealJumpAt - 0.28 - state.time));
+    expect(state.phase).toBe('ATTACK_AIRBORNE');
+    expect(state.lastEvent).toMatchObject({ type: 'JUMP', quality: 'BAD', actorId: 'home-0' });
+    expect(state.bufferedAction).toBeNull();
+  });
+
   it('continues a successful receive into early KAI control, jump, attack intent, and a point', () => {
     let state = placeControlledAtLanding(createV3Runtime(73));
     state = stepFor(state, state.rally.receiveContactAt - 0.28);
