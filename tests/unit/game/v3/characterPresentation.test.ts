@@ -13,6 +13,8 @@ const base = {
   bufferedAction: null,
   previousMotion: 'READY' as const,
   previousMotionAge: 0,
+  runtimeTime: 0,
+  attackContactAt: null,
 };
 
 describe('deriveV3CharacterPresentation', () => {
@@ -80,6 +82,44 @@ describe('deriveV3CharacterPresentation', () => {
 
     expect(diver.motion).toBe('DIVE');
     expect(teammate.motion).not.toBe('DIVE');
+  });
+
+  it('switches KAI from jump to spike before the attack contact', () => {
+    const earlyAir = deriveV3CharacterPresentation({
+      ...base,
+      playerId: 'home-0',
+      controlledPlayerId: 'home-0',
+      phase: 'ATTACK_AIRBORNE',
+      lastEvent: { type: 'JUMP', actorId: 'home-0' },
+      runtimeTime: 3.0,
+      attackContactAt: 3.4,
+    });
+    const swing = deriveV3CharacterPresentation({
+      ...base,
+      playerId: 'home-0',
+      controlledPlayerId: 'home-0',
+      phase: 'ATTACK_AIRBORNE',
+      lastEvent: { type: 'JUMP', actorId: 'home-0' },
+      runtimeTime: 3.22,
+      attackContactAt: 3.4,
+    });
+
+    expect(earlyAir.motion).toBe('JUMP');
+    expect(swing.motion).toBe('SPIKE');
+  });
+
+  it('does not leak a stale ATTACK event into the next defensive rally', () => {
+    const reset = deriveV3CharacterPresentation({
+      ...base,
+      playerId: 'home-0',
+      controlledPlayerId: 'home-2',
+      phase: 'DEFENSE_READ',
+      lastEvent: { type: 'ATTACK', actorId: 'home-0' },
+      runtimeTime: 4.2,
+      attackContactAt: null,
+    });
+
+    expect(reset.motion).toBe('READY');
   });
 
   it('resets pose time when motion changes and advances it while motion continues', () => {
