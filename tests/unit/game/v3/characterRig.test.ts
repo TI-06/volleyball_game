@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
 import { createV3CharacterRig } from '../../../../src/game/v3/render/character/V3CharacterRig';
 import { profileFor } from '../../../../src/game/v3/render/character/characterProfiles';
@@ -19,6 +20,28 @@ describe('V3CharacterRig', () => {
     expect(rig.joints.rightThigh).toBeDefined();
     expect(rig.joints.rightShin).toBeDefined();
     expect(rig.meshCount).toBeGreaterThanOrEqual(18);
+
+    rig.dispose();
+  });
+
+  it('uses rounded athletic body volumes instead of boxy placeholder anatomy', () => {
+    const rig = createV3CharacterRig(profileFor('kai'));
+    const torsoShell = rig.root.getObjectByName('kai-torso-shell');
+    const leftShoulder = rig.root.getObjectByName('kai-left-shoulder');
+    const rightShoulder = rig.root.getObjectByName('kai-right-shoulder');
+    const leftKnee = rig.root.getObjectByName('kai-left-knee');
+    const rightKnee = rig.root.getObjectByName('kai-right-knee');
+    const leftShort = rig.root.getObjectByName('kai-left-short');
+    const rightShort = rig.root.getObjectByName('kai-right-short');
+
+    expect(torsoShell).toBeInstanceOf(THREE.Mesh);
+    expect(leftShoulder).toBeInstanceOf(THREE.Mesh);
+    expect(rightShoulder).toBeInstanceOf(THREE.Mesh);
+    expect(leftKnee).toBeInstanceOf(THREE.Mesh);
+    expect(rightKnee).toBeInstanceOf(THREE.Mesh);
+    expect(leftShort).toBeInstanceOf(THREE.Mesh);
+    expect(rightShort).toBeInstanceOf(THREE.Mesh);
+    expect(rig.meshCount).toBeGreaterThanOrEqual(28);
 
     rig.dispose();
   });
