@@ -80,6 +80,17 @@ describe('V3 volleyball pose library', () => {
     expect(windup.torso.x).toBeLessThan(-0.16);
   });
 
+  it('cocks the hitting shoulder and elbow during the SPIKE windup instead of showing a straight raised arm', () => {
+    const windup = sampleV3Pose('SPIKE', 0.47, 'home');
+    const contact = sampleV3Pose('SPIKE', 0.78, 'home');
+
+    expect(windup.rightUpperArm.z).toBeGreaterThan(0.55);
+    expect(windup.rightForearm.z).toBeGreaterThan(0.9);
+    expect(windup.torso.y).toBeGreaterThan(0.14);
+    expect(contact.rightUpperArm.z).toBeLessThan(0.35);
+    expect(contact.rightForearm.z).toBeLessThan(0.4);
+  });
+
   it('extends forward and down for DIVE', () => {
     const dive = sampleV3Pose('DIVE', 0.55, 'home');
     expect(dive.rootOffset.y).toBeLessThan(-0.18);
