@@ -48,6 +48,23 @@ function placeControlledLeftOfLanding(state: V3RuntimeState, distance = 2.2): V3
   };
 }
 
+function placeBlockerOnLane(state: V3RuntimeState): V3RuntimeState {
+  return {
+    ...state,
+    players: state.players.map((player) =>
+      player.id === 'home-0'
+        ? {
+            ...player,
+            position: {
+              x: state.rally.blockLaneX ?? player.position.x,
+              z: -1.05,
+            },
+          }
+        : player,
+    ),
+  };
+}
+
 describe('V3 playable rally runtime', () => {
   it('creates deterministic opponent attack timing, landing, and early forecast', () => {
     const first = createV3Runtime(73);
@@ -56,6 +73,7 @@ describe('V3 playable rally runtime', () => {
     expect(first).toEqual(second);
     expect(first.phase).toBe('DEFENSE_READ');
     expect(first.controlledPlayerId).toBe('home-2');
+    expect(first.rally.defenseKind).toBe('RECEIVE');
     expect(first.forecast?.stage).toBe('SET_READ');
     expect(first.rally.opponentContactAt).toBeGreaterThan(0.7);
     expect(first.rally.receiveContactAt).toBeGreaterThan(first.rally.opponentContactAt);
@@ -169,6 +187,44 @@ describe('V3 playable rally runtime', () => {
     expect(next.rallyIndex).toBe(1);
     expect(next.phase).toBe('DEFENSE_READ');
     expect(next.forecast?.stage).toBe('SET_READ');
+  });
+
+  it('creates a quick-attack block read with KAI in control', () => {
+    const state = createV3Runtime(72);
+
+    expect(state.rally.defenseKind).toBe('BLOCK');
+    expect(state.controlledPlayerId).toBe('home-0');
+    expect(state.rally.blockLaneX).not.toBeNull();
+    expect(Math.abs(state.rally.landingTarget.z)).toBeLessThan(1.5);
+  });
+
+  it('stuffs a quick attack when KAI aligns and buffers BLOCK just before contact', () => {
+    let state = placeBlockerOnLane(createV3Runtime(72));
+    expect(state.rally.defenseKind).toBe('BLOCK');
+
+    state = stepFor(state, Math.max(0, state.rally.opponentContactAt - state.time - 0.1));
+    state = stepV3Runtime(state, { ...emptyV3RuntimeInput(), jumpPressed: true }, 1 / 60);
+    expect(state.bufferedAction?.kind).toBe('JUMP_BLOCK');
+
+    state = stepFor(state, 0.14);
+    expect(state.lastEvent).toMatchObject({ type: 'BLOCK', result: 'STUFF', actorId: 'home-0' });
+    expect(state.score).toEqual({ home: 1, away: 0 });
+    expect(state.rallyIndex).toBe(1);
+  });
+
+  it('hands a missed block to HINA instead of ending the rally immediately', () => {
+    let state = createV3Runtime(72);
+    const rallyIndex = state.rallyIndex;
+
+    state = stepFor(state, state.rally.opponentContactAt + 0.04);
+
+    expect(state.lastEvent).toMatchObject({ type: 'BLOCK', result: 'MISS', actorId: 'home-0' });
+    expect(state.score).toEqual({ home: 0, away: 0 });
+    expect(state.rallyIndex).toBe(rallyIndex);
+    expect(state.rally.defenseKind).toBe('RECEIVE');
+    expect(state.controlledPlayerId).toBe('home-2');
+    expect(state.phase).toBe('DEFENSE_READ');
+    expect(state.rally.receiveContactAt).toBeGreaterThan(state.time);
   });
 
   it('buffers an early KAI jump but resolves it at the BAD edge instead of granting PERFECT', () => {
