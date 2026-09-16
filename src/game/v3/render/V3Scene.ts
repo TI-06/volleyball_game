@@ -113,6 +113,7 @@ export class V3Scene {
         previousPosition: avatar.previousPosition,
         dt,
         phase: state.phase,
+        defenseKind: state.rally.defenseKind,
         controlledPlayerId: state.controlledPlayerId,
         lastEvent: state.lastEvent,
         bufferedAction: state.bufferedAction,
@@ -125,7 +126,9 @@ export class V3Scene {
       avatar.rig.root.position.set(player.position.x, 0, player.position.z);
       avatar.rig.root.rotation.y = getV3PlayerFacingRotation(player.side);
       avatar.rig.setFocus(player.id === state.controlledPlayerId);
-      avatar.rig.applyPose(sampleV3Pose(presentation.motion, presentation.normalizedTime, player.side));
+      avatar.rig.applyPose(
+        sampleV3Pose(presentation.motion, presentation.normalizedTime, player.side),
+      );
 
       avatar.previousPosition = { ...player.position };
       avatar.motion = presentation.motion;
@@ -149,6 +152,7 @@ export class V3Scene {
         controlledPosition: controlled.position,
         ballPosition: state.ball.position,
         phase: state.phase,
+        defenseKind: state.rally.defenseKind,
         aspect: this.camera.aspect,
       });
       this.camera.position.set(pose.position.x, pose.position.y, pose.position.z);
@@ -162,7 +166,9 @@ export class V3Scene {
     const cameraDistance = this.camera.position.distanceTo(this.ball.position);
     const height = Math.max(1, this.host.clientHeight);
     const visibleHeight =
-      2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) * Math.max(0.1, cameraDistance);
+      2 *
+      Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) *
+      Math.max(0.1, cameraDistance);
     const projectedRadiusPx = BALL_RADIUS * (height / visibleHeight);
     this.ball.scale.setScalar(getReadableBallScale(projectedRadiusPx));
 
