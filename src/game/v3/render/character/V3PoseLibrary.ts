@@ -88,26 +88,27 @@ function runPose(t: number): V3RigPose {
 
 function receivePose(t: number): V3RigPose {
   const pose = basePose();
-  const settle = 0.94 + Math.sin(t * Math.PI) * 0.06;
-  pose.rootOffset.y = -0.37 * settle;
-  pose.torso.x = 0.8;
-  pose.head.x = -0.34;
+  const settle = 0.96 + Math.sin(t * Math.PI) * 0.04;
 
-  // Keep both shoulders forward and close the arms toward the center so the
-  // forearms read as one passing platform even from the gameplay camera.
-  pose.leftUpperArm = euler(-1.2, 0, 0.24);
-  pose.rightUpperArm = euler(-1.2, 0, -0.24);
-  pose.leftForearm = euler(-0.14, 0, 0.04);
-  pose.rightForearm = euler(-0.14, 0, -0.04);
+  // Keep the feet near the court instead of lowering the whole rig. Most of
+  // the apparent crouch comes from the articulated knees and wide stance.
+  pose.rootOffset.y = -0.145 * settle;
+  pose.torso.x = 0.68;
+  pose.head.x = -0.3;
 
-  // A deliberately deep volleyball stance keeps RECEIVE visually distinct
-  // from READY at mobile gameplay distance.
-  pose.leftThigh.x = 0.8;
-  pose.rightThigh.x = 0.8;
-  pose.leftThigh.z = 0.08;
-  pose.rightThigh.z = -0.08;
-  pose.leftShin.x = -1.04;
-  pose.rightShin.x = -1.04;
+  // Point the arms forward-and-down and pull both shoulders toward centre.
+  // From the rear camera this leaves the platform visible below the torso.
+  pose.leftUpperArm = euler(-0.82, 0, 0.32);
+  pose.rightUpperArm = euler(-0.82, 0, -0.32);
+  pose.leftForearm = euler(-0.16, 0, 0.05);
+  pose.rightForearm = euler(-0.16, 0, -0.05);
+
+  // Knees open out while shins turn slightly back under the body, creating a
+  // clear volleyball receive stance in screen-space rather than only in depth.
+  pose.leftThigh = euler(0.82, 0, -0.24);
+  pose.rightThigh = euler(0.82, 0, 0.24);
+  pose.leftShin = euler(-1.04, 0, 0.14);
+  pose.rightShin = euler(-1.04, 0, -0.14);
   return pose;
 }
 
@@ -185,15 +186,16 @@ function spikePose(t: number): V3RigPose {
   pose.rightUpperArm = euler(lerp(0.78, -2.38, swing), 0, 0.2);
   pose.rightForearm = euler(lerp(-1.15, -0.12, snap), 0, 0);
 
-  // Arch the chest in the windup and fold both legs underneath the body. The
-  // stronger knee tuck makes the airborne silhouette readable on a phone.
+  // A small extra lift plus a rear-camera leg split makes the airborne state
+  // unmistakable without changing rally physics or collision positions.
+  pose.rootOffset.y += 0.14;
   pose.torso.x = lerp(-0.22, 0.28, snap);
   pose.torso.y = lerp(0.42, -0.38, swing);
   pose.head.y = pose.torso.y * -0.2;
-  pose.leftThigh.x = 0.28 + airborneCurl * 0.1;
-  pose.rightThigh.x = 0.22 + airborneCurl * 0.08;
-  pose.leftShin.x = -0.84 - airborneCurl * 0.18;
-  pose.rightShin.x = -0.8 - airborneCurl * 0.16;
+  pose.leftThigh = euler(0.28 + airborneCurl * 0.1, 0, -0.23);
+  pose.rightThigh = euler(0.22 + airborneCurl * 0.08, 0, 0.15);
+  pose.leftShin = euler(-0.84 - airborneCurl * 0.18, 0, 0.32);
+  pose.rightShin = euler(-0.8 - airborneCurl * 0.16, 0, -0.22);
   return pose;
 }
 
