@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   createV3VisualAuditState,
+  isV3ManualE2EMode,
   parseV3VisualAuditScenario,
 } from '../../../../src/game/v3/presentation/visualAuditScenario';
 
@@ -56,5 +57,18 @@ describe('parseV3VisualAuditScenario', () => {
     expect(parseV3VisualAuditScenario('example.com', '?v3audit=spike')).toBeNull();
     expect(parseV3VisualAuditScenario('localhost', '?v3audit=unknown')).toBeNull();
     expect(parseV3VisualAuditScenario('localhost', '')).toBeNull();
+  });
+});
+
+describe('isV3ManualE2EMode', () => {
+  it('allows deterministic manual stepping only on local hosts', () => {
+    expect(isV3ManualE2EMode('localhost', '?v3e2e=manual')).toBe(true);
+    expect(isV3ManualE2EMode('127.0.0.1', '?v3e2e=manual')).toBe(true);
+  });
+
+  it('rejects manual stepping on public hosts or without the explicit flag', () => {
+    expect(isV3ManualE2EMode('example.com', '?v3e2e=manual')).toBe(false);
+    expect(isV3ManualE2EMode('localhost', '?v3e2e=1')).toBe(false);
+    expect(isV3ManualE2EMode('localhost', '')).toBe(false);
   });
 });
