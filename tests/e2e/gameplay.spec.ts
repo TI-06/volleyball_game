@@ -29,6 +29,20 @@ async function captureAuditFrame(page: Page, testInfo: TestInfo, scenario: strin
   });
 }
 
+async function readRuntimeDebug(page: Page) {
+  const screen = page.getByTestId('v3-match-screen');
+  return screen.evaluate((element) => ({
+    time: element.getAttribute('data-v3-time'),
+    controlledX: element.getAttribute('data-v3-controlled-x'),
+    controlledZ: element.getAttribute('data-v3-controlled-z'),
+    landingX: element.getAttribute('data-v3-landing-x'),
+    landingZ: element.getAttribute('data-v3-landing-z'),
+    bufferedAction: element.getAttribute('data-v3-buffered-action'),
+    lastEvent: element.getAttribute('data-v3-last-event'),
+    phase: element.getAttribute('data-v3-rally-phase'),
+  }));
+}
+
 test('production gameplay stays readable and separated on smartphone landscape', async ({ page }, testInfo) => {
   test.setTimeout(45_000);
   await page.goto('/?v3audit=initial');
@@ -146,11 +160,14 @@ test('live touch controls complete a full receive-set-jump-spike rally', async (
 
   await expect(page.getByText('FLIGHT_CONFIRMED')).toBeVisible({ timeout: 1_000 });
 
-  // FLIGHT_CONFIRMED begins around opponent contact. Waiting ~600 ms puts the
-  // buffered receive inside the forgiving GOOD/PERFECT timing window while
-  // still leaving the normal 450 ms input buffer active through contact.
+  // Diagnostic snapshots intentionally stay invisible to players. They let this
+  // test distinguish timing/input failures from receive-position failures.
+  console.log('V3_LIVE_DEBUG before-wait', await readRuntimeDebug(page));
   await page.waitForTimeout(600);
+  console.log('V3_LIVE_DEBUG before-action', await readRuntimeDebug(page));
   await action.click();
+  await page.waitForTimeout(100);
+  console.log('V3_LIVE_DEBUG after-action', await readRuntimeDebug(page));
   await expect(page.getByText('SET BUILDUP')).toBeVisible({ timeout: 1_000 });
 
   // REN sets automatically for this first slice, then control moves to KAI.
