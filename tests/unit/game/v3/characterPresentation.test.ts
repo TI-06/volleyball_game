@@ -8,6 +8,7 @@ const base = {
   previousPosition: { x: 2.6, z: -6.15 },
   dt: 1 / 60,
   phase: 'DEFENSE_READ' as const,
+  defenseKind: 'RECEIVE' as const,
   controlledPlayerId: 'home-2',
   lastEvent: null,
   bufferedAction: null,
@@ -82,6 +83,38 @@ describe('deriveV3CharacterPresentation', () => {
 
     expect(diver.motion).toBe('DIVE');
     expect(teammate.motion).not.toBe('DIVE');
+  });
+
+  it('shows KAI blocking as soon as a quick-attack BLOCK input is buffered', () => {
+    const blocker = deriveV3CharacterPresentation({
+      ...base,
+      playerId: 'home-0',
+      currentPosition: { x: 0.2, z: -1.05 },
+      previousPosition: { x: 0.2, z: -1.05 },
+      controlledPlayerId: 'home-0',
+      defenseKind: 'BLOCK',
+      bufferedAction: {
+        kind: 'JUMP_BLOCK',
+        createdAt: 0.84,
+        expiresAt: 1.29,
+        consumed: false,
+      },
+    });
+    const sameBufferInReceive = deriveV3CharacterPresentation({
+      ...base,
+      playerId: 'home-0',
+      controlledPlayerId: 'home-0',
+      defenseKind: 'RECEIVE',
+      bufferedAction: {
+        kind: 'JUMP_BLOCK',
+        createdAt: 0.84,
+        expiresAt: 1.29,
+        consumed: false,
+      },
+    });
+
+    expect(blocker.motion).toBe('BLOCK');
+    expect(sameBufferInReceive.motion).not.toBe('BLOCK');
   });
 
   it('switches KAI from jump to spike before the attack contact', () => {
