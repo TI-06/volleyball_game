@@ -37,9 +37,16 @@ interface V3HudState {
   bufferedAction: string | null;
 }
 
+export interface V3PointFeedback {
+  title: 'POINT!' | 'CPU POINT';
+  detail: string | null;
+  side: 'home' | 'away';
+}
+
 const V3_STARTUP_HOLD_SECONDS = 1.25;
 const V3_MANUAL_ADVANCE_EVENT = 'v3:e2e-advance';
 const V3_MAX_MANUAL_ADVANCE_SECONDS = 5;
+const V3_POINT_FEEDBACK_SECONDS = 0.75;
 
 const PHASE_LABEL: Record<V3RallyPhase, string> = {
   DEFENSE_READ: 'DEFENSE READ',
@@ -102,6 +109,33 @@ export function isV3JumpControlEnabled(
     phase === 'ATTACK_APPROACH' ||
     (phase === 'SET_BUILDUP' && controlledPlayerId === 'home-0')
   );
+}
+
+export function getV3PointFeedback(
+  lastEvent: V3RuntimeEvent | null,
+  rallyTime: number,
+): V3PointFeedback | null {
+  if (!lastEvent || !Number.isFinite(rallyTime) || rallyTime < 0 || rallyTime > V3_POINT_FEEDBACK_SECONDS) {
+    return null;
+  }
+
+  if (lastEvent.type === 'ATTACK') {
+    return {
+      title: lastEvent.point === 'home' ? 'POINT!' : 'CPU POINT',
+      detail: lastEvent.point === 'home' ? lastEvent.intent : null,
+      side: lastEvent.point,
+    };
+  }
+
+  if (lastEvent.type === 'POINT') {
+    return {
+      title: lastEvent.point === 'home' ? 'POINT!' : 'CPU POINT',
+      detail: null,
+      side: lastEvent.point,
+    };
+  }
+
+  return null;
 }
 
 export function V3MatchScreen({ seed }: V3MatchScreenProps) {
@@ -234,6 +268,7 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
   const defensive = hud.phase === 'DEFENSE_READ' || hud.phase === 'RECEIVE_PREP';
   const canJump = isV3JumpControlEnabled(hud.phase, hud.controlledPlayerId);
   const canAttack = hud.phase === 'ATTACK_AIRBORNE';
+  const pointFeedback = getV3PointFeedback(hud.lastEvent, hud.time);
 
   return (
     <main
@@ -260,6 +295,17 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
           <small>{hud.forecastStage ?? hud.lastEvent?.type ?? hud.controlledPlayerId}</small>
         </div>
       </header>
+
+      {pointFeedback ? (
+        <div
+          className={`v3-point-feedback v3-point-feedback--${pointFeedback.side}`}
+          data-testid="v3-point-feedback"
+          aria-live="polite"
+        >
+          <strong>{pointFeedback.title}</strong>
+          {pointFeedback.detail ? <span>{pointFeedback.detail}</span> : null}
+        </div>
+      ) : null}
 
       <div className="v3-control-layer">
         <V3MovementPad onMove={handleMove} />
