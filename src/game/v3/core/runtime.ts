@@ -23,6 +23,7 @@ const SET_CONTACT_DELAY = 0.55;
 const ATTACKER_SWITCH_DELAY = 0.15;
 const JUMP_LEAD_AFTER_SET = 0.45;
 const ATTACK_CONTACT_AFTER_JUMP = 0.34;
+const JUMP_EARLY_EDGE_SECONDS = 0.3;
 const RECEIVE_PREP_IDEAL_LEAD = 0.24;
 const DIVE_EXTRA_REACH_METERS = 1.2;
 const DIVE_ALIGNMENT_MIN = 0.35;
@@ -451,12 +452,36 @@ export function stepV3Runtime(
     lastEvent = { type: 'SET', actorId: 'home-1' };
   }
 
-  if (input.jumpPressed && phase === 'ATTACK_APPROACH' && rally.idealJumpAt !== null) {
+  if (input.jumpPressed && rally.idealJumpAt !== null) {
+    const canQueueEarly =
+      phase === 'ATTACK_APPROACH' ||
+      (phase === 'SET_BUILDUP' && controlledPlayerId === 'home-0');
     const quality = resolveJumpTiming(source.time - rally.idealJumpAt);
-    if (quality !== 'MISS') {
+
+    if (phase === 'ATTACK_APPROACH' && quality !== 'MISS') {
       phase = 'ATTACK_AIRBORNE';
       rally = { ...rally, jumpQuality: quality };
+      bufferedAction = null;
       lastEvent = { type: 'JUMP', quality, actorId: controlledPlayerId };
+    } else if (canQueueEarly && source.time < rally.idealJumpAt - JUMP_EARLY_EDGE_SECONDS) {
+      bufferedAction = bufferAction('JUMP_BLOCK', source.time);
+    }
+  }
+
+  if (
+    phase === 'ATTACK_APPROACH' &&
+    rally.idealJumpAt !== null &&
+    bufferedAction?.kind === 'JUMP_BLOCK'
+  ) {
+    const earlyEdgeAt = rally.idealJumpAt - JUMP_EARLY_EDGE_SECONDS;
+    if (nextTime >= earlyEdgeAt && isBufferedActionActive(bufferedAction, earlyEdgeAt)) {
+      const quality = resolveJumpTiming(-JUMP_EARLY_EDGE_SECONDS);
+      phase = 'ATTACK_AIRBORNE';
+      rally = { ...rally, jumpQuality: quality };
+      bufferedAction = null;
+      lastEvent = { type: 'JUMP', quality, actorId: controlledPlayerId };
+    } else if (nextTime > bufferedAction.expiresAt) {
+      bufferedAction = null;
     }
   }
 
