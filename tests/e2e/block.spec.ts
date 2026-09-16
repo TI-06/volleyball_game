@@ -63,11 +63,11 @@ test('live controls align KAI and stuff a quick attack', async ({ page }, testIn
   // Opponent contact is at 0.95 s. Buffer BLOCK around 0.10 s early so the
   // result depends on anticipation and lateral alignment rather than a prompt.
   await advanceManualRally(page, 0.61);
+  const blockBox = await block.boundingBox();
+  if (!blockBox) throw new Error('BLOCK button has no bounding box');
   await page.touchscreen.tap(
-    ...(await block.boundingBox()).then((box) => {
-      if (!box) throw new Error('BLOCK button has no bounding box');
-      return [box.x + box.width / 2, box.y + box.height / 2] as const;
-    }),
+    blockBox.x + blockBox.width / 2,
+    blockBox.y + blockBox.height / 2,
   );
   await advanceManualRally(page, 0.02);
   await expect(screen).toHaveAttribute('data-v3-buffered-action', 'JUMP_BLOCK');
