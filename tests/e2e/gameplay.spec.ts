@@ -1,9 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page, type TestInfo } from '@playwright/test';
 
-test('production gameplay stays readable and separated on smartphone landscape', async ({ page }, testInfo) => {
-  test.setTimeout(45_000);
-  await page.goto('/?v3audit=1');
-
+async function expectCommonGameplaySurface(page: Page) {
   const screen = page.getByTestId('v3-match-screen');
   const scene = page.locator('.v3-scene-host canvas');
   const movement = page.getByTestId('v3-movement-pad');
@@ -11,7 +8,6 @@ test('production gameplay stays readable and separated on smartphone landscape',
   const dive = page.getByRole('button', { name: 'DIVE' });
   const jump = page.getByRole('button', { name: 'JUMP' });
   const attack = page.getByTestId('v3-attack-pad');
-  const score = page.locator('.v3-score');
 
   await expect(screen).toBeVisible();
   await expect(scene).toBeVisible();
@@ -22,10 +18,28 @@ test('production gameplay stays readable and separated on smartphone landscape',
   await expect(attack).toBeVisible();
   await expect(page.getByText('VOLLEYBALL')).toBeVisible();
   await expect(page.getByText('GAMEPLAY V3')).toHaveCount(0);
+
+  return { movement, action, dive, jump, attack };
+}
+
+async function captureAuditFrame(page: Page, testInfo: TestInfo, scenario: string) {
+  await page.screenshot({
+    path: `test-results/gameplay-visual-audit/${testInfo.project.name}-${scenario}.png`,
+    fullPage: true,
+  });
+}
+
+test('production gameplay stays readable and separated on smartphone landscape', async ({ page }, testInfo) => {
+  test.setTimeout(45_000);
+  await page.goto('/?v3audit=initial');
+
+  const { movement, action, dive, jump, attack } = await expectCommonGameplaySurface(page);
+  const score = page.locator('.v3-score');
+
   await expect(page.getByText('DEFENSE READ')).toBeVisible();
   await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
 
-  await page.waitForTimeout(2400);
+  await page.waitForTimeout(600);
   await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
   await expect(page.getByText('DEFENSE READ')).toBeVisible();
 
@@ -66,8 +80,33 @@ test('production gameplay stays readable and separated on smartphone landscape',
     expect(attackBox.y + attackBox.height).toBeLessThanOrEqual(viewport.height - 6);
   }
 
-  await page.screenshot({
-    path: `test-results/gameplay-visual-audit/${testInfo.project.name}-initial-read.png`,
-    fullPage: true,
-  });
+  await captureAuditFrame(page, testInfo, 'initial');
+});
+
+test('action audit frames expose receive set and spike states', async ({ page }, testInfo) => {
+  test.setTimeout(45_000);
+
+  const scenarios = [
+    { name: 'receive', phase: 'SET BUILDUP' },
+    { name: 'set', phase: 'ATTACK APPROACH' },
+    { name: 'spike', phase: 'ATTACK AIRBORNE' },
+  ] as const;
+
+  for (const scenario of scenarios) {
+    await page.goto(`/?v3audit=${scenario.name}`);
+    const { jump, attack } = await expectCommonGameplaySurface(page);
+    await expect(page.getByText(scenario.phase)).toBeVisible();
+    await expect(page.locator('.v3-score')).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
+
+    if (scenario.name === 'set') {
+      await expect(jump).toBeEnabled();
+    }
+    if (scenario.name === 'spike') {
+      await expect(attack).toHaveClass(/is-ready/);
+    }
+
+    await page.waitForTimeout(250);
+    await expect(page.getByText(scenario.phase)).toBeVisible();
+    await captureAuditFrame(page, testInfo, scenario.name);
+  }
 });
