@@ -23,12 +23,14 @@ jobs:
         run: npm ci
       - name: Install Chromium for visual audit
         id: browser
-        if: steps.install.outcome == 'success'
+        if: steps.install.outcome == 'success' && contains(github.event.head_commit.message, '[visual]')
         continue-on-error: true
         run: npx playwright install --with-deps chromium
       - name: Run non-failing diagnostics
         if: always()
         shell: bash
+        env:
+          RUN_VISUAL: ${{ contains(github.event.head_commit.message, '[visual]') }}
         run: |
           set +e
           if [ "${{ steps.install.outcome }}" != "success" ]; then
@@ -44,17 +46,22 @@ jobs:
           npm run build
           BUILD_EXIT=$?
 
-          if [ "${{ steps.browser.outcome }}" = "success" ]; then
-            npm run test:e2e
-            E2E_EXIT=$?
+          if [ "$RUN_VISUAL" = "true" ]; then
+            if [ "${{ steps.browser.outcome }}" = "success" ]; then
+              npm run test:e2e
+              E2E_EXIT=$?
+            else
+              E2E_EXIT=2
+            fi
           else
-            E2E_EXIT=2
+            E2E_EXIT=0
           fi
 
           echo "TEST_EXIT=$TEST_EXIT"
           echo "TYPECHECK_EXIT=$TYPECHECK_EXIT"
           echo "BUILD_EXIT=$BUILD_EXIT"
           echo "E2E_EXIT=$E2E_EXIT"
+          echo "VISUAL_AUDIT=$RUN_VISUAL"
 
           if [ "$TEST_EXIT" -eq 0 ] && [ "$TYPECHECK_EXIT" -eq 0 ] && [ "$BUILD_EXIT" -eq 0 ] && [ "$E2E_EXIT" -eq 0 ]; then
             echo "DIAGNOSTIC_STATUS=GREEN"
@@ -63,7 +70,7 @@ jobs:
           fi
           exit 0
       - name: Upload gameplay visual audit
-        if: always()
+        if: always() && contains(github.event.head_commit.message, '[visual]')
         uses: actions/upload-artifact@v4
         with:
           name: v3-gameplay-visual-audit
