@@ -39,7 +39,7 @@ test('production gameplay stays readable and separated on smartphone landscape',
   await expect(page.getByText('DEFENSE READ')).toBeVisible();
   await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
 
-  await page.waitForTimeout(600);
+  await page.waitForTimeout(500);
   await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
   await expect(page.getByText('DEFENSE READ')).toBeVisible();
 
@@ -83,18 +83,18 @@ test('production gameplay stays readable and separated on smartphone landscape',
   await captureAuditFrame(page, testInfo, 'initial');
 });
 
-test('action audit frames expose receive set and spike states', async ({ page }, testInfo) => {
-  test.setTimeout(45_000);
+const actionAuditCases = [
+  { name: 'receive', phase: 'SET BUILDUP' },
+  { name: 'set', phase: 'ATTACK APPROACH' },
+  { name: 'spike', phase: 'ATTACK AIRBORNE' },
+] as const;
 
-  const scenarios = [
-    { name: 'receive', phase: 'SET BUILDUP' },
-    { name: 'set', phase: 'ATTACK APPROACH' },
-    { name: 'spike', phase: 'ATTACK AIRBORNE' },
-  ] as const;
-
-  for (const scenario of scenarios) {
+for (const scenario of actionAuditCases) {
+  test(`action audit frame: ${scenario.name}`, async ({ page }, testInfo) => {
+    test.setTimeout(45_000);
     await page.goto(`/?v3audit=${scenario.name}`);
     const { jump, attack } = await expectCommonGameplaySurface(page);
+
     await expect(page.getByText(scenario.phase)).toBeVisible();
     await expect(page.locator('.v3-score')).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
 
@@ -105,8 +105,10 @@ test('action audit frames expose receive set and spike states', async ({ page },
       await expect(attack).toHaveClass(/is-ready/);
     }
 
-    await page.waitForTimeout(250);
+    // Simulation remains frozen while the articulated character pose has time
+    // to reach a readable action frame.
+    await page.waitForTimeout(320);
     await expect(page.getByText(scenario.phase)).toBeVisible();
     await captureAuditFrame(page, testInfo, scenario.name);
-  }
-});
+  });
+}
