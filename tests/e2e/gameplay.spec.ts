@@ -1,4 +1,4 @@
-import { expect, test, type Page, type TestInfo } from '@playwright/test';
+import { expect, test, type Locator, type Page, type TestInfo } from '@playwright/test';
 
 async function expectCommonGameplaySurface(page: Page) {
   const screen = page.getByTestId('v3-match-screen');
@@ -41,6 +41,20 @@ async function readRuntimeDebug(page: Page) {
     lastEvent: element.getAttribute('data-v3-last-event'),
     phase: element.getAttribute('data-v3-rally-phase'),
   }));
+}
+
+async function locatorCenter(locator: Locator) {
+  const box = await locator.boundingBox();
+  expect(box).not.toBeNull();
+  if (!box) throw new Error('expected control to have a bounding box');
+  return { x: box.x + box.width / 2, y: box.y + box.height / 2, box };
+}
+
+async function waitForGameTime(page: Page, minimum: number, timeout = 2_000) {
+  const screen = page.getByTestId('v3-match-screen');
+  await expect
+    .poll(async () => Number(await screen.getAttribute('data-v3-time')), { timeout })
+    .toBeGreaterThanOrEqual(minimum);
 }
 
 test('production gameplay stays readable and separated on smartphone landscape', async ({ page }, testInfo) => {
@@ -131,6 +145,7 @@ test('live touch controls complete a full receive-set-jump-spike rally', async (
   test.setTimeout(45_000);
   await page.goto('/');
 
+  const screen = page.getByTestId('v3-match-screen');
   const movement = page.getByTestId('v3-movement-pad');
   const action = page.getByRole('button', { name: 'ACTION' });
   const jump = page.getByRole('button', { name: 'JUMP' });
@@ -140,59 +155,77 @@ test('live touch controls complete a full receive-set-jump-spike rally', async (
   await expect(page.getByText('DEFENSE READ')).toBeVisible();
   await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
 
-  // Synchronize against the deterministic read stages rather than wall-clock
-  // time from page.goto(), which includes device-dependent WebGL startup.
-  await expect(page.getByText('APPROACH_READ')).toBeVisible({ timeout: 1_000 });
+  // Resolve all control coordinates while the new startup-readiness window is
+  // holding the first rally at t=0. Timing-sensitive taps later use raw touch
+  // coordinates instead of Locator.click(), which can consume >1 game second.
+  const movementCenter = await locatorCenter(movement);
+  const actionCenter = await locatorCenter(action);
+  const jumpCenter = await locatorCenter(jump);
+  const attackCenter = await locatorCenter(attack);
+  const cdp = await page.context().newCDPSession(page);
 
-  // Seed 73 lands just in front of HINA. Move toward the forecast using the
-  // actual virtual stick so this verifies direct 2D touch movement as part of
-  // the rally instead of relying on a static starting position.
-  const movementBox = await movement.boundingBox();
-  expect(movementBox).not.toBeNull();
-  if (!movementBox) return;
-  const moveX = movementBox.x + movementBox.width / 2;
-  const moveY = movementBox.y + movementBox.height / 2;
-  await page.mouse.move(moveX, moveY);
-  await page.mouse.down();
-  await page.mouse.move(moveX, moveY - 40);
-  await page.waitForTimeout(150);
-  await page.mouse.up();
+  try {
+    // The first rally must still be untouched when controls are ready.
+    expect((await readRuntimeDebug(page)).lastEvent).not.toBe('POINT');
 
-  await expect(page.getByText('FLIGHT_CONFIRMED')).toBeVisible({ timeout: 1_000 });
+    await expect(page.getByText('APPROACH_READ')).toBeVisible({ timeout: 3_000 });
 
-  // Diagnostic snapshots intentionally stay invisible to players. They let this
-  // test distinguish timing/input failures from receive-position failures.
-  console.log('V3_LIVE_DEBUG before-wait', await readRuntimeDebug(page));
-  await page.waitForTimeout(600);
-  console.log('V3_LIVE_DEBUG before-action', await readRuntimeDebug(page));
-  await action.click();
-  await page.waitForTimeout(100);
-  console.log('V3_LIVE_DEBUG after-action', await readRuntimeDebug(page));
-  await expect(page.getByText('SET BUILDUP')).toBeVisible({ timeout: 1_000 });
+    const beforeMove = await readRuntimeDebug(page);
+    const beforeZ = Number(beforeMove.controlledZ);
 
-  // REN sets automatically for this first slice, then control moves to KAI.
-  await expect(page.getByText('ATTACK APPROACH')).toBeVisible({ timeout: 1_000 });
-  await expect(jump).toBeEnabled();
+    // Real touch drag on the 2D stick: seed 73 lands ~0.6m in front of HINA.
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [{ x: movementCenter.x, y: movementCenter.y, id: 1 }],
+    });
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x: movementCenter.x, y: movementCenter.y - 48, id: 1 }],
+    });
+    await page.waitForTimeout(160);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await page.waitForTimeout(90);
 
-  // The ideal jump is about 450 ms after set contact. HUD updates every 80 ms,
-  // so ~300 ms after ATTACK APPROACH lands inside the forgiving GOOD/PERFECT window.
-  await page.waitForTimeout(300);
-  await jump.click();
-  await expect(page.getByText('ATTACK AIRBORNE')).toBeVisible({ timeout: 700 });
-  await expect(attack).toHaveClass(/is-ready/);
+    const afterMove = await readRuntimeDebug(page);
+    expect(Number(afterMove.controlledZ)).toBeGreaterThan(beforeZ + 0.25);
+    expect(afterMove.lastEvent).not.toBe('POINT');
 
-  // Upward swipe = POWER. Seed 73 with a successful jump deterministically wins
-  // this rally, proving that the real screen input path reaches score/reset.
-  const attackBox = await attack.boundingBox();
-  expect(attackBox).not.toBeNull();
-  if (!attackBox) return;
-  const attackX = attackBox.x + attackBox.width / 2;
-  const attackY = attackBox.y + attackBox.height * 0.72;
-  await page.mouse.move(attackX, attackY);
-  await page.mouse.down();
-  await page.mouse.move(attackX, attackY - 90);
-  await page.mouse.up();
+    await expect(page.getByText('FLIGHT_CONFIRMED')).toBeVisible({ timeout: 1_500 });
 
-  await expect(score).toHaveAttribute('aria-label', 'PLAYER 1 CPU 0', { timeout: 1_000 });
-  await expect(page.getByText('DEFENSE READ')).toBeVisible();
+    // Contact is t=1.95. Tapping near t=1.62 leaves the 450ms input buffer
+    // active through contact while producing a normal GOOD/PERFECT receive.
+    await waitForGameTime(page, 1.62, 1_500);
+    await page.touchscreen.tap(actionCenter.x, actionCenter.y);
+    await expect(page.getByText('RECEIVE PREP')).toBeVisible({ timeout: 300 });
+    await expect(page.getByText('SET BUILDUP')).toBeVisible({ timeout: 700 });
+    expect((await readRuntimeDebug(page)).lastEvent).toBe('RECEIVE');
+
+    // REN sets automatically, then control moves to KAI. Ideal jump is t=2.95.
+    await expect(page.getByText('ATTACK APPROACH')).toBeVisible({ timeout: 900 });
+    await expect(jump).toBeEnabled();
+    await waitForGameTime(page, 2.84, 900);
+    await page.touchscreen.tap(jumpCenter.x, jumpCenter.y);
+    await expect(page.getByText('ATTACK AIRBORNE')).toBeVisible({ timeout: 350 });
+    await expect(attack).toHaveClass(/is-ready/);
+
+    // Real upward touch swipe = POWER. Successful seed-73 attack must score and
+    // reset into the next defensive read, proving the complete screen input path.
+    const attackStartY = attackCenter.box.y + attackCenter.box.height * 0.72;
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [{ x: attackCenter.x, y: attackStartY, id: 2 }],
+    });
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x: attackCenter.x, y: attackStartY - 90, id: 2 }],
+    });
+    await page.waitForTimeout(32);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+
+    await expect(score).toHaveAttribute('aria-label', 'PLAYER 1 CPU 0', { timeout: 500 });
+    await expect(page.getByText('DEFENSE READ')).toBeVisible();
+    await expect(screen).toHaveAttribute('data-v3-last-event', 'ATTACK');
+  } finally {
+    await cdp.detach();
+  }
 });
