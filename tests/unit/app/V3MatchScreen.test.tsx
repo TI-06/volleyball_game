@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   V3MatchScreen,
+  getV3PointFeedback,
   isV3JumpControlEnabled,
 } from '../../../src/app/screens/V3MatchScreen';
 
@@ -31,6 +32,39 @@ describe('V3MatchScreen', () => {
     expect(isV3JumpControlEnabled('SET_BUILDUP', 'home-2')).toBe(false);
     expect(isV3JumpControlEnabled('ATTACK_APPROACH', 'home-0')).toBe(true);
     expect(isV3JumpControlEnabled('ATTACK_AIRBORNE', 'home-0')).toBe(false);
+  });
+
+  it('shows a short point beat only for scoring events', () => {
+    expect(
+      getV3PointFeedback(
+        {
+          type: 'ATTACK',
+          quality: 'GOOD',
+          intent: 'POWER',
+          actorId: 'home-0',
+          point: 'home',
+        },
+        0.2,
+      ),
+    ).toEqual({ title: 'POINT!', detail: 'POWER', side: 'home' });
+    expect(getV3PointFeedback({ type: 'POINT', point: 'away' }, 0.3)).toEqual({
+      title: 'CPU POINT',
+      detail: null,
+      side: 'away',
+    });
+    expect(getV3PointFeedback({ type: 'SET', actorId: 'home-1' }, 0.2)).toBeNull();
+    expect(
+      getV3PointFeedback(
+        {
+          type: 'ATTACK',
+          quality: 'GOOD',
+          intent: 'CROSS',
+          actorId: 'home-0',
+          point: 'home',
+        },
+        0.8,
+      ),
+    ).toBeNull();
   });
 
   it('freezes the requested local set audit state in the HUD', () => {
