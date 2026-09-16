@@ -10,6 +10,7 @@ import {
 } from '../../game/v3/core/runtime';
 import {
   createV3VisualAuditState,
+  isV3ManualE2EMode,
   parseV3VisualAuditScenario,
   type V3VisualAuditScenario,
 } from '../../game/v3/presentation/visualAuditScenario';
@@ -37,6 +38,8 @@ interface V3HudState {
 }
 
 const V3_STARTUP_HOLD_SECONDS = 1.25;
+const V3_MANUAL_ADVANCE_EVENT = 'v3:e2e-advance';
+const V3_MAX_MANUAL_ADVANCE_SECONDS = 5;
 
 const PHASE_LABEL: Record<V3RallyPhase, string> = {
   DEFENSE_READ: 'DEFENSE READ',
@@ -54,6 +57,11 @@ function createInput(): V3RuntimeInput {
 function currentVisualAuditScenario(): V3VisualAuditScenario | null {
   if (typeof window === 'undefined') return null;
   return parseV3VisualAuditScenario(window.location.hostname, window.location.search);
+}
+
+function currentManualE2EMode(): boolean {
+  if (typeof window === 'undefined') return false;
+  return isV3ManualE2EMode(window.location.hostname, window.location.search);
 }
 
 function createInitialRuntime(seed: number): V3RuntimeState {
@@ -79,6 +87,13 @@ function toHud(runtime: V3RuntimeState): V3HudState {
   };
 }
 
+function clearOneShotInput(input: V3RuntimeInput): void {
+  input.actionPressed = false;
+  input.divePressed = false;
+  input.jumpPressed = false;
+  input.attackGesture = null;
+}
+
 export function V3MatchScreen({ seed }: V3MatchScreenProps) {
   const sceneHostRef = useRef<HTMLDivElement | null>(null);
   const runtimeRef = useRef<V3RuntimeState>(createInitialRuntime(seed));
@@ -95,6 +110,7 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
   useEffect(() => {
     const auditScenario = currentVisualAuditScenario();
     const visualAudit = auditScenario !== null;
+    const manualE2E = currentManualE2EMode();
     let runtime = auditScenario ? createV3VisualAuditState(auditScenario, seed) : createV3Runtime(seed);
     runtimeRef.current = runtime;
     inputRef.current = createInput();
@@ -110,11 +126,36 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
     let hudAccumulator = 0;
     let startupHoldRemaining = V3_STARTUP_HOLD_SECONDS;
 
+    const advanceRuntime = (seconds: number) => {
+      let remaining = Math.min(
+        V3_MAX_MANUAL_ADVANCE_SECONDS,
+        Math.max(0, Number.isFinite(seconds) ? seconds : 0),
+      );
+      while (remaining > 0.000001) {
+        const dt = Math.min(V3_FIXED_STEP_SECONDS, remaining);
+        runtime = stepV3Runtime(runtime, inputRef.current, dt);
+        clearOneShotInput(inputRef.current);
+        remaining -= dt;
+      }
+      runtimeRef.current = runtime;
+      syncHud(runtime);
+      scene.update(runtime, 0);
+    };
+
+    const handleManualAdvance = (event: Event) => {
+      const seconds = Number((event as CustomEvent<number>).detail);
+      advanceRuntime(seconds);
+    };
+
+    if (manualE2E) {
+      window.addEventListener(V3_MANUAL_ADVANCE_EVENT, handleManualAdvance);
+    }
+
     const frame = (now: number) => {
       const delta = Math.min(0.05, Math.max(0, (now - lastTime) / 1000));
       lastTime = now;
 
-      if (!visualAudit) {
+      if (!visualAudit && !manualE2E) {
         if (startupHoldRemaining > 0) {
           startupHoldRemaining = Math.max(0, startupHoldRemaining - delta);
         } else {
@@ -123,20 +164,17 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
 
           while (accumulator >= V3_FIXED_STEP_SECONDS) {
             runtime = stepV3Runtime(runtime, inputRef.current, V3_FIXED_STEP_SECONDS);
-            inputRef.current.actionPressed = false;
-            inputRef.current.divePressed = false;
-            inputRef.current.jumpPressed = false;
-            inputRef.current.attackGesture = null;
+            clearOneShotInput(inputRef.current);
             accumulator -= V3_FIXED_STEP_SECONDS;
           }
         }
       }
 
       runtimeRef.current = runtime;
-      // Audit scenarios freeze simulation state, but presentation time keeps moving
-      // so RECEIVE / SET / SPIKE can be inspected at a readable action pose.
+      // Audit/manual scenarios can freeze simulation state while presentation
+      // time keeps moving so articulated poses remain visible and testable.
       scene.update(runtime, delta);
-      if (!visualAudit && startupHoldRemaining <= 0 && hudAccumulator >= 0.08) {
+      if (!visualAudit && !manualE2E && startupHoldRemaining <= 0 && hudAccumulator >= 0.08) {
         syncHud(runtime);
         hudAccumulator = 0;
       }
@@ -146,6 +184,9 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
     animationFrame = window.requestAnimationFrame(frame);
     return () => {
       window.cancelAnimationFrame(animationFrame);
+      if (manualE2E) {
+        window.removeEventListener(V3_MANUAL_ADVANCE_EVENT, handleManualAdvance);
+      }
       scene.dispose();
     };
   }, [seed, syncHud]);
