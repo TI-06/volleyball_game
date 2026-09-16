@@ -88,18 +88,26 @@ function runPose(t: number): V3RigPose {
 
 function receivePose(t: number): V3RigPose {
   const pose = basePose();
-  const settle = 0.9 + Math.sin(t * Math.PI) * 0.1;
-  pose.rootOffset.y = -0.26 * settle;
-  pose.torso.x = 0.58;
-  pose.head.x = -0.26;
-  pose.leftUpperArm = euler(-0.95, 0, -0.3);
-  pose.rightUpperArm = euler(-0.95, 0, 0.3);
-  pose.leftForearm = euler(-0.42, 0, 0.18);
-  pose.rightForearm = euler(-0.42, 0, -0.18);
-  pose.leftThigh.x = 0.48;
-  pose.rightThigh.x = 0.48;
-  pose.leftShin.x = -0.68;
-  pose.rightShin.x = -0.68;
+  const settle = 0.94 + Math.sin(t * Math.PI) * 0.06;
+  pose.rootOffset.y = -0.37 * settle;
+  pose.torso.x = 0.8;
+  pose.head.x = -0.34;
+
+  // Keep both shoulders forward and close the arms toward the center so the
+  // forearms read as one passing platform even from the gameplay camera.
+  pose.leftUpperArm = euler(-1.2, 0, 0.24);
+  pose.rightUpperArm = euler(-1.2, 0, -0.24);
+  pose.leftForearm = euler(-0.14, 0, 0.04);
+  pose.rightForearm = euler(-0.14, 0, -0.04);
+
+  // A deliberately deep volleyball stance keeps RECEIVE visually distinct
+  // from READY at mobile gameplay distance.
+  pose.leftThigh.x = 0.8;
+  pose.rightThigh.x = 0.8;
+  pose.leftThigh.z = 0.08;
+  pose.rightThigh.z = -0.08;
+  pose.leftShin.x = -1.04;
+  pose.rightShin.x = -1.04;
   return pose;
 }
 
@@ -169,13 +177,23 @@ function spikePose(t: number): V3RigPose {
   const pose = jumpPose(Math.min(0.58, Math.max(0.18, t)));
   const swing = smoothstep((t - 0.25) / 0.48);
   const snap = smoothstep((t - 0.55) / 0.25);
+  const airborneCurl = Math.sin(Math.PI * clamp01(t));
+
+  // Track with the off arm while the hitting arm draws back, then whip through.
   pose.leftUpperArm = euler(-1.05, 0, -0.32);
   pose.leftForearm = euler(-0.5, 0, 0);
   pose.rightUpperArm = euler(lerp(0.78, -2.38, swing), 0, 0.2);
   pose.rightForearm = euler(lerp(-1.15, -0.12, snap), 0, 0);
-  pose.torso.x = lerp(-0.12, 0.28, snap);
+
+  // Arch the chest in the windup and fold both legs underneath the body. The
+  // stronger knee tuck makes the airborne silhouette readable on a phone.
+  pose.torso.x = lerp(-0.22, 0.28, snap);
   pose.torso.y = lerp(0.42, -0.38, swing);
   pose.head.y = pose.torso.y * -0.2;
+  pose.leftThigh.x = 0.28 + airborneCurl * 0.1;
+  pose.rightThigh.x = 0.22 + airborneCurl * 0.08;
+  pose.leftShin.x = -0.84 - airborneCurl * 0.18;
+  pose.rightShin.x = -0.8 - airborneCurl * 0.16;
   return pose;
 }
 
