@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { ReworkCourtView } from '../../rework/render/ReworkCourtView';
-import type { V3PlayerState } from '../types';
 import type { V3RuntimeState } from '../core/runtime';
+import type { V3PlayerState } from '../types';
 import { getReadableBallScale } from './ballReadability';
 import { getV3CameraPose } from './camera';
+import { V3CourtView } from './V3CourtView';
 
 const MAX_PIXEL_RATIO = 1.5;
 const BALL_RADIUS = 0.17;
@@ -106,7 +106,7 @@ export class V3Scene {
   private readonly scene = new THREE.Scene();
   private readonly renderer: THREE.WebGLRenderer;
   private readonly camera = new THREE.PerspectiveCamera(54, 16 / 9, 0.1, 90);
-  private readonly court = new ReworkCourtView();
+  private readonly court = new V3CourtView();
   private readonly avatars = new Map<string, V3Avatar>();
   private readonly ball: THREE.Mesh;
   private readonly forecast: THREE.Mesh;
@@ -184,11 +184,7 @@ export class V3Scene {
       }
     }
 
-    this.ball.position.set(
-      state.ball.position.x,
-      state.ball.position.y,
-      state.ball.position.z,
-    );
+    this.ball.position.set(state.ball.position.x, state.ball.position.y, state.ball.position.z);
 
     if (state.forecast) {
       this.forecast.visible = true;
