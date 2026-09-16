@@ -46,6 +46,11 @@ export interface V3PointFeedback {
   side: 'home' | 'away';
 }
 
+export interface V3PhasePresentation {
+  label: string;
+  detail: string;
+}
+
 const V3_STARTUP_HOLD_SECONDS = 1.25;
 const V3_MANUAL_ADVANCE_EVENT = 'v3:e2e-advance';
 const V3_MAX_MANUAL_ADVANCE_SECONDS = 5;
@@ -114,6 +119,35 @@ export function isV3JumpControlEnabled(
     phase === 'ATTACK_APPROACH' ||
     (phase === 'SET_BUILDUP' && controlledPlayerId === 'home-0')
   );
+}
+
+export function getV3PhasePresentation(
+  phase: V3RallyPhase,
+  defenseKind: V3DefenseKind,
+  lastEvent: V3RuntimeEvent | null,
+  forecastStage: string | null,
+  controlledPlayerId: string,
+): V3PhasePresentation {
+  const blockRead = defenseKind === 'BLOCK' && phase === 'DEFENSE_READ';
+  const coverBlock =
+    defenseKind === 'RECEIVE' &&
+    phase === 'DEFENSE_READ' &&
+    lastEvent?.type === 'BLOCK' &&
+    lastEvent.result !== 'STUFF'
+      ? lastEvent
+      : null;
+
+  if (coverBlock) {
+    return {
+      label: 'COVER READ',
+      detail: `${coverBlock.result} · HINA COVER`,
+    };
+  }
+
+  return {
+    label: blockRead ? 'BLOCK READ' : PHASE_LABEL[phase],
+    detail: forecastStage ?? lastEvent?.type ?? controlledPlayerId,
+  };
 }
 
 export function getV3PointFeedback(
@@ -294,7 +328,13 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
   const canJump = blockRead || isV3JumpControlEnabled(hud.phase, hud.controlledPlayerId);
   const canAttack = hud.phase === 'ATTACK_AIRBORNE';
   const pointFeedback = getV3PointFeedback(hud.lastEvent, hud.time);
-  const phaseLabel = blockRead ? 'BLOCK READ' : PHASE_LABEL[hud.phase];
+  const phasePresentation = getV3PhasePresentation(
+    hud.phase,
+    hud.defenseKind,
+    hud.lastEvent,
+    hud.forecastStage,
+    hud.controlledPlayerId,
+  );
 
   return (
     <main
@@ -319,8 +359,8 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
           {hud.home} - {hud.away}
         </strong>
         <div className="v3-phase">
-          <strong>{phaseLabel}</strong>
-          <small>{hud.forecastStage ?? hud.lastEvent?.type ?? hud.controlledPlayerId}</small>
+          <strong>{phasePresentation.label}</strong>
+          <small>{phasePresentation.detail}</small>
         </div>
       </header>
 
