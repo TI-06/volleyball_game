@@ -1,0 +1,50 @@
+import { describe, expect, it } from 'vitest';
+import { createV3CharacterRig } from '../../../../src/game/v3/render/character/V3CharacterRig';
+import { profileFor } from '../../../../src/game/v3/render/character/characterProfiles';
+import { sampleV3Pose } from '../../../../src/game/v3/render/character/V3PoseLibrary';
+
+describe('V3CharacterRig', () => {
+  it('builds a named articulated volleyball body rather than a single capsule avatar', () => {
+    const rig = createV3CharacterRig(profileFor('kai'));
+
+    expect(rig.root.name).toContain('kai');
+    expect(rig.joints.torso).toBeDefined();
+    expect(rig.joints.head).toBeDefined();
+    expect(rig.joints.leftUpperArm).toBeDefined();
+    expect(rig.joints.leftForearm).toBeDefined();
+    expect(rig.joints.rightUpperArm).toBeDefined();
+    expect(rig.joints.rightForearm).toBeDefined();
+    expect(rig.joints.leftThigh).toBeDefined();
+    expect(rig.joints.leftShin).toBeDefined();
+    expect(rig.joints.rightThigh).toBeDefined();
+    expect(rig.joints.rightShin).toBeDefined();
+    expect(rig.meshCount).toBeGreaterThanOrEqual(18);
+
+    rig.dispose();
+  });
+
+  it('applies volleyball poses to independent joints', () => {
+    const rig = createV3CharacterRig(profileFor('kai'));
+    const spike = sampleV3Pose('SPIKE', 0.72, 'home');
+
+    rig.applyPose(spike);
+
+    expect(rig.joints.rightUpperArm.rotation.x).toBeCloseTo(spike.rightUpperArm.x, 5);
+    expect(rig.joints.rightForearm.rotation.x).toBeCloseTo(spike.rightForearm.x, 5);
+    expect(rig.joints.torso.rotation.y).toBeCloseTo(spike.torso.y, 5);
+    expect(rig.poseRoot.position.y).toBeCloseTo(spike.rootOffset.y, 5);
+
+    rig.dispose();
+  });
+
+  it('keeps the focus marker independent from the animated body', () => {
+    const rig = createV3CharacterRig(profileFor('hina'));
+
+    rig.setFocus(false);
+    expect(rig.focusRing.visible).toBe(false);
+    rig.setFocus(true);
+    expect(rig.focusRing.visible).toBe(true);
+
+    rig.dispose();
+  });
+});
