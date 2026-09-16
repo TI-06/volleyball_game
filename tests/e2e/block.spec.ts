@@ -17,9 +17,9 @@ async function runtimeDebug(page: Page) {
   }));
 }
 
-async function captureBlockFrame(page: Page, testInfo: TestInfo) {
+async function captureBlockFrame(page: Page, testInfo: TestInfo, frame: string) {
   await page.screenshot({
-    path: `test-results/gameplay-visual-audit/${testInfo.project.name}-stuff-block.png`,
+    path: `test-results/gameplay-visual-audit/${testInfo.project.name}-${frame}.png`,
     fullPage: true,
   });
 }
@@ -71,6 +71,7 @@ test('live controls align KAI and stuff a quick attack', async ({ page }, testIn
   );
   await advanceManualRally(page, 0.02);
   await expect(screen).toHaveAttribute('data-v3-buffered-action', 'JUMP_BLOCK');
+  await captureBlockFrame(page, testInfo, 'block-takeoff');
 
   await advanceManualRally(page, 0.1);
   await expect(score).toHaveAttribute('aria-label', 'PLAYER 1 CPU 0');
@@ -78,5 +79,5 @@ test('live controls align KAI and stuff a quick attack', async ({ page }, testIn
   await expect(page.getByTestId('v3-point-feedback')).toContainText('POINT!');
   await expect(page.getByTestId('v3-point-feedback')).toContainText('STUFF BLOCK');
 
-  await captureBlockFrame(page, testInfo);
+  await captureBlockFrame(page, testInfo, 'stuff-block');
 });
