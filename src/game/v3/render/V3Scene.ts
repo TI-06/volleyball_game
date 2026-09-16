@@ -6,6 +6,7 @@ import type { V3Vec2 } from '../types';
 import { getReadableBallScale } from './ballReadability';
 import { getV3CameraPose } from './camera';
 import { V3CourtView } from './V3CourtView';
+import { getV3PlayerFacingRotation } from './character/characterFacing';
 import { createV3CharacterRig, type V3CharacterRig } from './character/V3CharacterRig';
 import { sampleV3Pose } from './character/V3PoseLibrary';
 import { profileFor } from './character/characterProfiles';
@@ -54,7 +55,7 @@ export class V3Scene {
     for (const player of initialState.players) {
       const rig = createV3CharacterRig(profileFor(player.characterId));
       rig.root.position.set(player.position.x, 0, player.position.z);
-      rig.root.rotation.y = player.side === 'home' ? 0 : Math.PI;
+      rig.root.rotation.y = getV3PlayerFacingRotation(player.side);
       rig.setFocus(player.id === initialState.controlledPlayerId);
       rig.applyPose(sampleV3Pose('READY', 0, player.side));
       this.avatars.set(player.id, {
@@ -122,7 +123,7 @@ export class V3Scene {
       });
 
       avatar.rig.root.position.set(player.position.x, 0, player.position.z);
-      avatar.rig.root.rotation.y = player.side === 'home' ? 0 : Math.PI;
+      avatar.rig.root.rotation.y = getV3PlayerFacingRotation(player.side);
       avatar.rig.setFocus(player.id === state.controlledPlayerId);
       avatar.rig.applyPose(sampleV3Pose(presentation.motion, presentation.normalizedTime, player.side));
 
