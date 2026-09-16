@@ -6,17 +6,16 @@ afterEach(() => {
   window.history.replaceState({}, '', '/');
 });
 
-describe('Gameplay V3 prototype route', () => {
-  it('opens the isolated V3 prototype only when ?v3=1 is present', () => {
-    window.history.replaceState({}, '', '/?v3=1');
+describe('Gameplay V3 main route', () => {
+  it('launches Gameplay V3 at the normal root URL', () => {
+    window.history.replaceState({}, '', '/');
     render(<App />);
     expect(screen.getByTestId('v3-match-screen')).toBeInTheDocument();
   });
 
-  it('keeps the normal title flow unchanged without the prototype flag', () => {
-    window.history.replaceState({}, '', '/');
+  it('does not require the old ?v3=1 prototype flag', () => {
+    window.history.replaceState({}, '', '/?anything=1');
     render(<App />);
-    expect(screen.queryByTestId('v3-match-screen')).not.toBeInTheDocument();
-    expect(screen.getByText('VOLLEYBALL')).toBeInTheDocument();
+    expect(screen.getByTestId('v3-match-screen')).toBeInTheDocument();
   });
 });
