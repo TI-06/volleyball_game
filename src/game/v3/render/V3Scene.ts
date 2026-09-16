@@ -118,7 +118,7 @@ export class V3Scene {
         previousMotion: avatar.motion,
         previousMotionAge: avatar.motionAge,
         runtimeTime: state.time,
-        attackContactAt: state.attackContactAt,
+        attackContactAt: state.rally.attackContactAt,
       });
 
       avatar.rig.root.position.set(player.position.x, 0, player.position.z);
