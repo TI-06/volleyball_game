@@ -180,17 +180,20 @@ function spikePose(t: number): V3RigPose {
   const snap = smoothstep((t - 0.55) / 0.25);
   const airborneCurl = Math.sin(Math.PI * clamp01(t));
 
-  // Track with the off arm while the hitting arm draws back, then whip through.
+  // Track with the off arm. The hitting shoulder opens laterally and the
+  // forearm folds sharply at the elbow during the windup, then both unwind
+  // into a long reaching arm at contact. This produces the unmistakable
+  // volleyball "bow-and-arrow" silhouette instead of a generic raised hand.
   pose.leftUpperArm = euler(-1.05, 0, -0.32);
   pose.leftForearm = euler(-0.5, 0, 0);
-  pose.rightUpperArm = euler(lerp(0.78, -2.38, swing), 0, 0.2);
-  pose.rightForearm = euler(lerp(-1.15, -0.12, snap), 0, 0);
+  pose.rightUpperArm = euler(lerp(0.35, -2.38, swing), 0, lerp(1.25, 0.12, swing));
+  pose.rightForearm = euler(lerp(-0.35, -0.12, snap), 0, lerp(2.15, 0.08, swing));
 
   // A small extra lift plus a rear-camera leg split makes the airborne state
   // unmistakable without changing rally physics or collision positions.
   pose.rootOffset.y += 0.14;
   pose.torso.x = lerp(-0.22, 0.28, snap);
-  pose.torso.y = lerp(0.42, -0.38, swing);
+  pose.torso.y = lerp(0.68, -0.42, swing);
   pose.head.y = pose.torso.y * -0.2;
   pose.leftThigh = euler(0.28 + airborneCurl * 0.1, 0, -0.23);
   pose.rightThigh = euler(0.22 + airborneCurl * 0.08, 0, 0.15);
