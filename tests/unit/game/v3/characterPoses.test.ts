@@ -2,21 +2,33 @@ import { describe, expect, it } from 'vitest';
 import { sampleV3Pose } from '../../../../src/game/v3/render/character/V3PoseLibrary';
 
 describe('V3 volleyball pose library', () => {
-  it('makes RECEIVE visibly low, forward, and closes both arms into a platform', () => {
+  it('builds RECEIVE as a grounded wide stance with a visible passing platform', () => {
     const ready = sampleV3Pose('READY', 0.5, 'home');
     const receive = sampleV3Pose('RECEIVE', 0.65, 'home');
 
-    expect(receive.rootOffset.y).toBeLessThan(-0.32);
+    // The pelvis drops, but the whole rig must not be buried below the court.
+    expect(receive.rootOffset.y).toBeLessThan(-0.08);
+    expect(receive.rootOffset.y).toBeGreaterThan(-0.2);
     expect(receive.rootOffset.y).toBeLessThan(ready.rootOffset.y);
-    expect(receive.torso.x).toBeGreaterThan(0.72);
+    expect(receive.torso.x).toBeGreaterThan(0.58);
+
+    // Bend the knees and open them laterally so the crouch survives the rear camera.
     expect(receive.leftThigh.x).toBeGreaterThan(0.68);
     expect(receive.rightThigh.x).toBeGreaterThan(0.68);
     expect(receive.leftShin.x).toBeLessThan(-0.82);
     expect(receive.rightShin.x).toBeLessThan(-0.82);
-    expect(receive.leftUpperArm.x).toBeLessThan(-1.05);
-    expect(receive.rightUpperArm.x).toBeLessThan(-1.05);
-    expect(receive.leftUpperArm.z).toBeGreaterThan(0);
-    expect(receive.rightUpperArm.z).toBeLessThan(0);
+    expect(receive.leftThigh.z).toBeLessThan(-0.16);
+    expect(receive.rightThigh.z).toBeGreaterThan(0.16);
+    expect(receive.leftShin.z).toBeGreaterThan(0.08);
+    expect(receive.rightShin.z).toBeLessThan(-0.08);
+
+    // Arms point forward-and-down rather than disappearing directly behind the torso.
+    expect(receive.leftUpperArm.x).toBeGreaterThan(-1.0);
+    expect(receive.leftUpperArm.x).toBeLessThan(-0.65);
+    expect(receive.rightUpperArm.x).toBeGreaterThan(-1.0);
+    expect(receive.rightUpperArm.x).toBeLessThan(-0.65);
+    expect(receive.leftUpperArm.z).toBeGreaterThan(0.24);
+    expect(receive.rightUpperArm.z).toBeLessThan(-0.24);
   });
 
   it('raises both arms for SET and BLOCK', () => {
@@ -53,14 +65,18 @@ describe('V3 volleyball pose library', () => {
     expect(contact.torso.y).toBeLessThan(drawn.torso.y);
   });
 
-  it('keeps the SPIKE windup clearly airborne with both knees tucked', () => {
+  it('makes the SPIKE windup visibly airborne from the rear camera', () => {
     const windup = sampleV3Pose('SPIKE', 0.47, 'home');
 
-    expect(windup.rootOffset.y).toBeGreaterThan(0.52);
+    expect(windup.rootOffset.y).toBeGreaterThan(0.7);
     expect(windup.leftThigh.x).toBeGreaterThan(0.24);
     expect(windup.rightThigh.x).toBeGreaterThan(0.18);
     expect(windup.leftShin.x).toBeLessThan(-0.82);
     expect(windup.rightShin.x).toBeLessThan(-0.78);
+    expect(windup.leftThigh.z).toBeLessThan(-0.14);
+    expect(windup.rightThigh.z).toBeGreaterThan(0.08);
+    expect(windup.leftShin.z).toBeGreaterThan(0.16);
+    expect(windup.rightShin.z).toBeLessThan(-0.1);
     expect(windup.torso.x).toBeLessThan(-0.16);
   });
 
