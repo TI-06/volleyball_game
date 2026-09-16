@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react';
-import { FIXED_STEP_SECONDS } from '../../game/core/constants';
+import { V3_FIXED_STEP_SECONDS } from '../../game/v3/core/constants';
 import {
   createV3Runtime,
   emptyV3RuntimeInput,
@@ -40,7 +40,8 @@ function createInput(): V3RuntimeInput {
 
 function isLocalVisualAudit(): boolean {
   if (typeof window === 'undefined') return false;
-  const localHost = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+  const localHost =
+    window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
   if (!localHost) return false;
   return new URLSearchParams(window.location.search).get('v3audit') === '1';
 }
@@ -96,13 +97,13 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
         accumulator += delta;
         hudAccumulator += delta;
 
-        while (accumulator >= FIXED_STEP_SECONDS) {
-          runtime = stepV3Runtime(runtime, inputRef.current, FIXED_STEP_SECONDS);
+        while (accumulator >= V3_FIXED_STEP_SECONDS) {
+          runtime = stepV3Runtime(runtime, inputRef.current, V3_FIXED_STEP_SECONDS);
           inputRef.current.actionPressed = false;
           inputRef.current.divePressed = false;
           inputRef.current.jumpPressed = false;
           inputRef.current.attackGesture = null;
-          accumulator -= FIXED_STEP_SECONDS;
+          accumulator -= V3_FIXED_STEP_SECONDS;
         }
       }
 
@@ -158,10 +159,10 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
 
   return (
     <main className="v3-match" data-testid="v3-match-screen">
-      <div className="v3-scene-host" ref={sceneHostRef} aria-label="Gameplay V3 court" />
+      <div className="v3-scene-host" ref={sceneHostRef} aria-label="Volleyball court" />
 
       <header className="v3-topbar">
-        <div className="v3-prototype-badge">GAMEPLAY V3</div>
+        <div className="v3-prototype-badge">VOLLEYBALL</div>
         <strong className="v3-score" aria-label={`PLAYER ${hud.home} CPU ${hud.away}`}>
           {hud.home} - {hud.away}
         </strong>
