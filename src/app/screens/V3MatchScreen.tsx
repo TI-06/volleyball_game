@@ -94,6 +94,16 @@ function clearOneShotInput(input: V3RuntimeInput): void {
   input.attackGesture = null;
 }
 
+export function isV3JumpControlEnabled(
+  phase: V3RallyPhase,
+  controlledPlayerId: string,
+): boolean {
+  return (
+    phase === 'ATTACK_APPROACH' ||
+    (phase === 'SET_BUILDUP' && controlledPlayerId === 'home-0')
+  );
+}
+
 export function V3MatchScreen({ seed }: V3MatchScreenProps) {
   const sceneHostRef = useRef<HTMLDivElement | null>(null);
   const runtimeRef = useRef<V3RuntimeState>(createInitialRuntime(seed));
@@ -222,7 +232,7 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
   };
 
   const defensive = hud.phase === 'DEFENSE_READ' || hud.phase === 'RECEIVE_PREP';
-  const canJump = hud.phase === 'ATTACK_APPROACH';
+  const canJump = isV3JumpControlEnabled(hud.phase, hud.controlledPlayerId);
   const canAttack = hud.phase === 'ATTACK_AIRBORNE';
 
   return (
