@@ -171,13 +171,14 @@ function controlledPlayerForRally(rally: V3RallyRuntime): string {
 }
 
 function playersForRally(players: V3PlayerState[], rally: V3RallyRuntime): V3PlayerState[] {
-  if (rally.defenseKind !== 'BLOCK' || rally.blockLaneX === null) return players;
+  const blockLaneX = rally.blockLaneX;
+  if (rally.defenseKind !== 'BLOCK' || blockLaneX === null) return players;
   return players.map((player) =>
     player.id === 'home-0'
       ? {
           ...player,
           position: {
-            x: Math.min(3.55, rally.blockLaneX + BLOCKER_START_OFFSET_X),
+            x: Math.min(3.55, blockLaneX + BLOCKER_START_OFFSET_X),
             z: BLOCKER_NET_Z,
           },
         }
