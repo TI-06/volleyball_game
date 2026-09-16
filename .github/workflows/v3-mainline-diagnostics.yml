@@ -1,0 +1,45 @@
+name: V3 Mainline Diagnostics
+
+on:
+  push:
+    branches:
+      - rebuild/v3-mainline-characters
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: npm
+      - name: Install dependencies
+        id: install
+        continue-on-error: true
+        run: npm ci
+      - name: Run non-failing diagnostics
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          if [ "${{ steps.install.outcome }}" != "success" ]; then
+            echo "INSTALL_EXIT=1"
+            echo "DIAGNOSTIC_STATUS=RED"
+            exit 0
+          fi
+          npm test -- tests/unit/app/V3PrototypeRoute.test.tsx
+          TEST_EXIT=$?
+          npm run typecheck
+          TYPECHECK_EXIT=$?
+          echo "TEST_EXIT=$TEST_EXIT"
+          echo "TYPECHECK_EXIT=$TYPECHECK_EXIT"
+          if [ "$TEST_EXIT" -eq 0 ] && [ "$TYPECHECK_EXIT" -eq 0 ]; then
+            echo "DIAGNOSTIC_STATUS=GREEN"
+          else
+            echo "DIAGNOSTIC_STATUS=RED"
+          fi
+          exit 0
