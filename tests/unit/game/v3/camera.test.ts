@@ -65,4 +65,24 @@ describe('V3 third-person camera', () => {
     expect(attack.position.z).toBeLessThan(-3.5);
     expect(attack.fov).toBeLessThanOrEqual(defense.fov);
   });
+
+  it('moves to an oblique rear angle in ATTACK_AIRBORNE so the hitting arm and tucked legs stay readable', () => {
+    const rightLane = getV3CameraPose({
+      controlledPosition: { x: 2.6, z: -3.5 },
+      ballPosition: { x: 2.45, y: 3.35, z: -0.7 },
+      phase: 'ATTACK_AIRBORNE',
+      aspect: 16 / 9,
+    });
+    const leftLane = getV3CameraPose({
+      controlledPosition: { x: -2.6, z: -3.5 },
+      ballPosition: { x: -2.45, y: 3.35, z: -0.7 },
+      phase: 'ATTACK_AIRBORNE',
+      aspect: 16 / 9,
+    });
+
+    expect(rightLane.position.x - rightLane.target.x).toBeGreaterThan(1.45);
+    expect(leftLane.position.x - leftLane.target.x).toBeLessThan(-1.45);
+    expect(rightLane.position.z).toBeLessThan(rightLane.target.z - 3.5);
+    expect(leftLane.position.z).toBeLessThan(leftLane.target.z - 3.5);
+  });
 });
