@@ -89,6 +89,78 @@
   letter-spacing: 0.06em;
 }
 
+.v3-point-feedback {
+  position: absolute;
+  z-index: 26;
+  top: 23%;
+  left: 50%;
+  display: flex;
+  min-width: 150px;
+  transform: translateX(-50%);
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 24px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 18px;
+  background: rgba(5, 16, 24, 0.78);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  animation: v3-point-beat 0.75s ease-out both;
+}
+
+.v3-point-feedback--home {
+  border-color: rgba(108, 255, 222, 0.7);
+  box-shadow:
+    0 12px 36px rgba(0, 0, 0, 0.28),
+    0 0 28px rgba(83, 255, 214, 0.16);
+}
+
+.v3-point-feedback--away {
+  border-color: rgba(255, 137, 119, 0.66);
+}
+
+.v3-point-feedback strong {
+  font-size: clamp(20px, 5vh, 34px);
+  line-height: 1;
+  letter-spacing: 0.08em;
+}
+
+.v3-point-feedback--home strong {
+  color: #89ffe2;
+}
+
+.v3-point-feedback--away strong {
+  color: #ffad9f;
+}
+
+.v3-point-feedback span {
+  margin-top: 5px;
+  color: rgba(244, 251, 255, 0.78);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+@keyframes v3-point-beat {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.82);
+  }
+  18% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.04);
+  }
+  58% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.98);
+  }
+}
+
 .v3-control-layer {
   position: absolute;
   z-index: 30;
@@ -272,6 +344,12 @@
 @media (max-height: 430px) {
   .v3-topbar {
     top: max(6px, env(safe-area-inset-top));
+  }
+
+  .v3-point-feedback {
+    top: 20%;
+    min-width: 132px;
+    padding: 8px 18px 7px;
   }
 
   .v3-movement-pad {
