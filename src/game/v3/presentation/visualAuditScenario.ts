@@ -8,26 +8,43 @@ import {
 export type V3VisualAuditScenario = 'initial' | 'receive' | 'set' | 'spike';
 
 const AUDIT_STEP_SECONDS = 1 / 60;
+const LOCAL_AUDIT_HOSTS = new Set(['localhost', '127.0.0.1']);
+const NAMED_AUDIT_SCENARIOS = new Set<V3VisualAuditScenario>([
+  'initial',
+  'receive',
+  'set',
+  'spike',
+]);
 
-function advanceTo(source: V3RuntimeState, targetTime: number): V3RuntimeState {
+export function parseV3VisualAuditScenario(
+  hostname: string,
+  search: string,
+): V3VisualAuditScenario | null {
+  if (!LOCAL_AUDIT_HOSTS.has(hostname)) return null;
+
+  const value = new URLSearchParams(search).get('v3audit');
+  if (value === '1') return 'initial';
+  if (!value || !NAMED_AUDIT_SCENARIOS.has(value as V3VisualAuditScenario)) return null;
+  return value as V3VisualAuditScenario;
+}
+
+const advanceTo = (source: V3RuntimeState, targetTime: number): V3RuntimeState => {
   let state = source;
   while (state.time + 0.000001 < targetTime) {
     const dt = Math.min(AUDIT_STEP_SECONDS, targetTime - state.time);
     state = stepV3Runtime(state, emptyV3RuntimeInput(), dt);
   }
   return state;
-}
+};
 
-function placeReceiverAtLanding(source: V3RuntimeState): V3RuntimeState {
-  return {
-    ...source,
-    players: source.players.map((player) =>
-      player.id === source.controlledPlayerId
-        ? { ...player, position: { ...source.rally.landingTarget } }
-        : player,
-    ),
-  };
-}
+const placeReceiverAtLanding = (source: V3RuntimeState): V3RuntimeState => ({
+  ...source,
+  players: source.players.map((player) =>
+    player.id === source.controlledPlayerId
+      ? { ...player, position: { ...source.rally.landingTarget } }
+      : player,
+  ),
+});
 
 function successfulReceive(seed: number): V3RuntimeState {
   let state = placeReceiverAtLanding(createV3Runtime(seed));
