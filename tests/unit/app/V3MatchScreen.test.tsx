@@ -34,6 +34,17 @@ describe('V3MatchScreen', () => {
     expect(isV3JumpControlEnabled('ATTACK_AIRBORNE', 'home-0')).toBe(false);
   });
 
+  it('shows BLOCK instead of receive controls during a quick-attack read', () => {
+    render(<V3MatchScreen seed={72} />);
+
+    expect(screen.getByTestId('v3-match-screen')).toHaveAttribute('data-v3-defense-kind', 'BLOCK');
+    expect(screen.getByText('BLOCK READ')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ACTION' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'DIVE' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'BLOCK' })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: 'JUMP' })).not.toBeInTheDocument();
+  });
+
   it('shows a short point beat only for scoring events', () => {
     expect(
       getV3PointFeedback(
@@ -52,6 +63,16 @@ describe('V3MatchScreen', () => {
       detail: null,
       side: 'away',
     });
+    expect(
+      getV3PointFeedback({ type: 'BLOCK', result: 'STUFF', actorId: 'home-0' }, 0.2),
+    ).toEqual({
+      title: 'POINT!',
+      detail: 'STUFF BLOCK',
+      side: 'home',
+    });
+    expect(
+      getV3PointFeedback({ type: 'BLOCK', result: 'MISS', actorId: 'home-0' }, 0.2),
+    ).toBeNull();
     expect(getV3PointFeedback({ type: 'SET', actorId: 'home-1' }, 0.2)).toBeNull();
     expect(
       getV3PointFeedback(
