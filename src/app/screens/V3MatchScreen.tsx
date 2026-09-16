@@ -36,6 +36,8 @@ interface V3HudState {
   bufferedAction: string | null;
 }
 
+const V3_STARTUP_HOLD_SECONDS = 1.25;
+
 const PHASE_LABEL: Record<V3RallyPhase, string> = {
   DEFENSE_READ: 'DEFENSE READ',
   RECEIVE_PREP: 'RECEIVE PREP',
@@ -106,22 +108,27 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
     let lastTime = performance.now();
     let accumulator = 0;
     let hudAccumulator = 0;
+    let startupHoldRemaining = V3_STARTUP_HOLD_SECONDS;
 
     const frame = (now: number) => {
       const delta = Math.min(0.05, Math.max(0, (now - lastTime) / 1000));
       lastTime = now;
 
       if (!visualAudit) {
-        accumulator += delta;
-        hudAccumulator += delta;
+        if (startupHoldRemaining > 0) {
+          startupHoldRemaining = Math.max(0, startupHoldRemaining - delta);
+        } else {
+          accumulator += delta;
+          hudAccumulator += delta;
 
-        while (accumulator >= V3_FIXED_STEP_SECONDS) {
-          runtime = stepV3Runtime(runtime, inputRef.current, V3_FIXED_STEP_SECONDS);
-          inputRef.current.actionPressed = false;
-          inputRef.current.divePressed = false;
-          inputRef.current.jumpPressed = false;
-          inputRef.current.attackGesture = null;
-          accumulator -= V3_FIXED_STEP_SECONDS;
+          while (accumulator >= V3_FIXED_STEP_SECONDS) {
+            runtime = stepV3Runtime(runtime, inputRef.current, V3_FIXED_STEP_SECONDS);
+            inputRef.current.actionPressed = false;
+            inputRef.current.divePressed = false;
+            inputRef.current.jumpPressed = false;
+            inputRef.current.attackGesture = null;
+            accumulator -= V3_FIXED_STEP_SECONDS;
+          }
         }
       }
 
@@ -129,7 +136,7 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
       // Audit scenarios freeze simulation state, but presentation time keeps moving
       // so RECEIVE / SET / SPIKE can be inspected at a readable action pose.
       scene.update(runtime, delta);
-      if (!visualAudit && hudAccumulator >= 0.08) {
+      if (!visualAudit && startupHoldRemaining <= 0 && hudAccumulator >= 0.08) {
         syncHud(runtime);
         hudAccumulator = 0;
       }
