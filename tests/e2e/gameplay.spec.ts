@@ -112,3 +112,63 @@ for (const scenario of actionAuditCases) {
     await captureAuditFrame(page, testInfo, scenario.name);
   });
 }
+
+test('live touch controls complete a full receive-set-jump-spike rally', async ({ page }) => {
+  test.setTimeout(45_000);
+  await page.goto('/');
+
+  const movement = page.getByTestId('v3-movement-pad');
+  const action = page.getByRole('button', { name: 'ACTION' });
+  const jump = page.getByRole('button', { name: 'JUMP' });
+  const attack = page.getByTestId('v3-attack-pad');
+  const score = page.locator('.v3-score');
+
+  await expect(page.getByText('DEFENSE READ')).toBeVisible();
+  await expect(score).toHaveAttribute('aria-label', 'PLAYER 0 CPU 0');
+
+  // Seed 73 lands just in front of HINA. Move toward the forecast using the
+  // actual virtual stick so this verifies direct 2D touch movement as part of
+  // the rally instead of relying on a static starting position.
+  const movementBox = await movement.boundingBox();
+  expect(movementBox).not.toBeNull();
+  if (!movementBox) return;
+  const moveX = movementBox.x + movementBox.width / 2;
+  const moveY = movementBox.y + movementBox.height / 2;
+  await page.mouse.move(moveX, moveY);
+  await page.mouse.down();
+  await page.mouse.move(moveX, moveY - 40);
+  await page.waitForTimeout(150);
+  await page.mouse.up();
+
+  // ACTION is buffered before contact. The timing is deliberately early enough
+  // to feel human rather than requiring a last-frame reaction.
+  await page.waitForTimeout(1_350);
+  await action.click();
+  await expect(page.getByText('SET BUILDUP')).toBeVisible({ timeout: 1_000 });
+
+  // REN sets automatically for this first slice, then control moves to KAI.
+  await expect(page.getByText('ATTACK APPROACH')).toBeVisible({ timeout: 1_000 });
+  await expect(jump).toBeEnabled();
+
+  // The ideal jump is about 450 ms after set contact. HUD updates every 80 ms,
+  // so ~300 ms after ATTACK APPROACH lands inside the forgiving GOOD/PERFECT window.
+  await page.waitForTimeout(300);
+  await jump.click();
+  await expect(page.getByText('ATTACK AIRBORNE')).toBeVisible({ timeout: 700 });
+  await expect(attack).toHaveClass(/is-ready/);
+
+  // Upward swipe = POWER. Seed 73 with a successful jump deterministically wins
+  // this rally, proving that the real screen input path reaches score/reset.
+  const attackBox = await attack.boundingBox();
+  expect(attackBox).not.toBeNull();
+  if (!attackBox) return;
+  const attackX = attackBox.x + attackBox.width / 2;
+  const attackY = attackBox.y + attackBox.height * 0.72;
+  await page.mouse.move(attackX, attackY);
+  await page.mouse.down();
+  await page.mouse.move(attackX, attackY - 90);
+  await page.mouse.up();
+
+  await expect(score).toHaveAttribute('aria-label', 'PLAYER 1 CPU 0', { timeout: 1_000 });
+  await expect(page.getByText('DEFENSE READ')).toBeVisible();
+});
