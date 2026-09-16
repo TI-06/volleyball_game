@@ -116,7 +116,9 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
       }
 
       runtimeRef.current = runtime;
-      scene.update(runtime, visualAudit ? 0 : delta);
+      // Audit scenarios freeze simulation state, but presentation time keeps moving
+      // so RECEIVE / SET / SPIKE can be inspected at a readable action pose.
+      scene.update(runtime, delta);
       if (!visualAudit && hudAccumulator >= 0.08) {
         syncHud(runtime);
         hudAccumulator = 0;
