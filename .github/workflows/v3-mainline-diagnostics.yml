@@ -31,13 +31,16 @@ jobs:
             echo "DIAGNOSTIC_STATUS=RED"
             exit 0
           fi
-          npm test -- tests/unit/app/V3PrototypeRoute.test.tsx
+          npm test
           TEST_EXIT=$?
           npm run typecheck
           TYPECHECK_EXIT=$?
+          npm run build
+          BUILD_EXIT=$?
           echo "TEST_EXIT=$TEST_EXIT"
           echo "TYPECHECK_EXIT=$TYPECHECK_EXIT"
-          if [ "$TEST_EXIT" -eq 0 ] && [ "$TYPECHECK_EXIT" -eq 0 ]; then
+          echo "BUILD_EXIT=$BUILD_EXIT"
+          if [ "$TEST_EXIT" -eq 0 ] && [ "$TYPECHECK_EXIT" -eq 0 ] && [ "$BUILD_EXIT" -eq 0 ]; then
             echo "DIAGNOSTIC_STATUS=GREEN"
           else
             echo "DIAGNOSTIC_STATUS=RED"
