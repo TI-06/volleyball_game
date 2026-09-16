@@ -4,6 +4,7 @@ import {
   createV3Runtime,
   emptyV3RuntimeInput,
   stepV3Runtime,
+  type V3DefenseKind,
   type V3RuntimeEvent,
   type V3RuntimeInput,
   type V3RuntimeState,
@@ -26,6 +27,7 @@ interface V3HudState {
   home: number;
   away: number;
   phase: V3RallyPhase;
+  defenseKind: V3DefenseKind;
   controlledPlayerId: string;
   forecastStage: string | null;
   lastEvent: V3RuntimeEvent | null;
@@ -34,6 +36,7 @@ interface V3HudState {
   controlledZ: number;
   landingX: number;
   landingZ: number;
+  blockLaneX: number | null;
   bufferedAction: string | null;
 }
 
@@ -82,6 +85,7 @@ function toHud(runtime: V3RuntimeState): V3HudState {
     home: runtime.score.home,
     away: runtime.score.away,
     phase: runtime.phase,
+    defenseKind: runtime.rally.defenseKind,
     controlledPlayerId: runtime.controlledPlayerId,
     forecastStage: runtime.forecast?.stage ?? null,
     lastEvent: runtime.lastEvent,
@@ -90,6 +94,7 @@ function toHud(runtime: V3RuntimeState): V3HudState {
     controlledZ: controlled?.position.z ?? Number.NaN,
     landingX: runtime.rally.landingTarget.x,
     landingZ: runtime.rally.landingTarget.z,
+    blockLaneX: runtime.rally.blockLaneX,
     bufferedAction: runtime.bufferedAction?.kind ?? null,
   };
 }
@@ -115,7 +120,12 @@ export function getV3PointFeedback(
   lastEvent: V3RuntimeEvent | null,
   rallyTime: number,
 ): V3PointFeedback | null {
-  if (!lastEvent || !Number.isFinite(rallyTime) || rallyTime < 0 || rallyTime > V3_POINT_FEEDBACK_SECONDS) {
+  if (
+    !lastEvent ||
+    !Number.isFinite(rallyTime) ||
+    rallyTime < 0 ||
+    rallyTime > V3_POINT_FEEDBACK_SECONDS
+  ) {
     return null;
   }
 
@@ -124,6 +134,14 @@ export function getV3PointFeedback(
       title: lastEvent.point === 'home' ? 'POINT!' : 'CPU POINT',
       detail: lastEvent.point === 'home' ? lastEvent.intent : null,
       side: lastEvent.point,
+    };
+  }
+
+  if (lastEvent.type === 'BLOCK' && lastEvent.result === 'STUFF') {
+    return {
+      title: 'POINT!',
+      detail: 'STUFF BLOCK',
+      side: 'home',
     };
   }
 
@@ -155,7 +173,9 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
     const auditScenario = currentVisualAuditScenario();
     const visualAudit = auditScenario !== null;
     const manualE2E = currentManualE2EMode();
-    let runtime = auditScenario ? createV3VisualAuditState(auditScenario, seed) : createV3Runtime(seed);
+    let runtime = auditScenario
+      ? createV3VisualAuditState(auditScenario, seed)
+      : createV3Runtime(seed);
     runtimeRef.current = runtime;
     inputRef.current = createInput();
     syncHud(runtime);
@@ -215,10 +235,13 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
       }
 
       runtimeRef.current = runtime;
-      // Audit/manual scenarios can freeze simulation state while presentation
-      // time keeps moving so articulated poses remain visible and testable.
       scene.update(runtime, delta);
-      if (!visualAudit && !manualE2E && startupHoldRemaining <= 0 && hudAccumulator >= 0.08) {
+      if (
+        !visualAudit &&
+        !manualE2E &&
+        startupHoldRemaining <= 0 &&
+        hudAccumulator >= 0.08
+      ) {
         syncHud(runtime);
         hudAccumulator = 0;
       }
@@ -266,9 +289,12 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
   };
 
   const defensive = hud.phase === 'DEFENSE_READ' || hud.phase === 'RECEIVE_PREP';
-  const canJump = isV3JumpControlEnabled(hud.phase, hud.controlledPlayerId);
+  const blockRead = hud.defenseKind === 'BLOCK' && hud.phase === 'DEFENSE_READ';
+  const canReceive = hud.defenseKind === 'RECEIVE' && defensive;
+  const canJump = blockRead || isV3JumpControlEnabled(hud.phase, hud.controlledPlayerId);
   const canAttack = hud.phase === 'ATTACK_AIRBORNE';
   const pointFeedback = getV3PointFeedback(hud.lastEvent, hud.time);
+  const phaseLabel = blockRead ? 'BLOCK READ' : PHASE_LABEL[hud.phase];
 
   return (
     <main
@@ -279,6 +305,8 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
       data-v3-controlled-z={hud.controlledZ.toFixed(3)}
       data-v3-landing-x={hud.landingX.toFixed(3)}
       data-v3-landing-z={hud.landingZ.toFixed(3)}
+      data-v3-block-lane-x={hud.blockLaneX?.toFixed(3) ?? ''}
+      data-v3-defense-kind={hud.defenseKind}
       data-v3-buffered-action={hud.bufferedAction ?? ''}
       data-v3-last-event={hud.lastEvent?.type ?? ''}
       data-v3-rally-phase={hud.phase}
@@ -291,7 +319,7 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
           {hud.home} - {hud.away}
         </strong>
         <div className="v3-phase">
-          <strong>{PHASE_LABEL[hud.phase]}</strong>
+          <strong>{phaseLabel}</strong>
           <small>{hud.forecastStage ?? hud.lastEvent?.type ?? hud.controlledPlayerId}</small>
         </div>
       </header>
@@ -314,7 +342,7 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
           <button
             type="button"
             className="v3-action-button v3-action-button--action"
-            disabled={!defensive}
+            disabled={!canReceive}
             onPointerDown={() => press('ACTION')}
           >
             ACTION
@@ -322,18 +350,18 @@ export function V3MatchScreen({ seed }: V3MatchScreenProps) {
           <button
             type="button"
             className="v3-action-button v3-action-button--dive"
-            disabled={!defensive}
+            disabled={!canReceive}
             onPointerDown={() => press('DIVE')}
           >
             DIVE
           </button>
           <button
             type="button"
-            className="v3-action-button v3-action-button--jump"
+            className={`v3-action-button v3-action-button--jump${blockRead ? ' is-block-ready' : ''}`}
             disabled={!canJump}
             onPointerDown={() => press('JUMP')}
           >
-            JUMP
+            {blockRead ? 'BLOCK' : 'JUMP'}
           </button>
           <div
             className={`v3-attack-pad${attackActive ? ' is-active' : ''}${canAttack ? ' is-ready' : ''}`}
