@@ -33,6 +33,11 @@ const QUICK_ATTACK_KIND_SALT = 0x8899;
 const QUICK_ATTACK_LANE_SALT = 0x74d3;
 const BLOCKER_NET_Z = -1.05;
 const BLOCKER_START_OFFSET_X = 1.25;
+const TOUCH_COVER_DURATION_SECONDS = 1.25;
+const DEFLECT_COVER_DURATION_SECONDS = 0.85;
+const BLOCK_CONTINUATION_SIDE_SALT = 0x4b10;
+const BLOCK_CONTINUATION_DISTANCE_SALT = 0x4b11;
+const BLOCK_CONTINUATION_DEPTH_SALT = 0x4b12;
 
 export interface V3Score {
   home: number;
@@ -106,6 +111,10 @@ function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
 }
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
 function lerp(from: number, to: number, amount: number): number {
   return from + (to - from) * amount;
 }
@@ -133,6 +142,39 @@ function landingTarget(seed: number, rallyIndex: number): V3Vec2 {
     x: 1.55 + sample01(seed, rallyIndex, 0x51ed270b) * 1.35,
     z: -5.25 - sample01(seed, rallyIndex, 0x68bc21eb) * 1.7,
   };
+}
+
+function blockContinuationTarget(
+  result: Exclude<V3BlockResult, 'STUFF'>,
+  seed: number,
+  rallyIndex: number,
+  blockLaneX: number | null,
+): V3Vec2 {
+  const base = landingTarget(seed, rallyIndex);
+  if (result === 'MISS') return base;
+
+  if (result === 'TOUCH') {
+    const lane = blockLaneX ?? 0;
+    return {
+      x: clamp(lerp(base.x, lane, 0.65), -3.5, 3.5),
+      z: -3.55 - sample01(seed, rallyIndex, BLOCK_CONTINUATION_DEPTH_SALT) * 0.55,
+    };
+  }
+
+  const lane = blockLaneX ?? 0;
+  const side = sample01(seed, rallyIndex, BLOCK_CONTINUATION_SIDE_SALT) < 0.5 ? -1 : 1;
+  const distance =
+    1.8 + sample01(seed, rallyIndex, BLOCK_CONTINUATION_DISTANCE_SALT) * 0.65;
+  return {
+    x: clamp(lane + side * distance, -3.65, 3.65),
+    z: -4.45 - sample01(seed, rallyIndex, BLOCK_CONTINUATION_DEPTH_SALT) * 0.75,
+  };
+}
+
+function blockContinuationDuration(result: Exclude<V3BlockResult, 'STUFF'>): number {
+  if (result === 'TOUCH') return TOUCH_COVER_DURATION_SECONDS;
+  if (result === 'DEFLECT') return DEFLECT_COVER_DURATION_SECONDS;
+  return RECEIVE_CONTACT_AT - OPPONENT_CONTACT_AT;
 }
 
 function defenseKindFor(seed: number, rallyIndex: number): V3DefenseKind {
@@ -349,16 +391,20 @@ function resolveBlockContact(source: V3RuntimeState, players: V3PlayerState[]): 
     );
   }
 
-  const receiveTarget = landingTarget(source.seed, source.rallyIndex);
+  const receiveTarget = blockContinuationTarget(
+    result,
+    source.seed,
+    source.rallyIndex,
+    source.rally.blockLaneX,
+  );
+  const receiveContactAt =
+    source.rally.opponentContactAt + blockContinuationDuration(result);
   const rally: V3RallyRuntime = {
     ...source.rally,
     defenseKind: 'RECEIVE',
     blockLaneX: null,
     landingTarget: receiveTarget,
-    receiveContactAt: Math.max(
-      source.rally.receiveContactAt,
-      source.rally.opponentContactAt + 0.8,
-    ),
+    receiveContactAt,
     setContactAt: null,
     attackerSwitchAt: null,
     idealJumpAt: null,
