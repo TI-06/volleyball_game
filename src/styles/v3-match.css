@@ -106,7 +106,7 @@
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
   backdrop-filter: blur(8px);
   pointer-events: none;
-  animation: v3-point-beat 0.75s ease-out both;
+  animation: v3-point-beat 0.2s ease-out both;
 }
 
 .v3-point-feedback--home {
@@ -147,17 +147,9 @@
     opacity: 0;
     transform: translateX(-50%) scale(0.82);
   }
-  18% {
-    opacity: 1;
-    transform: translateX(-50%) scale(1.04);
-  }
-  58% {
+  100% {
     opacity: 1;
     transform: translateX(-50%) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-50%) scale(0.98);
   }
 }
 
