@@ -70,6 +70,51 @@ describe('V3 serve opening runtime', () => {
     expect(flight.ball.position.z).toBeLessThan(beforeContact.ball.position.z);
   });
 
+  it('lets KAI aim and contact a home serve with ACTION timing', () => {
+    let state = createV3MatchRuntime(73, 'home');
+    const idealContactAt = state.serve?.idealContactAt;
+    expect(idealContactAt).not.toBeNull();
+    if (idealContactAt == null) return;
+
+    state = stepFor(state, idealContactAt - 0.06);
+    state = stepV3Runtime(
+      state,
+      {
+        ...emptyV3RuntimeInput(),
+        move: { x: 0.9, z: 0 },
+        actionPressed: true,
+      },
+      1 / 60,
+    );
+
+    expect(state.phase).toBe('SERVE_FLIGHT');
+    expect(state.serve?.quality).toBe('PERFECT');
+    expect(state.serve?.target.x).toBeGreaterThan(1.5);
+    expect(state.serve?.contactAt).not.toBeNull();
+
+    const landingAt = state.serve?.landingAt;
+    expect(landingAt).not.toBeNull();
+    if (landingAt == null) return;
+    state = stepFor(state, landingAt - state.time + 0.04);
+
+    expect(state.serve).toBeNull();
+    expect(state.phase).toBe('DEFENSE_READ');
+    expect(state.score).toEqual({ home: 0, away: 0 });
+  });
+
+  it('awards a service error and gives the CPU the next serve on a badly mistimed home serve', () => {
+    let state = createV3MatchRuntime(73, 'home');
+    state = stepV3Runtime(
+      state,
+      { ...emptyV3RuntimeInput(), actionPressed: true },
+      1 / 60,
+    );
+
+    expect(state.score).toEqual({ home: 0, away: 1 });
+    expect(state.phase).toBe('SERVE_READY');
+    expect(state.serve?.side).toBe('away');
+  });
+
   it('accepts an early ACTION during CPU serve flight and reuses the receive-to-set flow', () => {
     let state = placeControlledAtServeTarget(createV3MatchRuntime(73));
     const landingAt = state.serve?.landingAt;
