@@ -11,6 +11,7 @@ import type {
   V3ContactQuality,
   V3PlayerState,
   V3RallyPhase,
+  V3TeamSide,
   V3Vec2,
   V3Vec3,
 } from '../types';
@@ -33,6 +34,11 @@ const QUICK_ATTACK_KIND_SALT = 0x8899;
 const QUICK_ATTACK_LANE_SALT = 0x74d3;
 const BLOCKER_NET_Z = -1.05;
 const BLOCKER_START_OFFSET_X = 1.25;
+const SERVE_IDEAL_CONTACT_AT = 0.72;
+const SERVE_FLIGHT_SECONDS = 1.08;
+const SERVE_BASELINE_Z = 8.25;
+const SERVE_TARGET_X_SALT = 0x5e11;
+const SERVE_TARGET_Z_SALT = 0x5e12;
 const TOUCH_COVER_DURATION_SECONDS = 1.25;
 const DEFLECT_COVER_DURATION_SECONDS = 0.85;
 const BLOCK_CONTINUATION_SIDE_SALT = 0x4b10;
@@ -68,6 +74,15 @@ export type V3RuntimeEvent =
 
 export type V3DefenseKind = 'RECEIVE' | 'BLOCK';
 
+export interface V3ServeRuntime {
+  side: V3TeamSide;
+  serverPlayerId: string;
+  target: V3Vec2;
+  idealContactAt: number;
+  contactAt: number | null;
+  landingAt: number;
+}
+
 export interface V3RallyRuntime {
   defenseKind: V3DefenseKind;
   blockLaneX: number | null;
@@ -92,6 +107,7 @@ export interface V3RuntimeState {
   score: V3Score;
   rallyIndex: number;
   rally: V3RallyRuntime;
+  serve: V3ServeRuntime | null;
   forecast: LandingForecast | null;
   bufferedAction: V3BufferedAction | null;
   lastEvent: V3RuntimeEvent | null;
@@ -135,6 +151,48 @@ function sample01(seed: number, rallyIndex: number, salt: number): number {
   value = Math.imul(value ^ (value >>> 15), 0x735a2d97) >>> 0;
   value ^= value >>> 15;
   return (value >>> 0) / 0x100000000;
+}
+
+function serveTarget(seed: number, rallyIndex: number, side: V3TeamSide): V3Vec2 {
+  const x = lerp(-2.8, 2.8, sample01(seed, rallyIndex, SERVE_TARGET_X_SALT));
+  const depth = 5.15 + sample01(seed, rallyIndex, SERVE_TARGET_Z_SALT) * 1.55;
+  return { x, z: side === 'home' ? depth : -depth };
+}
+
+function serveFor(seed: number, rallyIndex: number, side: V3TeamSide): V3ServeRuntime {
+  const idealContactAt = SERVE_IDEAL_CONTACT_AT;
+  return {
+    side,
+    serverPlayerId: side === 'home' ? 'home-0' : 'away-0',
+    target: serveTarget(seed, rallyIndex, side),
+    idealContactAt,
+    contactAt: side === 'away' ? idealContactAt : null,
+    landingAt: idealContactAt + SERVE_FLIGHT_SECONDS,
+  };
+}
+
+function playersForServe(players: V3PlayerState[], serve: V3ServeRuntime): V3PlayerState[] {
+  return players.map((player) =>
+    player.id === serve.serverPlayerId
+      ? {
+          ...player,
+          position: {
+            x: 0,
+            z: serve.side === 'home' ? -SERVE_BASELINE_Z : SERVE_BASELINE_Z,
+          },
+        }
+      : player,
+  );
+}
+
+function serveReadyBallAt(serve: V3ServeRuntime, time: number): V3Vec3 {
+  const direction = serve.side === 'home' ? -1 : 1;
+  const toss = clamp01(time / Math.max(0.001, serve.idealContactAt));
+  return {
+    x: 0,
+    y: 1.35 + Math.sin(toss * Math.PI * 0.5) * 1.05,
+    z: direction * SERVE_BASELINE_Z,
+  };
 }
 
 function landingTarget(seed: number, rallyIndex: number): V3Vec2 {
@@ -362,6 +420,7 @@ function resetForNextRally(
     score,
     rallyIndex,
     rally,
+    serve: null,
     forecast: forecastFor(0, rally, source.seed, rallyIndex),
     bufferedAction: null,
     lastEvent,
@@ -545,7 +604,44 @@ export function createV3Runtime(seed = 1): V3RuntimeState {
     score: { home: 0, away: 0 },
     rallyIndex: 0,
     rally,
+    serve: null,
     forecast: forecastFor(0, rally, base.seed, 0),
+    bufferedAction: null,
+    lastEvent: null,
+  };
+}
+
+export function createV3MatchRuntime(
+  seed = 1,
+  servingSide: V3TeamSide = 'away',
+): V3RuntimeState {
+  const base = createV3PrototypeState(seed);
+  const serve = serveFor(base.seed, 0, servingSide);
+  const baseRally = rallyFor(base.seed, 0);
+  const rally: V3RallyRuntime = {
+    ...baseRally,
+    defenseKind: 'RECEIVE',
+    blockLaneX: null,
+    landingTarget: { ...serve.target },
+    receiveContactAt: serve.landingAt,
+  };
+  const players = playersForServe(base.players, serve);
+
+  return {
+    seed: base.seed,
+    time: 0,
+    phase: 'SERVE_READY',
+    controlledPlayerId: servingSide === 'home' ? 'home-0' : 'home-2',
+    players,
+    ball: {
+      position: serveReadyBallAt(serve, 0),
+      velocity: { x: 0, y: 0, z: 0 },
+    },
+    score: { home: 0, away: 0 },
+    rallyIndex: 0,
+    rally,
+    serve,
+    forecast: null,
     bufferedAction: null,
     lastEvent: null,
   };
