@@ -195,6 +195,35 @@ function serveReadyBallAt(serve: V3ServeRuntime, time: number): V3Vec3 {
   };
 }
 
+function serveFlightBallAt(serve: V3ServeRuntime, time: number): V3Vec3 {
+  const contactAt = serve.contactAt ?? serve.idealContactAt;
+  const t = clamp01((time - contactAt) / Math.max(0.001, serve.landingAt - contactAt));
+  const startZ = serve.side === 'home' ? -SERVE_BASELINE_Z : SERVE_BASELINE_Z;
+  return {
+    x: lerp(0, serve.target.x, t),
+    y: lerp(2.4, 1.05, t) + 4 * t * (1 - t) * 0.95,
+    z: lerp(startZ, serve.target.z, t),
+  };
+}
+
+function serveForecastFor(
+  time: number,
+  serve: V3ServeRuntime,
+  seed: number,
+  rallyIndex: number,
+): LandingForecast {
+  const contactAt = serve.contactAt ?? serve.idealContactAt;
+  const flightProgress = clamp01(
+    (time - contactAt) / Math.max(0.001, serve.landingAt - contactAt),
+  );
+  return createLandingForecast({
+    stage: flightProgress < 0.5 ? 'CONTACT_READ' : 'FLIGHT_CONFIRMED',
+    readOrigin: { x: 0, z: serve.side === 'away' ? -4.7 : 4.7 },
+    actualLanding: serve.target,
+    noiseSample: sample01(seed, rallyIndex, 0x5e13) * 2 - 1,
+  });
+}
+
 function landingTarget(seed: number, rallyIndex: number): V3Vec2 {
   return {
     x: 1.55 + sample01(seed, rallyIndex, 0x51ed270b) * 1.35,
@@ -348,6 +377,12 @@ function setBallAt(time: number, rally: V3RallyRuntime): V3Vec3 {
 }
 
 function ballFor(state: V3RuntimeState, nextTime: number): V3Vec3 {
+  if (state.phase === 'SERVE_READY' && state.serve) {
+    return serveReadyBallAt(state.serve, nextTime);
+  }
+  if (state.phase === 'SERVE_FLIGHT' && state.serve) {
+    return serveFlightBallAt(state.serve, nextTime);
+  }
   if (state.phase === 'DEFENSE_READ' || state.phase === 'RECEIVE_PREP') {
     return opponentBallAt(nextTime, state.rally);
   }
@@ -550,6 +585,7 @@ function resolveReceiveContact(
       attackContactAt: setContactAt + JUMP_LEAD_AFTER_SET + ATTACK_CONTACT_AFTER_JUMP,
       receivePosition: { ...defender.position },
     },
+    serve: null,
     forecast: null,
     bufferedAction: null,
     lastEvent: { type: 'RECEIVE', quality, actorId: defender.id },
@@ -661,6 +697,22 @@ export function stepV3Runtime(
   let lastEvent: V3RuntimeEvent | null = source.lastEvent;
 
   if (
+    source.serve?.side === 'away' &&
+    phase === 'SERVE_FLIGHT' &&
+    input.actionPressed
+  ) {
+    bufferedAction = bufferAction('ACTION', source.time);
+  }
+
+  if (
+    source.serve?.side === 'away' &&
+    phase === 'SERVE_FLIGHT' &&
+    input.divePressed
+  ) {
+    bufferedAction = bufferAction('DIVE', source.time, normalizeDirection(input.move));
+  }
+
+  if (
     source.rally.defenseKind === 'RECEIVE' &&
     input.actionPressed &&
     (phase === 'DEFENSE_READ' || phase === 'RECEIVE_PREP')
@@ -688,6 +740,28 @@ export function stepV3Runtime(
   }
 
   const nextTime = source.time + safeDt;
+
+  if (
+    source.serve?.side === 'away' &&
+    phase === 'SERVE_READY' &&
+    source.time < source.serve.idealContactAt &&
+    nextTime >= source.serve.idealContactAt
+  ) {
+    phase = 'SERVE_FLIGHT';
+  }
+
+  if (
+    source.serve?.side === 'away' &&
+    phase === 'SERVE_FLIGHT' &&
+    source.time < source.serve.landingAt &&
+    nextTime >= source.serve.landingAt
+  ) {
+    return resolveReceiveContact(
+      { ...source, phase, bufferedAction, time: source.time },
+      input,
+      players,
+    );
+  }
 
   if (
     source.rally.defenseKind === 'BLOCK' &&
@@ -786,9 +860,11 @@ export function stepV3Runtime(
     bufferedAction,
     lastEvent,
     forecast:
-      phase === 'DEFENSE_READ' || phase === 'RECEIVE_PREP'
-        ? forecastFor(nextTime, rally, source.seed, source.rallyIndex)
-        : null,
+      phase === 'SERVE_FLIGHT' && source.serve?.side === 'away'
+        ? serveForecastFor(nextTime, source.serve, source.seed, source.rallyIndex)
+        : phase === 'DEFENSE_READ' || phase === 'RECEIVE_PREP'
+          ? forecastFor(nextTime, rally, source.seed, source.rallyIndex)
+          : null,
     ball: source.ball,
   };
 
