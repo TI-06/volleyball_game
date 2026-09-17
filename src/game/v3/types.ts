@@ -11,6 +11,8 @@ export type V3TeamSide = 'home' | 'away';
 export type V3ContactQuality = 'PERFECT' | 'GOOD' | 'BAD' | 'MISS';
 
 export type V3RallyPhase =
+  | 'SERVE_READY'
+  | 'SERVE_FLIGHT'
   | 'DEFENSE_READ'
   | 'RECEIVE_PREP'
   | 'SET_BUILDUP'
